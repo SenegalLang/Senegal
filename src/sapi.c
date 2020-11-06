@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "includes/sapi.h"
 
-Constant assertApi(int arity, Constant *args) {
+Constant assertApi(VM* vm, int arity, Constant *args) {
   if (arity < 2) {
     printf("assert expected two arguments, but found  %d", arity);
     exit(1);
@@ -27,16 +27,16 @@ Constant assertApi(int arity, Constant *args) {
   }
 }
 
-Constant clockApi(int arity, Constant* args) {
+Constant clockApi(VM* vm, int arity, Constant* args) {
   return NUM_CONST((double)clock() / CLOCKS_PER_SEC);
 }
 
-Constant printApi(int arity, Constant* args) {
+Constant printApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);
 }
 
-Constant printLnApi(int arity, Constant* args) {
+Constant printLnApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);
 

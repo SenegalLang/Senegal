@@ -29,7 +29,9 @@ typedef struct {
     int upvalueCount;
 } GCFunction;
 
-typedef Constant (*NativeFunc)(int arity, Constant* args);
+typedef struct sVM VM;
+
+typedef Constant (*NativeFunc)(VM* vm, int arity, Constant* args);
 
 typedef struct {
     uint8_t index;
@@ -103,7 +105,7 @@ typedef struct {
     Constant* constants;
 } CallFrame;
 
-typedef struct {
+struct sVM {
     CallFrame frames[FRAMES_MAX];
     int frameCount;
 
@@ -126,7 +128,9 @@ typedef struct {
 
     // Class method names
     GCString* constructString;
-} VM;
+
+    GCClass* boolClass;
+};
 
 void initVM(VM* vm);
 

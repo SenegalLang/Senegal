@@ -7,6 +7,7 @@
 #include "includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
+#include "core/sboolCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -61,6 +62,20 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   pop(vm);
 }
 
+static void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &class->methods, AS_STRING(vm->stack[0]), vm->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
+
+static void initBoolClass(VM* vm) {
+  vm->boolClass = newClass(vm, copyString(vm, NULL, "bool", 4), false, false);
+  defineClassNativeFunc(vm, "toString", boolToString, vm->boolClass);
+}
+
 void initVM(VM* vm) {
   resetStack(vm);
 
@@ -81,6 +96,8 @@ void initVM(VM* vm) {
   defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
   defineNativeFunc(vm, "printLn", printLnApi);
+
+  initBoolClass(vm);
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -102,7 +119,7 @@ static void concatenateStrings(VM* vm) {
   GCString* newString = getString(vm, chars, length);
   pop(vm);
   pop(vm);
-  push(vm, GC_OBJ_CONST(newString));
+  push(vm,GC_OBJ_CONST(newString));
 }
 
 static bool call(VM* vm, GCClosure* closure, int arity) {
@@ -154,7 +171,7 @@ static bool callConstant(VM* vm,Constant callee, int arity) {
 
       case GC_NATIVE: {
         NativeFunc nativeFunc = AS_NATIVE(callee);
-        Constant result = nativeFunc(arity, vm->stackTop - arity);
+        Constant result = nativeFunc(vm, arity, vm->stackTop - arity);
 
         vm->stackTop -= arity + 1;
         push(vm, result);
@@ -242,6 +259,27 @@ static bool invoke(VM* vm, GCString* id, int arity) {
   Constant receiver = peek(vm, arity);
 
   if (!IS_INSTANCE(receiver)) {
+
+    if (IS_BOOL(receiver)) {
+      GCInstance* boolInstance = newInstance(vm, vm->boolClass);
+
+      Constant constant;
+      if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
+        vm->stackTop[-arity - 1] = constant;
+
+        push(vm, receiver);
+        NativeFunc nativeFunc = AS_NATIVE(constant);
+
+        Constant result = nativeFunc(vm, 1, vm->stackTop - 1);
+
+        vm->stackTop -= arity + 1;
+        push(vm, result);
+
+        return true;
+      }
+
+      return false;
+    }
     throwRuntimeError(vm, "Senegal only allows methods on instances.");
     return false;
   }
