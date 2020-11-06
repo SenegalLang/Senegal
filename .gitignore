@@ -1,0 +1,15 @@
+# IDE
+.idea/
+.vscode/
+.vs
+
+# CMake
+cmake-build-debug
+
+# make
+build/
+out/
+
+**/*.exe
+**/*.out
+**/*.o

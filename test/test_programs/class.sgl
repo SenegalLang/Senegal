@@ -1,0 +1,13 @@
+class Senegal {
+    function construct(name) {
+        this.name = name;
+    }
+
+    function foo() {}
+}
+
+var bird = Senegal("Mel");
+
+assert(bird.name, "Mel");
+
+printLn(bird.foo());

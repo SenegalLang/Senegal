@@ -1,0 +1,6 @@
+var tBool = true;
+var fBool = false;
+
+printLn(true == true);
+printLn(tBool == fBool);
+printLn(tBool && fBool);
