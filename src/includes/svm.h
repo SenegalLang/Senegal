@@ -131,6 +131,7 @@ struct sVM {
 
     GCClass* boolClass;
     GCClass* stringClass;
+    GCClass* numClass;
 };
 
 

@@ -1,0 +1,10 @@
+var infinity = 1/0;
+var neginfinity = -1/0;
+var nan = 0/0;
+
+println(3.type); // num
+println(infinity.isInfinite()); // true
+println(neginfinity.isInfinite()); // true
+println(nan.isNaN()); // true
+println(neginfinity.isNeg()); // true
+println(0/0); // -1.#IND

@@ -1,5 +1,5 @@
 for (var i = 0; i <= 11; i = i+1) {
     if (i == 9) continue;
 
-    printLn(i);
+    println(i);
 }

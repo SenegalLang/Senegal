@@ -1,10 +1,10 @@
 var tBool = true;
 var fBool = false;
 
-printLn("true == true: " + (true == true).toString()); // true
-printLn("tBool == fBool: " + (tBool == fBool).toString()); // false
-printLn("tBool && fBool: " + (tBool && fBool).toString()); // false
-printLn("tBool: " + tBool.toString()); // true
-printLn(tBool.asNum()); // 1
-printLn("tBool type: " + tBool.type); // bool
-printLn("tBool isEmpty: " + "Senegal".isEmpty().toString()); // false
+println("true == true: " + (true == true).toString()); // true
+println("tBool == fBool: " + (tBool == fBool).toString()); // false
+println("tBool && fBool: " + (tBool && fBool).toString()); // false
+println("tBool: " + tBool.toString()); // true
+println("tbool asNum: " + 14141414352523523223535.toString()); // 1
+println("tBool type: " + tBool.type); // bool
+println("tBool isEmpty: " + "Senegal".isEmpty().toString()); // false

@@ -10,4 +10,4 @@ var bird = Senegal("Mel");
 
 assert(bird.name, "Mel");
 
-printLn(bird.foo());
+println(bird.foo());

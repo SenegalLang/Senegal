@@ -9,6 +9,7 @@
 #include "includes/stable_utils.h"
 #include "core/sboolCore.h"
 #include "core/sstringCore.h"
+#include "core/snumCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -83,10 +84,11 @@ void initVM(VM* vm) {
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
-  defineNativeFunc(vm, "printLn", printLnApi);
+  defineNativeFunc(vm, "println", printlnApi);
 
   initBoolClass(vm);
   initStringClass(vm);
+  initNumClass(vm);
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -276,8 +278,21 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     return false;
   }
 
-  if (!IS_INSTANCE(receiver)) {
+  if (IS_NUMBER(receiver)) {
+    GCInstance* numInstance = newInstance(vm, vm->numClass);
 
+    Constant constant;
+    if (tableGetEntry(&numInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = constant;
+
+      vm->stackTop[-arity] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (!IS_INSTANCE(receiver)) {
     throwRuntimeError(vm, "Senegal only allows methods on instances.");
     return false;
   }
@@ -663,6 +678,20 @@ static InterpretationResult run(VM* vm) {
 
       Constant constant;
       if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_NUMBER(left)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->numClass->fields, id, &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);

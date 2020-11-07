@@ -11,6 +11,6 @@ void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* cla
 Constant assertApi(VM* vm, int arity, Constant* args);
 Constant clockApi(VM* vm, int arity, Constant* args);
 Constant printApi(VM* vm, int arity, Constant* args);
-Constant printLnApi(VM* vm, int arity, Constant* args);
+Constant printlnApi(VM* vm, int arity, Constant* args);
 
 #endif //SENEGAL_SAPI_H
