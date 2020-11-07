@@ -30,4 +30,4 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
       - name: Firebase deploy
-        run: firebase deploy --token ${{secrets.FIREBASE_TOKEN}} --project senegal
+        run: firebase deploy --token ${{secrets.FIREBASE_TOKEN}} --project lang-senegal

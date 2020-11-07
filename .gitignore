@@ -13,3 +13,6 @@ out/
 **/*.exe
 **/*.out
 **/*.o
+
+docs/node_modules/
+docs/build/
