@@ -1,0 +1,17 @@
+:root {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-darkest: rgb(24, 133, 38);
+  --ifm-color-primary-darker: rgb(22, 156, 39);
+  --ifm-color-primary-dark: rgb(24, 181, 44);
+  --ifm-color-primary-light: rgb(23, 235, 50);
+  --ifm-color-primary-lighter: rgb(66, 235, 87);
+  --ifm-color-primary-lightest: rgb(111, 242, 128);
+  --ifm-navbar-link-hover-color: rgb(24, 181, 44);
+  --ifm-link-hover-color: rgb(22, 156, 39);
+  --ifm-footer-background-color: rgb(24, 181, 44);
+  --ifm-code-font-size: 95%;
+}
+
+.footer {
+    background-color: rgb(38, 50, 56);
+}

@@ -1,0 +1,14 @@
+{
+  "unversionedId": "Contribute/style",
+  "id": "Contribute/style",
+  "isDocsHomePage": false,
+  "title": "Senegal Styling Guide",
+  "description": "Indentation",
+  "source": "@site/docs\\Contribute\\style.md",
+  "slug": "/",
+  "permalink": "/docs/",
+  "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/Contribute/style.md",
+  "version": "current",
+  "sidebar_label": "Style Guide",
+  "sidebar": "SenegalLang"
+}

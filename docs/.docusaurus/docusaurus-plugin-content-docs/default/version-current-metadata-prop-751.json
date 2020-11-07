@@ -1,0 +1,30 @@
+{
+  "version": "current",
+  "label": "Next ('deploy preview')",
+  "isLast": true,
+  "docsSidebars": {
+    "SenegalLang": [
+      {
+        "collapsed": true,
+        "type": "category",
+        "label": "Senegal Docs",
+        "items": []
+      },
+      {
+        "collapsed": true,
+        "type": "category",
+        "label": "Contribute",
+        "items": [
+          {
+            "type": "link",
+            "label": "Style Guide",
+            "href": "/docs/"
+          }
+        ]
+      }
+    ]
+  },
+  "permalinkToSidebar": {
+    "/docs/": "SenegalLang"
+  }
+}

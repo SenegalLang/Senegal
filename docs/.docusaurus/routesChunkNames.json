@@ -1,0 +1,26 @@
+{
+  "/-d7d": {
+    "component": "ece76bd1",
+    "config": "5e9f5e1a"
+  },
+  "/community-ee3": {
+    "component": "1be78505",
+    "versionMetadata": "d9c7e11f"
+  },
+  "/community/support-361": {
+    "component": "17896441",
+    "content": "f9fead57"
+  },
+  "/docs-873": {
+    "component": "1be78505",
+    "versionMetadata": "f976f453"
+  },
+  "/docs/-76a": {
+    "component": "17896441",
+    "content": "6d41329b"
+  },
+  "/docs/tour-446": {
+    "component": "17896441",
+    "content": "520233c7"
+  }
+}

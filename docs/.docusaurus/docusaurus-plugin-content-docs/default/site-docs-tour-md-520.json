@@ -1,0 +1,12 @@
+{
+  "unversionedId": "tour",
+  "id": "tour",
+  "isDocsHomePage": false,
+  "title": "tour",
+  "description": "",
+  "source": "@site/docs\\tour.md",
+  "slug": "/tour",
+  "permalink": "/docs/tour",
+  "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/tour.md",
+  "version": "current"
+}

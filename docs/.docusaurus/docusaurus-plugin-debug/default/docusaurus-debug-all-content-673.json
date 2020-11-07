@@ -1,0 +1,138 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "versionLabel": "Next ('deploy preview')",
+          "versionPath": "/docs",
+          "isLast": true,
+          "routePriority": -1,
+          "sidebarFilePath": "D:\\Projects\\Senegal\\docs\\sidebars.js",
+          "docsDirPath": "D:\\Projects\\Senegal\\docs\\docs",
+          "mainDocId": "Contribute/style",
+          "sidebars": {
+            "SenegalLang": [
+              {
+                "collapsed": true,
+                "type": "category",
+                "label": "Senegal Docs",
+                "items": []
+              },
+              {
+                "collapsed": true,
+                "type": "category",
+                "label": "Contribute",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "Contribute/style"
+                  }
+                ]
+              }
+            ]
+          },
+          "permalinkToSidebar": {
+            "/docs/": "SenegalLang"
+          },
+          "docs": [
+            {
+              "unversionedId": "Contribute/style",
+              "id": "Contribute/style",
+              "isDocsHomePage": false,
+              "title": "Senegal Styling Guide",
+              "description": "Indentation",
+              "source": "@site/docs\\Contribute\\style.md",
+              "slug": "/",
+              "permalink": "/docs/",
+              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/Contribute/style.md",
+              "version": "current",
+              "lastUpdatedAt": 1539502055,
+              "sidebar_label": "Style Guide",
+              "sidebar": "SenegalLang"
+            },
+            {
+              "unversionedId": "tour",
+              "id": "tour",
+              "isDocsHomePage": false,
+              "title": "tour",
+              "description": "",
+              "source": "@site/docs\\tour.md",
+              "slug": "/tour",
+              "permalink": "/docs/tour",
+              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/tour.md",
+              "version": "current",
+              "lastUpdatedAt": 1539502055
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "versionLabel": "Next",
+          "versionPath": "/community",
+          "isLast": true,
+          "routePriority": -1,
+          "sidebarFilePath": "D:\\Projects\\Senegal\\docs\\sidebarsCommunity.js",
+          "docsDirPath": "D:\\Projects\\Senegal\\docs\\community",
+          "mainDocId": "support",
+          "sidebars": {
+            "community": [
+              {
+                "type": "doc",
+                "id": "support"
+              }
+            ]
+          },
+          "permalinkToSidebar": {
+            "/community/support": "community"
+          },
+          "docs": [
+            {
+              "unversionedId": "support",
+              "id": "support",
+              "isDocsHomePage": false,
+              "title": "Support",
+              "description": "On this page, we've listed some communities you can join to engage with other Senegal developers",
+              "source": "@site/community\\support.md",
+              "slug": "/support",
+              "permalink": "/community/support",
+              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/community/support.md",
+              "version": "current",
+              "lastUpdatedBy": "Author",
+              "lastUpdatedAt": 1539502055,
+              "sidebar": "community"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "docusaurus-plugin-content-blog": {
+    "default": null
+  },
+  "docusaurus-plugin-content-pages": {
+    "default": [
+      {
+        "type": "jsx",
+        "permalink": "/",
+        "source": "@site/src\\pages\\index.js"
+      }
+    ]
+  },
+  "docusaurus-plugin-debug": {
+    "default": null
+  },
+  "docusaurus-theme-classic": {
+    "default": null
+  },
+  "@cmfcmf/docusaurus-search-local": {
+    "default": null
+  },
+  "docusaurus-theme-live-codeblock": {
+    "default": null
+  }
+}

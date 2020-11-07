@@ -1,0 +1,17 @@
+{
+  "version": "current",
+  "label": "Next",
+  "isLast": true,
+  "docsSidebars": {
+    "community": [
+      {
+        "type": "link",
+        "label": "Support",
+        "href": "/community/support"
+      }
+    ]
+  },
+  "permalinkToSidebar": {
+    "/community/support": "community"
+  }
+}

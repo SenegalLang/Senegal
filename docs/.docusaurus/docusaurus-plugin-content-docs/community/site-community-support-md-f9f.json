@@ -1,0 +1,13 @@
+{
+  "unversionedId": "support",
+  "id": "support",
+  "isDocsHomePage": false,
+  "title": "Support",
+  "description": "On this page, we've listed some communities you can join to engage with other Senegal developers",
+  "source": "@site/community\\support.md",
+  "slug": "/support",
+  "permalink": "/community/support",
+  "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/community/support.md",
+  "version": "current",
+  "sidebar": "community"
+}
