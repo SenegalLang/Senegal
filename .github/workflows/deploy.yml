@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - docs/**
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: docs
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Yarn Install
+        run: yarn install
+      - name: Yarn Build
+        run: yarn build
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+      - name: Firebase deploy
+        run: firebase deploy --token ${{secrets.FIREBASE_TOKEN}} --project senegal
