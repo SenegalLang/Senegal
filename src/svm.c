@@ -8,6 +8,7 @@
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 #include "core/sboolCore.h"
+#include "core/sstringCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -54,7 +55,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
   resetStack(vm);
 }
 
-static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
+static void  defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
   tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
@@ -62,19 +63,6 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   pop(vm);
 }
 
-static void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
-  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, AS_STRING(vm->stack[0]), vm->stack[1]);
-  pop(vm);
-  pop(vm);
-}
-
-
-static void initBoolClass(VM* vm) {
-  vm->boolClass = newClass(vm, copyString(vm, NULL, "bool", 4), false, false);
-  defineClassNativeFunc(vm, "toString", boolToString, vm->boolClass);
-}
 
 void initVM(VM* vm) {
   resetStack(vm);
@@ -98,6 +86,7 @@ void initVM(VM* vm) {
   defineNativeFunc(vm, "printLn", printLnApi);
 
   initBoolClass(vm);
+  initStringClass(vm);
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -256,30 +245,39 @@ static bool invokeFromClass(VM* vm, GCClass* class, GCString* id, int arity) {
 }
 
 static bool invoke(VM* vm, GCString* id, int arity) {
-  Constant receiver = peek(vm, arity);
+  register Constant receiver = peek(vm, arity);
+
+  if (IS_BOOL(receiver)) {
+    GCInstance* boolInstance = newInstance(vm, vm->boolClass);
+
+    Constant constant;
+    if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = constant;
+
+      // Possibly not a good idea, cant confirm under my current brainfog, recheck if any errors occur
+      vm->stackTop[-arity] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_STRING(receiver)) {
+    GCInstance* stringInstance = newInstance(vm, vm->stringClass);
+
+    Constant constant;
+    if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = constant;
+
+      vm->stackTop[-arity] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
 
   if (!IS_INSTANCE(receiver)) {
 
-    if (IS_BOOL(receiver)) {
-      GCInstance* boolInstance = newInstance(vm, vm->boolClass);
-
-      Constant constant;
-      if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
-        vm->stackTop[-arity - 1] = constant;
-
-        push(vm, receiver);
-        NativeFunc nativeFunc = AS_NATIVE(constant);
-
-        Constant result = nativeFunc(vm, 1, vm->stackTop - 1);
-
-        vm->stackTop -= arity + 1;
-        push(vm, result);
-
-        return true;
-      }
-
-      return false;
-    }
     throwRuntimeError(vm, "Senegal only allows methods on instances.");
     return false;
   }
@@ -643,12 +641,43 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_GETFIELD): {
-    if (!IS_INSTANCE(PEEK())) {
+
+    register Constant left = PEEK();
+
+    if (IS_BOOL(left)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->boolClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_STRING(left)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (!IS_INSTANCE(left)) {
       throwRuntimeError(vm, "Tried accessing fields of non-class instance objects");
       return RUNTIME_ERROR;
     }
 
-    GCInstance *instance = AS_INSTANCE(PEEK());
+    GCInstance *instance = AS_INSTANCE(left);
     GCString *id = READ_STRING();
 
     Constant constant;
@@ -1076,6 +1105,7 @@ GCClass* newClass(VM *vm, GCString *id, bool isFinal, bool isStrict) {
   class->isFinal = isFinal;
   class->isStrict = isStrict;
   initTable(&class->methods);
+  initTable(&class->fields);
 
   return class;
 }

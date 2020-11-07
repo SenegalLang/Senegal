@@ -162,6 +162,7 @@ static void markRoots(VM* vm, Compiler* compiler) {
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
   markGCObject(vm, (GCObject*)vm->constructString);
+  markGCObject(vm, (GCObject*)vm->boolClass);
 }
 
 static void markArray(VM* vm, ConstantPool* cp) {

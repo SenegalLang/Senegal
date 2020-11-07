@@ -1,6 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "includes/sapi.h"
+#include "includes/stable_utils.h"
+#include "includes/sparser.h"
+
+void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &class->methods, AS_STRING(vm->stack[0]), vm->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
+void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  tableInsert(vm, &class->fields, AS_STRING(vm->stack[0]), field);
+  pop(vm);
+}
 
 Constant assertApi(VM* vm, int arity, Constant *args) {
   if (arity < 2) {

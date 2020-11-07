@@ -130,7 +130,9 @@ struct sVM {
     GCString* constructString;
 
     GCClass* boolClass;
+    GCClass* stringClass;
 };
+
 
 void initVM(VM* vm);
 

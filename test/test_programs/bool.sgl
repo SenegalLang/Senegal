@@ -1,9 +1,10 @@
 var tBool = true;
 var fBool = false;
 
-var stringBool = tBool.toString();
-
-printLn(true == true); // true
-printLn(tBool == fBool); // false
-printLn(tBool && fBool); // false
-printLn(stringBool); // true
+printLn("true == true: " + (true == true).toString()); // true
+printLn("tBool == fBool: " + (tBool == fBool).toString()); // false
+printLn("tBool && fBool: " + (tBool && fBool).toString()); // false
+printLn("tBool: " + tBool.toString()); // true
+printLn(tBool.asNum()); // 1
+printLn("tBool type: " + tBool.type); // bool
+printLn("tBool isEmpty: " + "Senegal".isEmpty().toString()); // false
