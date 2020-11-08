@@ -7,8 +7,9 @@
 
 static void repl(VM* vm) {
   char line[1024];
-  for (;;) {
-    printf(">");
+  
+  while (true) {
+    printf("> ");
 
     if (!fgets(line, sizeof(line), stdin)) {
       printf("\n");
