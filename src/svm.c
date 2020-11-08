@@ -599,6 +599,41 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
+    CASE(OPCODE_NEWMAP):
+    {
+      int arity = READ_BYTE();;
+
+      GCMap* map = newMap(vm);
+      for (int i = 0; i < arity; i++) {
+        Constant value = POP();
+        GCString* key = AS_STRING(POP());
+
+        tableInsert(vm, &map->table, key, value);
+      }
+
+
+      PUSH(GC_OBJ_CONST(map));
+      DISPATCH();
+    }
+
+    CASE(OPCODE_ACCESS):
+    {
+      if (IS_MAP(PEEK2())) {
+        GCString* key = AS_STRING(POP());
+        GCMap* map = AS_MAP(POP());
+
+        Constant c;
+        if (!tableGetEntry(&map->table, key, &c)) {
+          throwRuntimeError(vm, "Map entry `%s` was not found", key->chars);
+          return RUNTIME_ERROR;
+        }
+
+        PUSH(c);
+      }
+
+      DISPATCH();
+    }
+
     CASE(OPCODE_NEWCLASS):
     {
       Constant c = GC_OBJ_CONST(newClass(vm, READ_STRING(), false, false));
@@ -1205,4 +1240,11 @@ GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
   upvalue->next = NULL;
 
   return upvalue;
+}
+
+GCMap* newMap(VM *vm) {
+  GCMap* map = ALLOCATE_GC_OBJ(vm, GCMap, GC_MAP);
+  initTable(&map->table);
+
+  return map;
 }

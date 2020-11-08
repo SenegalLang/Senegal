@@ -16,8 +16,10 @@ static void markInitialized(Compiler* compiler);
 ParseRule rules[] = {
     [LPAREN] = {parseGroup, parseFunctionCall, CALL},
     [RPAREN] = {NULL, NULL, NONE},
-    [LBRACE] = {NULL, NULL, NONE},
+    [LBRACE] = {parseMap, NULL, NONE},
     [RBRACE] = {NULL, NULL, NONE},
+    [LBRACKET] = {NULL, parseAccess, CALL},
+    [RBRACKET] = {NULL, NULL, NONE},
     [COMMA] = {NULL, NULL, NONE},
     [COLON] = {NULL, NULL, NONE},
     [CASE] = {NULL, NULL, NONE},
@@ -592,6 +594,12 @@ static void patchJMP(Parser* parser, Instructions* i, int offset) {
 }
 
 // == Tokens ==
+void parseAccess(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+  consume(parser, lexer, RBRACKET, "Senegal expected access to be closed by `]`");
+  writeByte(vm, parser, i, OPCODE_ACCESS);
+}
+
 void parseAnd(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   int endJMP = writeJMP(vm, parser, i, OPCODE_JF);
 
@@ -744,6 +752,26 @@ void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc,
     default:
       return;
   }
+}
+
+void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+
+  if (match(parser, lexer, RBRACE))
+    writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newMap(vm)));
+
+  uint8_t entryCount = 0;
+  do {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    if (!match(parser, lexer, COLON))
+      error(parser, &parser->previous, "Senegal expected `:` after map key");
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+
+    entryCount++;
+  } while (match(parser, lexer, COMMA));
+
+  consume(parser, lexer, RBRACE, "Senegal expected map to be closed with `}`");
+
+  writeTwoBytes(vm, parser, i, OPCODE_NEWMAP, entryCount);
 }
 
 void parseNumber(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
@@ -1076,7 +1104,7 @@ static GCString* allocateString(VM* vm, char* chars, int length, uint32_t hash) 
   return string;
 }
 
-// TODO(calamity): allow keys of other types
+// TODO(calamity): use this when we allow keys of other types
 static uint32_t hashDouble(double constant) {
   union BitCast {
       double constant;
