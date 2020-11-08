@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <float.h>
+#include <math.h>
 #include "snumCore.h"
 #include "../includes/sparser.h"
 #include "../includes/sapi.h"
 
-#define NAN (0.0 / 0.0)
-#define INFINITY (1.0 / 0.0)
+//#define NAN (0.0 / 0.0)
+//#define INFINITY (1.0 / 0.0)
 #define NEGATIVE_INFINITY (-1.0 / 0.0)
 #define MAX_FINITE 1.7976931348623157e+308
 #define MIN_POSITIVE 5e-324
@@ -37,6 +38,32 @@ static Constant numIsNeg(VM* vm, int arity, Constant* args) {
   return BOOL_CONST(AS_NUMBER(args[0]) < 0);
 }
 
+static Constant numAbs(VM* vm, int arity, Constant* args) {
+  return NUM_CONST(fabs(AS_NUMBER(args[0])));
+}
+
+static Constant numCeil(VM* vm, int arity, Constant* args) {
+  return NUM_CONST(ceil(AS_NUMBER(args[0])));
+}
+
+static Constant numClamp(VM* vm, int arity, Constant* args) {
+  double num = AS_NUMBER(args[0]);
+  double upperbound = AS_NUMBER(args[1]);
+  double lowerbound = AS_NUMBER(args[2]);
+
+  if (num < lowerbound)
+    return NUM_CONST(lowerbound);
+  else if (num > upperbound)
+    return NUM_CONST(upperbound);
+
+  return NUM_CONST(num);
+}
+
+
+static Constant numFloor(VM* vm, int arity, Constant* args) {
+  return NUM_CONST(floor(AS_NUMBER(args[0])));
+}
+
 void initNumClass(VM *vm) {
   vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), false, false);
   defineClassNativeFunc(vm, "isFinite", numIsFinite, vm->numClass);
@@ -44,6 +71,11 @@ void initNumClass(VM *vm) {
   defineClassNativeFunc(vm, "toString", numToString, vm->numClass);
   defineClassNativeFunc(vm, "isNaN", numIsNan, vm->numClass);
   defineClassNativeFunc(vm, "isNeg", numIsNeg, vm->numClass);
+
+  defineClassNativeFunc(vm, "abs", numAbs, vm->numClass);
+  defineClassNativeFunc(vm, "ceil", numCeil, vm->numClass);
+  defineClassNativeFunc(vm, "clamp", numClamp, vm->numClass);
+  defineClassNativeFunc(vm, "floor", numFloor, vm->numClass);
 
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "num", 3)), vm->numClass);
   defineClassNativeField(vm, "nan", NUM_CONST(NAN), vm->numClass);

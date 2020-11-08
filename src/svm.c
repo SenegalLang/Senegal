@@ -98,6 +98,8 @@ void initVM(VM* vm) {
   initStringClass(vm);
   initNumClass(vm);
 
+  defineNativeInstance(vm, "bool", vm->boolClass);
+  defineNativeInstance(vm, "String", vm->stringClass);
   defineNativeInstance(vm, "num", vm->numClass);
 }
 
@@ -669,7 +671,7 @@ static InterpretationResult run(VM* vm) {
 
     register Constant left = PEEK();
 
-    if (IS_BOOL(left)) {
+    if (IS_BOOL(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "bool", 4) == 0)) {
       GCString *id = READ_STRING();
 
       Constant constant;
@@ -683,7 +685,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_STRING(left)) {
+    if (IS_STRING(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "String", 6) == 0)) {
       GCString *id = READ_STRING();
 
       Constant constant;
