@@ -56,9 +56,17 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
   resetStack(vm);
 }
 
-static void  defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
+static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
+static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newInstance(vm, class)));
   tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
   pop(vm);
   pop(vm);
@@ -89,6 +97,8 @@ void initVM(VM* vm) {
   initBoolClass(vm);
   initStringClass(vm);
   initNumClass(vm);
+
+  defineNativeInstance(vm, "num", vm->numClass);
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -639,7 +649,7 @@ static InterpretationResult run(VM* vm) {
     GCString *key = READ_STRING();
 
     Constant constant1;
-    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1)) {
+    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != vm->constructString) {
       throwRuntimeError(vm, "Senegal cannot insert fields in a strict class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
@@ -687,7 +697,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_NUMBER(left)) {
+    if (IS_NUMBER(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "num", 3) == 0)) {
       GCString *id = READ_STRING();
 
       Constant constant;

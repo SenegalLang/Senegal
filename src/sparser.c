@@ -458,12 +458,10 @@ static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, C
 
   FunctionType type = METHOD;
 
-  if (parser->previous.length == 9 && memcmp(parser->previous.start, "construct", 9) == 0) {
+  if (parser->previous.length == 9 && memcmp(parser->previous.start, "construct", 9) == 0)
     type = CONSTRUCTOR;
-  }
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
-
   writeTwoBytes(vm, parser, i, OPCODE_METHOD, constant);
 }
 
@@ -708,19 +706,14 @@ void parseFunctionCall(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler
     writeByte(vm, parser, i, OPCODE_CALL3);
   else if (arity == 4)
     writeByte(vm, parser, i, OPCODE_CALL4);
-
   else if (arity == 5)
     writeByte(vm, parser, i, OPCODE_CALL5);
-
   else if (arity == 6)
     writeByte(vm, parser, i, OPCODE_CALL6);
-
   else if (arity == 7)
     writeByte(vm, parser, i, OPCODE_CALL7);
-
   else if (arity == 8)
     writeByte(vm, parser, i, OPCODE_CALL8);
-
   else
     writeTwoBytes(vm, parser, i, OPCODE_CALL, arity);
 }
