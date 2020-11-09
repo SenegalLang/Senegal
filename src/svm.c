@@ -10,6 +10,7 @@
 #include "core/sboolCore.h"
 #include "core/sstringCore.h"
 #include "core/snumCore.h"
+#include "core/smapCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -96,11 +97,13 @@ void initVM(VM* vm) {
 
   initBoolClass(vm);
   initStringClass(vm);
+  initMapClass(vm);
   initNumClass(vm);
 
   defineNativeInstance(vm, "bool", vm->boolClass);
-  defineNativeInstance(vm, "String", vm->stringClass);
+  defineNativeInstance(vm, "Map", vm->mapClass);
   defineNativeInstance(vm, "num", vm->numClass);
+  defineNativeInstance(vm, "String", vm->stringClass);
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -281,6 +284,20 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = constant;
+
+      vm->stackTop[-arity] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_MAP(receiver)) {
+    GCInstance* mapInstance = newInstance(vm, vm->mapClass);
+
+    Constant constant;
+    if (tableGetEntry(&mapInstance->class->methods, id, &constant)) {
       vm->stackTop[-arity - 1] = constant;
 
       vm->stackTop[-arity] = receiver;
@@ -660,6 +677,11 @@ static InterpretationResult run(VM* vm) {
     if (IS_CLASS(PEEK())) {
       GCClass *class = AS_CLASS(PEEK2());
 
+      if (class->isFinal && frame->closure->function->id != vm->constructString) {
+        throwRuntimeError(vm, "Cannot mutate fields of a final class");
+        return RUNTIME_ERROR;
+      }
+
       tableInsert(vm, &class->fields, READ_STRING(), PEEK());
 
       Constant constant = POP();
@@ -678,7 +700,7 @@ static InterpretationResult run(VM* vm) {
 
     GCInstance *instance = AS_INSTANCE(PEEK2());
 
-    if (instance->class->isFinal) {
+    if (instance->class->isFinal && frame->closure->function->id != vm->constructString) {
       throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
@@ -725,6 +747,20 @@ static InterpretationResult run(VM* vm) {
 
       Constant constant;
       if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_MAP(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "Map", 3) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->mapClass->fields, id, &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);

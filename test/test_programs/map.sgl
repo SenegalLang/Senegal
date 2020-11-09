@@ -1,7 +1,11 @@
 var senegal = {
 "name": "Mel",
-"age": 21
+"age": 21,
+"ag": 1
 };
-
+senegal["name"] = 5; // TODO: ALLOW
 println(senegal["name"]); // Mel
 println(senegal["age"]); // 21
+println(senegal.isEmpty()); // false
+println(senegal.isNotEmpty()); // true
+println(senegal.length()); // 2

@@ -137,8 +137,9 @@ struct sVM {
     GCString* constructString;
 
     GCClass* boolClass;
-    GCClass* stringClass;
+    GCClass* mapClass;
     GCClass* numClass;
+    GCClass* stringClass;
 };
 
 
