@@ -651,6 +651,21 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
+
+    CASE(OPCODE_SETACCESS):
+    {
+        Constant newValue = POP();
+
+      if (IS_MAP(PEEK2())) {
+        GCString* key = AS_STRING(POP());
+        GCMap* map = AS_MAP(POP());
+
+        tableInsert(vm, &map->table, key, newValue);
+      }
+
+      DISPATCH();
+    }
+
     CASE(OPCODE_NEWCLASS):
     {
       Constant c = GC_OBJ_CONST(newClass(vm, READ_STRING(), false, false));

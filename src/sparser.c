@@ -597,6 +597,13 @@ static void patchJMP(Parser* parser, Instructions* i, int offset) {
 void parseAccess(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   parseExpression(vm, parser, compiler, cc, lexer, i);
   consume(parser, lexer, RBRACKET, "Senegal expected access to be closed by `]`");
+
+  if (match(parser, lexer, EQUAL)) {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    writeByte(vm, parser, i, OPCODE_SETACCESS);
+    return;
+  }
+
   writeByte(vm, parser, i, OPCODE_ACCESS);
 }
 
