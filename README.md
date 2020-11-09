@@ -2,8 +2,7 @@
 <h1 align="center">Senegal</h1>
 
 # Contribution
-  (WIP)
 - Join the discord - https://discord.gg/9dq6YB2
 
 # Docs
-Coming soon
+https://lang-senegal.web.app/
