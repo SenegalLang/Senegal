@@ -18,17 +18,18 @@ void error(Parser* parser, Token* token, const char* message) {
 
   parser->panic = true;
 
-  fprintf(stderr, "<Line %d Error:", token->line);
+  fprintf(stderr, "\033[1;31merror: \033[0m%s\n  \033[1;34m--> \033[0mLine %d", message, token->line);
 
   if (token->type == SENEGAL_EOF) {
-    fprintf(stderr, "EOF>");
+    fprintf(stderr, " ( EOF )");
   } else if (token->type == ERROR) {
     // Nothing.
   } else {
-    fprintf(stderr, "%.*s>", token->length, token->start);
+    fprintf(stderr, " ( %.*s )", token->length, token->start);
   }
 
-  fprintf(stderr, " `%s`\n", message);
+  fprintf(stderr, "\n\n  %d | %s\n", token->line, token->start);
+
   parser->hasError = true;
 }
 
