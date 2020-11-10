@@ -64,6 +64,7 @@ bool match(Parser* parser, Lexer* lexer, TokenType type);
 
 void parseExpression(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i);
 void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i);
+void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i);
 void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i);
 void parsePrecedence(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Precedence precedence, Instructions* i);
 

@@ -157,6 +157,35 @@ GCFunction* compile(VM* vm, Compiler* compiler, const char *source) {
 
   advance(&parser, &lexer);
 
+  while (match(&parser, &lexer, IMPORT)) {
+    consume(&parser, &lexer, STRING, "Senegal expected a path to import");
+    char* importSource = readFile(copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars);
+    interpretImport(vm, importSource);
+  }
+
+  while (!match(&parser, &lexer, SENEGAL_EOF))
+    parseDeclarationOrStatement(vm, compiler, cc, &parser, &lexer, &compiler->function->instructions);
+
+  consume(&parser, &lexer, SENEGAL_EOF, "Senegal expected end of expression");
+
+  GCFunction* function = endCompilation(vm, compiler, &parser, &compiler->function->instructions);
+
+  return parser.hasError ? NULL : function;
+}
+
+GCFunction* compileImport(VM* vm, Compiler* compiler, const char *source) {
+  Lexer lexer;
+  initLexer(&lexer, source);
+
+  Parser parser;
+  initParser(&parser);
+
+  ClassCompiler* cc = NULL;
+
+  initCompiler(vm, &parser, NULL, compiler, PROGRAM);
+
+  advance(&parser, &lexer);
+
   while (!match(&parser, &lexer, SENEGAL_EOF))
     parseDeclaration(vm, compiler, cc, &parser, &lexer, &compiler->function->instructions);
 

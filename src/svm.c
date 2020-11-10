@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <io.h>
+#include <limits.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -1203,6 +1205,25 @@ InterpretationResult interpret(VM* vm, const char* source) {
 
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source);
+
+  if (function == NULL)
+    return COMPILE_TIME_ERROR;
+
+  push(vm, GC_OBJ_CONST(function));
+
+  GCClosure* closure = newClosure(vm, function);
+  pop(vm);
+  push(vm, GC_OBJ_CONST(closure));
+
+  callConstant(vm, GC_OBJ_CONST(closure), 0);
+
+  return run(vm);
+}
+
+InterpretationResult interpretImport(VM *vm, const char *source) {
+
+  Compiler compiler;
+  GCFunction* function = compileImport(vm, &compiler, source);
 
   if (function == NULL)
     return COMPILE_TIME_ERROR;

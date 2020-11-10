@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include "includes/sparser.h"
 #include "includes/smemory.h"
 #include "includes/scompiler.h"
@@ -277,7 +276,7 @@ static void endScope(VM* vm, Parser* parser, Compiler* compiler, Instructions* i
 
 static void parseBlock(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
   while (!check(parser, RBRACE) && !check(parser, SENEGAL_EOF)) {
-    parseDeclaration(vm, compiler, cc, parser, lexer, i);
+    parseDeclarationOrStatement(vm, compiler, cc, parser, lexer, i);
   }
 
   consume(parser, lexer, RBRACE, "Senegal expected block to be closed with `}`");
@@ -554,6 +553,27 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 }
 
 void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
+
+  bool isFinal = match(parser, lexer, FINAL);
+  bool isStrict = false;
+
+  if (!isFinal)
+    isStrict = match(parser, lexer, STRICT);
+
+  if (match(parser, lexer, CLASS))
+    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal, isStrict);
+  else if (match(parser, lexer, FUNCTION))
+    parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
+  else if (match(parser, lexer, VAR))
+    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+  else
+    advance(parser, lexer);
+
+  if (parser->panic)
+    sync(parser, lexer);
+}
+
+void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
   bool isFinal = match(parser, lexer, FINAL);
   bool isStrict = false;

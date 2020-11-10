@@ -183,7 +183,15 @@ static TokenType idToken(Lexer* lexer) {
       break;
 
     case 'i':
-      return collectKeyword(lexer, 1, 1, "f", IF);
+      if (lexer->current - lexer->start > 1) {
+        switch (lexer->start[1]) {
+          case 'f':
+            return collectKeyword(lexer, 2, 0, "", IF);
+
+          case 'm':
+            return collectKeyword(lexer, 2, 4, "port", IMPORT);
+        }
+      }
 
     case 'n':
       return collectKeyword(lexer, 1, 3, "ull", SENEGAL_NULL);

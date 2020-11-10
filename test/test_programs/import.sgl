@@ -1,0 +1,7 @@
+import "../test/test_programs/bool.sgl"
+import "../test/test_programs/class.sgl"
+
+var senegal = Senegal("Foo");
+
+println(senegal.name);
+println(tBool);

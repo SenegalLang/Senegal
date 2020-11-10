@@ -14,4 +14,6 @@
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
+char* readFile(const char* path);
+
 #endif //SENEGAL_SUTILS_H

@@ -146,6 +146,7 @@ struct sVM {
 void initVM(VM* vm);
 
 InterpretationResult interpret(VM* vm, const char* source);
+InterpretationResult interpretImport(VM *vm, const char *source);
 
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);
