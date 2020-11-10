@@ -47,9 +47,9 @@ static Constant numCeil(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numClamp(VM* vm, int arity, Constant* args) {
-  double num = AS_NUMBER(args[0]);
-  double upperbound = AS_NUMBER(args[1]);
-  double lowerbound = AS_NUMBER(args[2]);
+  double num = AS_NUMBER(args[-1]);
+  double upperbound = AS_NUMBER(args[0]);
+  double lowerbound = AS_NUMBER(args[1]);
 
   if (num < lowerbound)
     return NUM_CONST(lowerbound);
@@ -59,9 +59,31 @@ static Constant numClamp(VM* vm, int arity, Constant* args) {
   return NUM_CONST(num);
 }
 
+static Constant numCompareTo(VM* vm, int arity, Constant* args) {
+  double num = AS_NUMBER(args[-1]);
+  double other = AS_NUMBER(args[0]);
+
+  if (num < other)
+    return -1;
+  else if (num > other)
+    return 1;
+
+  return 0;
+}
 
 static Constant numFloor(VM* vm, int arity, Constant* args) {
   return NUM_CONST(floor(AS_NUMBER(args[0])));
+}
+
+static Constant numRemainder(VM* vm, int arity, Constant* args) {
+  double num = AS_NUMBER(args[-1]);
+  double other = AS_NUMBER(args[0]);
+
+  double quotient = other / num;
+
+  double remainder = other - num * floor(quotient);
+
+  return NUM_CONST(remainder);
 }
 
 void initNumClass(VM *vm) {
@@ -75,7 +97,9 @@ void initNumClass(VM *vm) {
   defineClassNativeFunc(vm, "abs", numAbs, vm->numClass);
   defineClassNativeFunc(vm, "ceil", numCeil, vm->numClass);
   defineClassNativeFunc(vm, "clamp", numClamp, vm->numClass);
+  defineClassNativeFunc(vm, "compareTo", numCompareTo, vm->numClass);
   defineClassNativeFunc(vm, "floor", numFloor, vm->numClass);
+  defineClassNativeFunc(vm, "remainder", numRemainder, vm->numClass);
 
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "num", 3)), vm->numClass);
   defineClassNativeField(vm, "nan", NUM_CONST(NAN), vm->numClass);
