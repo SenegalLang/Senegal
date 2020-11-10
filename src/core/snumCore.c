@@ -48,8 +48,8 @@ static Constant numCeil(VM* vm, int arity, Constant* args) {
 
 static Constant numClamp(VM* vm, int arity, Constant* args) {
   double num = AS_NUMBER(args[-1]);
-  double upperbound = AS_NUMBER(args[0]);
-  double lowerbound = AS_NUMBER(args[1]);
+  double lowerbound = AS_NUMBER(args[0]);
+  double upperbound = AS_NUMBER(args[1]);
 
   if (num < lowerbound)
     return NUM_CONST(lowerbound);

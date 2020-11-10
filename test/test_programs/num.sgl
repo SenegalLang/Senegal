@@ -2,9 +2,14 @@ var infinity = 1/0;
 var neginfinity = -1/0;
 var nan = 0/0;
 
+var remainder = 3.remainder(5);
+
 println(3.type); // num
 println(infinity.isInfinite()); // true
 println(neginfinity.isInfinite()); // true
 println(nan.isNaN()); // true
 println(neginfinity.isNeg()); // true
 println(0/0); // -1.#IND
+
+println(remainder); // 2
+println(5.clamp(0, 4)); // 4

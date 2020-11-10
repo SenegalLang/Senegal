@@ -96,6 +96,7 @@ void printConstant(Constant constant);
 typedef enum {
     GC_CLASS,
     GC_CLOSURE,
+    GC_COROUTINE,
     GC_FUNCTION,
     GC_INSTANCE,
     GC_INSTANCE_METHOD,

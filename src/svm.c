@@ -271,10 +271,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
-
-      // Possibly not a good idea, cant confirm under my current brainfog, recheck if any errors occur
-      vm->stackTop[-arity] = receiver;
+      vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -286,9 +283,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
-
-      vm->stackTop[-arity] = receiver;
+      vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -300,9 +295,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&mapInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
-
-      vm->stackTop[-arity] = receiver;
+      vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -314,9 +307,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&numInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
-
-      vm->stackTop[-arity] = receiver;
+      vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -656,7 +647,7 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_SETACCESS):
     {
-        Constant newValue = POP();
+      Constant newValue = POP();
 
       if (IS_MAP(PEEK2())) {
         GCString* key = AS_STRING(POP());
