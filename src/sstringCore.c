@@ -1,6 +1,6 @@
-#include "sstringCore.h"
-#include "../includes/sparser.h"
-#include "../includes/sapi.h"
+#include "includes/sstringCore.h"
+#include "includes/sparser.h"
+#include "includes/sapi.h"
 
 static Constant stringIsEmpty(VM* vm, int arity, Constant *args) {
   return BOOL_CONST(AS_STRING(args[0])->chars[0] == '\0');

@@ -9,10 +9,10 @@
 #include "includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
-#include "core/sboolCore.h"
-#include "core/sstringCore.h"
-#include "core/snumCore.h"
-#include "core/smapCore.h"
+#include "includes/sboolCore.h"
+#include "includes/sstringCore.h"
+#include "includes/snumCore.h"
+#include "includes/smapCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"

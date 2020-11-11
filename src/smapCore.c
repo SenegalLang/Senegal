@@ -1,6 +1,6 @@
-#include "smapCore.h"
-#include "../includes/sparser.h"
-#include "../includes/sapi.h"
+#include "includes/smapCore.h"
+#include "includes/sparser.h"
+#include "includes/sapi.h"
 
 static Constant mapIsEmpty(VM* vm, int arity, Constant* args) {
   return BOOL_CONST(AS_MAP(args[0])->table.count == 0);

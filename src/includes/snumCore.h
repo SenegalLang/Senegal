@@ -1,7 +1,7 @@
 #ifndef SENEGAL_SNUMCORE_H
 #define SENEGAL_SNUMCORE_H
 
-#include "../includes/svm.h"
+#include "svm.h"
 
 void initNumClass(VM* vm);
 

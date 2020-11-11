@@ -19,7 +19,7 @@ void error(Parser* parser, Token* token, const char* message);
 uint8_t newConstant(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, Constant c);
 
 void writeByte(VM* vm, Parser* parser, Instructions* instructions, uint8_t byte);
-void writeTwoBytes(VM* vm, Parser* p, Instructions* i, uint8_t byte1, uint8_t byte2);
+void writeShort(VM* vm, Parser* p, Instructions* i, uint8_t byte1, uint8_t byte2);
 void writeLoad(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, Constant c);
 void writeRetByte(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions);
 

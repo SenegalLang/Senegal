@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
-#include "snumCore.h"
-#include "../includes/sparser.h"
-#include "../includes/sapi.h"
+#include "includes/snumCore.h"
+#include "includes/sparser.h"
+#include "includes/sapi.h"
 
 //#define NAN (0.0 / 0.0)
 //#define INFINITY (1.0 / 0.0)

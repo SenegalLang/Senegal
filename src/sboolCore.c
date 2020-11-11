@@ -1,6 +1,6 @@
-#include "sboolCore.h"
-#include "../includes/sparser.h"
-#include "../includes/sapi.h"
+#include "includes/sboolCore.h"
+#include "includes/sparser.h"
+#include "includes/sapi.h"
 
 static Constant boolAsNum(VM* vm, int arity, Constant *args) {
   return NUM_CONST(AS_BOOL(args[0]) ? 1 : 0);
