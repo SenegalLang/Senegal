@@ -1192,7 +1192,7 @@ static InterpretationResult run(VM* vm) {
 }
 
 
-InterpretationResult interpret(VM* vm, const char* source) {
+InterpretationResult interpret(VM* vm, char* source) {
 
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source);
@@ -1211,7 +1211,7 @@ InterpretationResult interpret(VM* vm, const char* source) {
   return run(vm);
 }
 
-InterpretationResult interpretImport(VM *vm, const char *source) {
+InterpretationResult interpretImport(VM *vm, char *source) {
 
   Compiler compiler;
   GCFunction* function = compileImport(vm, &compiler, source);

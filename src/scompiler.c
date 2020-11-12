@@ -156,7 +156,7 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
 }
 
 
-GCFunction* compile(VM* vm, Compiler* compiler, const char *source) {
+GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
   Lexer lexer;
   initLexer(&lexer, source);
 
@@ -205,7 +205,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, const char *source) {
   return parser.hasError ? NULL : function;
 }
 
-GCFunction* compileImport(VM* vm, Compiler* compiler, const char *source) {
+GCFunction* compileImport(VM* vm, Compiler* compiler, char *source) {
   Lexer lexer;
   initLexer(&lexer, source);
 

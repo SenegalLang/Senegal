@@ -33,13 +33,13 @@ typedef struct {
 } Token;
 
 typedef struct {
-    const char* start;
-    const char* current;
+    char* start;
+    char* current;
     int line;
 } Lexer;
 
 
-void initLexer(Lexer* lexer, const char* source);
+void initLexer(Lexer* lexer, char* source);
 Token getNextToken(Lexer* lexer);
 
 #endif //SENEGAL_SLEXER_H

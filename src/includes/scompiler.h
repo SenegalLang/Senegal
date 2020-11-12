@@ -7,8 +7,8 @@
 void initCompiler(VM* vm, Parser* parser, Compiler* old, Compiler* compiler, FunctionType type);
 GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions);
 
-GCFunction* compile(VM* vm, Compiler* compiler, const char* source);
-GCFunction* compileImport(VM* vm, Compiler* compiler, const char* source);
+GCFunction* compile(VM* vm, Compiler* compiler, char* source);
+GCFunction* compileImport(VM* vm, Compiler* compiler, char* source);
 void markCompilerRoots(VM* vm, Compiler* compiler);
 
 void advance(Parser* parser, Lexer* lexer);

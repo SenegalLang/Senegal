@@ -1,21 +1,15 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
 
 #include "includes/sutils.h"
 #include "includes/slexer.h"
 
-void initLexer(Lexer* lexer, const char *source) {
+void initLexer(Lexer* lexer, char *source) {
   lexer->start = source;
   lexer->current = source;
   lexer->line = 1;
-}
-
-static bool isAlpha(char c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-static bool isDigit(char c) {
-  return c >= '0' && c <= '9';
 }
 
 static bool isAtEnd(Lexer* lexer) {
@@ -64,6 +58,13 @@ static Token errorToken(Lexer* lexer, const char* message) {
   token.line = lexer->line;
 
   return token;
+}
+
+static void removeNextCharFromSource(Lexer* lexer, int index) {
+  int length = (int)(lexer->current - lexer->start);
+  removeCharFromIndex(lexer->start, lexer->start, length + index);
+  lexer->current = lexer->start;
+  lexer->current += length;
 }
 
 static void skipWhitespaceAndComment(Lexer* lexer) {
@@ -241,7 +242,7 @@ static TokenType idToken(Lexer* lexer) {
 static Token collectId(Lexer* lexer) {
   char c = peek(lexer);
 
-  while (isAlpha(c) || isDigit(c) || c == '_') {
+  while (isalpha(c) || isdigit(c) || c == '_') {
     advance(lexer);
     c = peek(lexer);
   }
@@ -250,17 +251,50 @@ static Token collectId(Lexer* lexer) {
 }
 
 static Token collectNumber(Lexer* lexer) {
-  while (isDigit(peek(lexer)))
+  while (isdigit(peek(lexer)))
     advance(lexer);
 
-  if (peek(lexer) == '.' && isDigit(peekNext(lexer))) {
+  if (peek(lexer) == '.' && isdigit(peekNext(lexer))) {
     advance(lexer);
 
-    while (isDigit(peek(lexer)))
+    while (isdigit(peek(lexer)))
       advance(lexer);
   }
 
   return newToken(lexer, NUMBER);
+}
+
+static int readHexDigit(Lexer* lexer) {
+  char c = peekNext(lexer);
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+
+  return -1;
+}
+
+static int readHexEscape(Lexer* lexer, int digits) {
+  int value = 0;
+  for (int i = 0; i < digits; i++)
+  {
+    if (peekNext(lexer) == '"' || peekNext(lexer) == '\0')
+    {
+      printf("Invalid senegal escape sequence.");
+      lexer->current--;
+      break;
+    }
+
+    unsigned int digit = readHexDigit(lexer);
+    if (digit == -1)
+    {
+      printf("Invalid senegal escape sequence.");
+      break;
+    }
+
+    value = (value * 16) | digit;
+  }
+
+  return value;
 }
 
 static Token collectString(Lexer* lexer) {
@@ -280,6 +314,59 @@ static Token collectString(Lexer* lexer) {
 
     if (c == '$' && peekNext(lexer) == '{')
       type = INTERPOLATION;
+
+    if (c == '\\') {
+
+      switch (peekNext(lexer)) {
+
+        case '0':
+          lexer->current[0] = '\0';
+          advance(lexer);
+          break;
+
+        case 'a':
+          lexer->current[0] = '\a';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'b':
+          lexer->current[0] = '\b';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'f':
+          lexer->current[0] = '\f';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'n':
+          lexer->current[0] = '\n';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'r':
+          lexer->current[0] = '\r';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 't':
+          lexer->current[0] = '\t';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'v':
+          lexer->current[0] = '\v';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+
+        default: {
+          if (!isdigit(c)) {
+            removeNextCharFromSource(lexer, 0);
+          }
+        }
+      }
+    }
 
     advance(lexer);
   }
@@ -301,10 +388,10 @@ Token getNextToken(Lexer *lexer) {
 
   char c = advance(lexer);
 
-  if (isDigit(c))
+  if (isdigit(c))
     return collectNumber(lexer);
 
-  if (isAlpha(c) || c == '_')
+  if (isalpha(c) || c == '_')
     return collectId(lexer);
 
   switch (c) {

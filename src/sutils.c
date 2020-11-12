@@ -33,3 +33,36 @@ char* readFile(const char* path) {
   fclose(file);
   return buffer;
 }
+
+int removeChar(const char *src, char *dst, char c) {
+  const char* s;
+  char* d;
+
+  if (src != NULL && dst != NULL) {
+
+    for (d = dst, s = src; (*d = *s); s++) {
+      if (c != *d)
+        d++;
+    }
+
+    return 0;
+  }
+  return 1;
+}
+
+// TODO(calamity): improve
+int removeCharFromIndex(const char* src, char* dst, int index)
+{
+  if(!src || !dst) return -1;
+
+  int s=0, d=0;
+
+  while (*(src+s) != '\0') {
+    if (s != index)
+      *(dst+d++) = *(src+s++);
+    else
+      s++;
+  }
+  *(dst+d) = '\0';
+  return 0;
+}

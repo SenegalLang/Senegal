@@ -30,5 +30,8 @@ static inline char* substring(const char* input, int offset, int len, char* dest
   return dest;
 }
 
+int removeChar(const char *src, char *dst, char c);
+
+int removeCharFromIndex(const char *src, char *dst, int index);
 
 #endif //SENEGAL_SUTILS_H
