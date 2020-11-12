@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <io.h>
 #include <limits.h>
+#include <math.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -348,7 +349,7 @@ static InterpretationResult run(VM* vm) {
 #define READ_CONSTANT_FROM_INDEX(i) (frame->closure->function->instructions.constants.constants[i])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 
-#define BINARY_OP(vm, pc, constantType, op) \
+#define BINARY_OP(vm, constantType, op) \
   do {                    \
     if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) { \
       throwRuntimeError(vm, "Senegal binary operations require numerical operands."); \
@@ -360,7 +361,7 @@ static InterpretationResult run(VM* vm) {
     PUSH(c); \
   } while(false)
 
-#define BITWISE_OP(vm, pc, constantType, op) \
+#define BITWISE_OP(vm, constantType, op) \
   do {                    \
     if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) { \
       throwRuntimeError(vm, "Senegal binary operations require numerical operands."); \
@@ -416,23 +417,23 @@ static InterpretationResult run(VM* vm) {
     }
 
     CASE(OPCODE_AND):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, &);
+    BITWISE_OP(vm, NUM_CONST, &);
     DISPATCH();
 
     CASE(OPCODE_OR):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, |);
+    BITWISE_OP(vm, NUM_CONST, |);
     DISPATCH();
 
     CASE(OPCODE_XOR):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, ^);
+    BITWISE_OP(vm, NUM_CONST, ^);
     DISPATCH();
 
     CASE(OPCODE_LSHIFT):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, <<);
+    BITWISE_OP(vm, NUM_CONST, <<);
     DISPATCH();
 
     CASE(OPCODE_RSHIFT):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, >>);
+    BITWISE_OP(vm, NUM_CONST, >>);
     DISPATCH();
 
     CASE(OPCODE_BITNOT):
@@ -445,11 +446,26 @@ static InterpretationResult run(VM* vm) {
     PUSH(c);
     DISPATCH();
 
+    CASE(OPCODE_POW): {
+      if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+        return RUNTIME_ERROR;
+      }
+
+      double power = AS_NUMBER(POP());
+      double num = AS_NUMBER(POP());
+
+      Constant c = NUM_CONST( pow(num, power));
+      PUSH(c);
+      DISPATCH();
+    }
+
+
     CASE(OPCODE_ADD):
     if (IS_STRING(PEEK()) && IS_STRING(PEEK2())) {
       concatenateStrings(vm);
     } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, frame->pc, NUM_CONST, +);
+      BINARY_OP(vm, NUM_CONST, +);
     } else {
       throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_ADD.");
       return RUNTIME_ERROR;
@@ -457,7 +473,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
 
     CASE(OPCODE_SUB):
-    BINARY_OP(vm, frame->pc, NUM_CONST, -);
+    BINARY_OP(vm, NUM_CONST, -);
     DISPATCH();
 
     CASE(OPCODE_MUL):
@@ -479,7 +495,7 @@ static InterpretationResult run(VM* vm) {
       Constant c = GC_OBJ_CONST(newString);
       PUSH(c);
     } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, frame->pc, NUM_CONST, *);
+      BINARY_OP(vm, NUM_CONST, *);
     } else {
       throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_MUL.");
       return RUNTIME_ERROR;
@@ -487,7 +503,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
 
     CASE(OPCODE_DIV):
-    BINARY_OP(vm, frame->pc, NUM_CONST, /);
+    BINARY_OP(vm, NUM_CONST, /);
     DISPATCH();
 
     CASE(OPCODE_EQUAL): {
@@ -506,20 +522,20 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_GREATER):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, >);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, >);
+      DISPATCH();
 
     CASE(OPCODE_LESSER):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, <);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, <);
+      DISPATCH();
 
     CASE(OPCODE_GE):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, >=);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, >=);
+      DISPATCH();
 
     CASE(OPCODE_LE):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, <=);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, <=);
+      DISPATCH();
 
     CASE(OPCODE_NEG):
     {
@@ -549,8 +565,8 @@ static InterpretationResult run(VM* vm) {
     }
 
     CASE(OPCODE_POP):
-    POP();
-    DISPATCH();
+      POP();
+      DISPATCH();
 
     CASE(OPCODE_POPN):
     {
@@ -894,6 +910,7 @@ static InterpretationResult run(VM* vm) {
       throwRuntimeError(vm, "Senegal attempted to reassign an undefined variable: %s", id->chars);
       return RUNTIME_ERROR;
     }
+
     DISPATCH();
   }
 

@@ -5,8 +5,6 @@
 #include "includes/sgcobject_utils.h"
 #include "includes/stable_utils.h"
 
-//#define MAX_CASES 256
-
 int deepestLoopStart = -1;
 int deepestLoopDepth = 0;
 
@@ -419,9 +417,17 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
       if (canAssign && match(parser, lexer, EQUAL)) {
         parseExpression(vm, parser, compiler, cc, lexer, i);
         writeByte(vm, parser, i, setOP);
-      } else
-        writeByte(vm, parser, i, getOP);
+      } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
 
+        // TODO(Calamity): Correct
+        writeByte(vm, parser, i, getOP);
+        writeLoad(vm, parser, compiler, i, NUM_CONST(1));
+        writeByte(vm, parser, i, OPCODE_ADD);
+        writeByte(vm, parser, i, i->bytes[4]);
+        writeByte(vm, parser, i, setOP);
+      } else {
+        writeByte(vm, parser, i, getOP);
+      }
       return;
     }
 
@@ -439,8 +445,31 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
   if (canAssign && match(parser, lexer, EQUAL)) {
     parseExpression(vm, parser, compiler, cc, lexer, i);
     writeShort(vm, parser, i, setOP, (uint8_t) id);
-  } else
+  } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
+
     writeShort(vm, parser, i, getOP, (uint8_t) id);
+    writeLoad(vm, parser, compiler, i, NUM_CONST(1));
+    writeByte(vm, parser, i, OPCODE_ADD);
+    writeShort(vm, parser, i, setOP, (uint8_t) id);
+
+  } else if (canAssign && match(parser, lexer, MINUS_MINUS)) {
+
+    writeShort(vm, parser, i, getOP, (uint8_t) id);
+    writeLoad(vm, parser, compiler, i, NUM_CONST(1));
+    writeByte(vm, parser, i, OPCODE_SUB);
+    writeShort(vm, parser, i, setOP, (uint8_t) id);
+
+  } else if (canAssign && match(parser, lexer, STAR_STAR)) {
+    if (!match(parser, lexer, NUMBER))
+      error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+    writeShort(vm, parser, i, getOP, (uint8_t) id);
+    writeLoad(vm, parser, compiler, i, NUM_CONST(strtod(parser->previous.start, NULL)));
+    writeByte(vm, parser, i, OPCODE_POW);
+    writeShort(vm, parser, i, setOP, (uint8_t) id);
+  } else {
+    writeShort(vm, parser, i, getOP, (uint8_t) id);
+  }
 }
 
 static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {

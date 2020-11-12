@@ -13,3 +13,12 @@ println(0/0); // -1.#IND
 
 println(remainder); // 2
 println(5.clamp(0, 4)); // 4
+
+// Operators
+println("Operators:");
+
+var i = 6;
+
+println(i--); // 5
+println(i ** 2); // i squared = 25
+println(i++); // 26

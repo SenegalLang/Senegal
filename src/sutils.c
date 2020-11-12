@@ -51,8 +51,7 @@ int removeChar(const char *src, char *dst, char c) {
 }
 
 // TODO(calamity): improve
-int removeCharFromIndex(const char* src, char* dst, int index)
-{
+int removeCharFromIndex(const char* src, char* dst, int index) {
   if(!src || !dst) return -1;
 
   int s=0, d=0;
