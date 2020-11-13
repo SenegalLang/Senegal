@@ -175,21 +175,13 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
 
     // Core library
     if (strncmp(importSource, "sgl:", 4) == 0) {
+      Constant constant;
 
-      // substring remainder of import
-      int pathLen = strlen(importSource);
-      char path[pathLen];
-      importSource = substring(importSource, 3, pathLen - 3, path);
-      importSource++; // why? idk
-
-      // get current working directory
-      char cwd[260];
-
-      if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        // TODO(Calamity210): Handle core imports
-      } else {
-        printf("Senegal encountered an error importing a core file");
+      if (!tableGetEntry(&corePaths, copyString(vm, compiler, importSource, strlen(importSource)), &constant)) {
+        fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
+
+      interpretImport(vm, readFile(AS_STRING(constant)->chars));
     } else {
       interpretImport(vm, readFile(importSource));
     }

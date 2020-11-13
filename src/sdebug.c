@@ -93,6 +93,12 @@ int disassembleInstruction(Instructions *instructions, int offset) {
   uint8_t opcode = instructions->bytes[offset];
 
   switch (opcode) {
+    case OPCODE_INC:
+      return noOperandInstruction("OPCODE_INC", offset);
+
+    case OPCODE_DEC:
+      return noOperandInstruction("OPCODE_DEC", offset);
+
     case OPCODE_POW:
       return noOperandInstruction("OPCODE_POW", offset);
 

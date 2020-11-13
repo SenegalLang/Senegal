@@ -1,0 +1,22 @@
+// Base of natural logarithms, e.
+var e = 2.718281828459045;
+
+// Closest representable value to the natural logarithm of base 10.
+var ln10 = 2.302585092994046;
+
+// Closest representable value to the natural logarithm of base 2.
+var ln2 = 0.6931471805599453;
+
+/// 2nd base log of e.
+var log2e = 1.4426950408889634;
+
+/// 10th base logarithm of e.
+var log10e = 0.4342944819032518;
+
+var pi = 3.1415926535897932;
+
+// Square root of 1/2
+var sqrt1_2 = 0.7071067811865476;
+
+// Square root of 2
+var sqrt2 = 1.4142135623730951;

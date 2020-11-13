@@ -264,39 +264,7 @@ static Token collectNumber(Lexer* lexer) {
   return newToken(lexer, NUMBER);
 }
 
-static int readHexDigit(Lexer* lexer) {
-  char c = peekNext(lexer);
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-
-  return -1;
-}
-
-static int readHexEscape(Lexer* lexer, int digits) {
-  int value = 0;
-  for (int i = 0; i < digits; i++)
-  {
-    if (peekNext(lexer) == '"' || peekNext(lexer) == '\0')
-    {
-      printf("Invalid senegal escape sequence.");
-      lexer->current--;
-      break;
-    }
-
-    unsigned int digit = readHexDigit(lexer);
-    if (digit == -1)
-    {
-      printf("Invalid senegal escape sequence.");
-      break;
-    }
-
-    value = (value * 16) | digit;
-  }
-
-  return value;
-}
-
+// TODO(Calamity210): Walking lexer.start to remove a character is expensive, concatenating to a smaller string is a much better option
 static Token collectString(Lexer* lexer) {
   TokenType type = STRING;
 

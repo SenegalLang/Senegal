@@ -446,6 +446,32 @@ static InterpretationResult run(VM* vm) {
     PUSH(c);
     DISPATCH();
 
+    CASE(OPCODE_INC): {
+    if (!IS_NUMBER(PEEK())) {
+      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+      return RUNTIME_ERROR;
+    }
+
+    double num = AS_NUMBER(POP());
+
+    Constant c = NUM_CONST( num + 1);
+    PUSH(c);
+    DISPATCH();
+  }
+
+    CASE(OPCODE_DEC): {
+    if (!IS_NUMBER(PEEK())) {
+      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+      return RUNTIME_ERROR;
+    }
+
+    double num = AS_NUMBER(POP());
+
+    Constant c = NUM_CONST(num - 1);
+    PUSH(c);
+    DISPATCH();
+  }
+
     CASE(OPCODE_POW): {
       if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) {
         throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
@@ -459,7 +485,6 @@ static InterpretationResult run(VM* vm) {
       PUSH(c);
       DISPATCH();
     }
-
 
     CASE(OPCODE_ADD):
     if (IS_STRING(PEEK()) && IS_STRING(PEEK2())) {

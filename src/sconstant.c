@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <malloc.h>
 #include "includes/sconstant.h"
 #include "includes/smemory.h"
 
@@ -28,7 +29,7 @@ void printConstant(Constant constant) {
   } else if (IS_NULL(constant)) {
     printf("null");
   } else if (IS_NUMBER(constant)) {
-    printf("%g", AS_NUMBER(constant));
+    printf("%.16g", AS_NUMBER(constant));
   } else if (IS_GC_OBJ(constant)) {
 
     switch (GC_OBJ_TYPE(constant)) {

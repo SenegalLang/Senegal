@@ -14,6 +14,8 @@ typedef struct {
     Entry* entries;
 } Table;
 
+Table corePaths;
+
 void initTable(Table* table);
 
 Entry* findEntry(Entry* entries, int cap, GCString* key);

@@ -1,0 +1,10 @@
+import "sgl:math"
+
+println(e);
+println(ln10);
+println(ln2);
+println(log2e);
+println(log10e);
+println(pi);
+println(sqrt1_2);
+println(sqrt2);

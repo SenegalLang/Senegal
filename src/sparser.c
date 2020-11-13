@@ -421,9 +421,8 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
 
         // TODO(Calamity): Correct
         writeByte(vm, parser, i, getOP);
-        writeLoad(vm, parser, compiler, i, NUM_CONST(1));
-        writeByte(vm, parser, i, OPCODE_ADD);
-        writeByte(vm, parser, i, i->bytes[4]);
+        writeByte(vm, parser, i, OPCODE_INC);
+        writeByte(vm, parser, i, i->bytes[3]);
         writeByte(vm, parser, i, setOP);
       } else {
         writeByte(vm, parser, i, getOP);
@@ -448,15 +447,13 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
   } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
 
     writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeLoad(vm, parser, compiler, i, NUM_CONST(1));
-    writeByte(vm, parser, i, OPCODE_ADD);
+    writeByte(vm, parser, i, OPCODE_INC);
     writeShort(vm, parser, i, setOP, (uint8_t) id);
 
   } else if (canAssign && match(parser, lexer, MINUS_MINUS)) {
 
     writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeLoad(vm, parser, compiler, i, NUM_CONST(1));
-    writeByte(vm, parser, i, OPCODE_SUB);
+    writeByte(vm, parser, i, OPCODE_DEC);
     writeShort(vm, parser, i, setOP, (uint8_t) id);
 
   } else if (canAssign && match(parser, lexer, STAR_STAR)) {
