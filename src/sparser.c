@@ -441,29 +441,88 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
     setOP = OPCODE_SETGLOB;
   }
 
-  if (canAssign && match(parser, lexer, EQUAL)) {
-    parseExpression(vm, parser, compiler, cc, lexer, i);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
-  } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
+  if (canAssign) {
+    switch (parser->current.type) {
+      case EQUAL:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeByte(vm, parser, i, OPCODE_INC);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
 
-  } else if (canAssign && match(parser, lexer, MINUS_MINUS)) {
+      case PLUS_PLUS:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeByte(vm, parser, i, OPCODE_DEC);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_INC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
 
-  } else if (canAssign && match(parser, lexer, STAR_STAR)) {
-    if (!match(parser, lexer, NUMBER))
-      error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+      case MINUS_MINUS:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeLoad(vm, parser, compiler, i, NUM_CONST(strtod(parser->previous.start, NULL)));
-    writeByte(vm, parser, i, OPCODE_POW);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_DEC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
+
+      case STAR_STAR:
+        advance(parser, lexer);
+
+        if (!check(parser, NUMBER))
+          error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_POW);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case PLUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_ADD);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case MINUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_SUB);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case STAR_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_MUL);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+
+      case SLASH_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_DIV);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      default:
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        break;
+    }
   } else {
     writeShort(vm, parser, i, getOP, (uint8_t) id);
   }

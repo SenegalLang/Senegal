@@ -19,6 +19,10 @@ println("Operators:");
 
 var i = 6;
 
-println(i--); // 5
-println(i ** 2); // i squared = 25
-println(i++); // 26
+println(i--); // 6
+println(i ** 2); // 25
+println(i++); // 25
+println(i += 4); // 30
+println(i /= 2); // 15
+println(i -= 5); // 10
+println(i *= 5); // 50
