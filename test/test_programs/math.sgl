@@ -8,3 +8,7 @@ println(log10e);
 println(pi);
 println(sqrt1_2);
 println(sqrt2);
+
+println(min(0, 1));
+println(max(0, 1));
+println(remap(1, 0, 1, 0, 10));
