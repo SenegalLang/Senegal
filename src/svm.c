@@ -90,9 +90,6 @@ void initVM(VM* vm) {
   initTable(&vm->globals);
   initTable(&vm->strings);
 
-  vm->constructString = NULL;
-  vm->constructString = copyString(vm, NULL, "construct", 9);
-
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
@@ -159,7 +156,7 @@ static bool callConstant(VM* vm,Constant callee, int arity) {
         vm->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
-        if (tableGetEntry(&class->methods, vm->constructString, &constructor)) {
+        if (tableGetEntry(&class->methods, class->id, &constructor)) {
           return call(vm, AS_CLOSURE(constructor), arity);
         } else if (arity != 0) {
           throwRuntimeError(vm, "%s's constructor takes no arguments", class->id->chars);
@@ -726,7 +723,7 @@ static InterpretationResult run(VM* vm) {
     if (IS_CLASS(PEEK())) {
       GCClass *class = AS_CLASS(PEEK2());
 
-      if (class->isFinal && frame->closure->function->id != vm->constructString) {
+      if (class->isFinal && frame->closure->function->id != class->id) {
         throwRuntimeError(vm, "Cannot mutate fields of a final class");
         return RUNTIME_ERROR;
       }
@@ -749,7 +746,7 @@ static InterpretationResult run(VM* vm) {
 
     GCInstance *instance = AS_INSTANCE(PEEK2());
 
-    if (instance->class->isFinal && frame->closure->function->id != vm->constructString) {
+    if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
       throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
@@ -757,7 +754,7 @@ static InterpretationResult run(VM* vm) {
     GCString *key = READ_STRING();
 
     Constant constant1;
-    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != vm->constructString) {
+    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != instance->class->id) {
       throwRuntimeError(vm, "Senegal cannot insert fields in a strict class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }

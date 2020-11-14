@@ -133,9 +133,6 @@ struct sVM {
     int grayCapacity;
     GCObject** grayStack;
 
-    // Class method names
-    GCString* constructString;
-
     GCClass* boolClass;
     GCClass* mapClass;
     GCClass* numClass;

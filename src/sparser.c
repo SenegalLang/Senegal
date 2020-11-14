@@ -544,7 +544,7 @@ static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, C
 
   FunctionType type = METHOD;
 
-  if (parser->previous.length == 9 && memcmp(parser->previous.start, "construct", 9) == 0)
+  if (strncmp(parser->previous.start, cc->id.start, cc->id.length) == 0)
     type = CONSTRUCTOR;
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
@@ -623,7 +623,8 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   consume(parser, lexer, LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, RBRACE) && !check(parser, SENEGAL_EOF)) {
-    if (match(parser, lexer, FUNCTION))
+    if (match(parser, lexer, FUNCTION)
+    || (check(parser, ID) && strncmp(classId.start, parser->current.start, classId.length) == 0))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i);
   }
 

@@ -1,5 +1,5 @@
 class Senegal {
-    function construct(name) {
+    Senegal(name) {
         this.name = name;
     }
 
@@ -10,4 +10,5 @@ var bird = Senegal("Mel");
 
 assert(bird.name, "Mel");
 
-println(bird.foo());
+println(bird.name); // Mel
+println(bird.foo()); // null
