@@ -22,25 +22,25 @@ var sqrt1_2 = 0.7071067811865476;
 var sqrt2 = 1.4142135623730951;
 
 function min(a, b) {
-    if (b < a) {
-        return b;
-    }
-    
-    else {
-        return a;
-    }
+	if (b < a) {
+		return b;
+	}
+	
+	else {
+		return a;
+	}
 }
 
 function max(a, b) {
-    if (b > a) {
-        return b;
-    }
+	if (b > a) {
+		return b;
+	}
 
-    else {
-        return a;
-    }
+	else {
+		return a;
+	}
 }
 
 function remap(value, start1, stop1, start2, stop2) {
-    return (value - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+  return (value - start1) / (stop1 - start1) * (stop2 - start2) + start2;
 }
