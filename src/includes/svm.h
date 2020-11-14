@@ -90,10 +90,19 @@ typedef struct {
     Table table;
 } GCMap;
 
+typedef struct {
+    GCObject gc;
+    Constant* elements;
+    int elementC;
+    int elementCap;
+    int listCurrentCap;
+} GCList;
+
 #define IS_CLASS(c) isGCType(c, GC_CLASS)
 #define IS_FUNCTION(c) isGCType(c, GC_FUNCTION)
 #define IS_INSTANCE(c) isGCType(c, GC_INSTANCE)
 #define IS_INSTANCE_METHOD(c) isGCType(c, GC_INSTANCE_METHOD)
+#define IS_LIST(c) isGCType(c, GC_LIST)
 #define IS_MAP(c) isGCType(c, GC_MAP)
 #define IS_NATIVE(c) isGCType(c, GC_NATIVE)
 #define IS_CLOSURE(c) isGCType(c, GC_CLOSURE)
@@ -102,6 +111,7 @@ typedef struct {
 #define AS_FUNCTION(c) ((GCFunction*)AS_GC_OBJ(c))
 #define AS_INSTANCE(c) ((GCInstance*)AS_GC_OBJ(c))
 #define AS_INSTANCE_METHOD(c) ((GCInstanceMethod*)AS_GC_OBJ(c))
+#define AS_LIST(c) ((GCList*)AS_GC_OBJ(c))
 #define AS_MAP(c) ((GCMap*)AS_GC_OBJ(c))
 #define AS_NATIVE(c) (((GCNative*)AS_GC_OBJ(c))->function)
 #define AS_CLOSURE(c) (((GCClosure*)AS_GC_OBJ(c)))
@@ -152,6 +162,7 @@ GCClass* newClass(VM* vm, GCString* id, bool isFinal, bool isStrict);
 GCFunction* newFunction(VM* vm);
 GCInstance* newInstance(VM* vm, GCClass* class);
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method);
+GCList* newList(VM *vm, int cap);
 GCMap* newMap(VM *vm);
 GCNative* newNative(VM* vm, NativeFunc function);
 GCClosure* newClosure(VM* vm, GCFunction* function);

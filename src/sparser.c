@@ -15,7 +15,7 @@ ParseRule rules[] = {
     [RPAREN] = {NULL, NULL, NONE},
     [LBRACE] = {parseMap, NULL, NONE},
     [RBRACE] = {NULL, NULL, NONE},
-    [LBRACKET] = {NULL, parseAccess, CALL},
+    [LBRACKET] = {parseList, parseAccess, CALL},
     [RBRACKET] = {NULL, NULL, NONE},
     [COMMA] = {NULL, NULL, NONE},
     [COLON] = {NULL, NULL, NONE},
@@ -865,6 +865,22 @@ void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc,
     default:
       return;
   }
+}
+
+void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+
+  if (match(parser, lexer, RBRACKET))
+    writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newList(vm, 0)));
+
+  uint8_t entryCount = 0;
+  do {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    entryCount++;
+  } while (match(parser, lexer, COMMA));
+
+  consume(parser, lexer, RBRACKET, "Senegal expected list to be closed with `]`");
+
+  writeShort(vm, parser, i, OPCODE_NEWLIST, entryCount);
 }
 
 void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {

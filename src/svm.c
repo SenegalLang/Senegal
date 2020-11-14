@@ -649,7 +649,7 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_NEWMAP):
     {
-      int arity = READ_BYTE();;
+      int arity = READ_BYTE();
 
       GCMap* map = newMap(vm);
       for (int i = 0; i < arity; i++) {
@@ -661,6 +661,27 @@ static InterpretationResult run(VM* vm) {
 
 
       PUSH(GC_OBJ_CONST(map));
+      DISPATCH();
+    }
+
+    CASE(OPCODE_NEWLIST):
+    {
+      int arity = READ_BYTE();
+
+      GCList* list = newList(vm, 0);
+      for (int i = 0; i < arity; i++) {
+        Constant value = POP();
+
+        if (list->elementC == list->listCurrentCap) {
+          int oldCap = list->listCurrentCap;
+          GROW_CAP(list->listCurrentCap);
+          GROW_ARRAY(vm, NULL, Constant, list->elements, oldCap, list->listCurrentCap);
+        }
+
+        list->elements[list->elementC++] = value;
+      }
+
+      PUSH(GC_OBJ_CONST(list));
       DISPATCH();
     }
 
@@ -677,6 +698,19 @@ static InterpretationResult run(VM* vm) {
         }
 
         PUSH(c);
+      } else if (IS_LIST(PEEK2())) {
+        int index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        push(vm, list->elements[(list->elementC - 1) - (int)index]);
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
       }
 
       DISPATCH();
@@ -688,10 +722,33 @@ static InterpretationResult run(VM* vm) {
       Constant newValue = POP();
 
       if (IS_MAP(PEEK2())) {
+        if (!IS_STRING(PEEK())) {
+          throwRuntimeError(vm, "Senegal maps only support String keys");
+          return RUNTIME_ERROR;
+        }
+
         GCString* key = AS_STRING(POP());
         GCMap* map = AS_MAP(POP());
 
         tableInsert(vm, &map->table, key, newValue);
+      } else if (IS_LIST(PEEK2())) {
+        if (!IS_NUMBER(PEEK())) {
+          throwRuntimeError(vm, "Index must be a numerical value");
+          return RUNTIME_ERROR;
+        }
+
+        double index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        list->elements[(list->elementC - 1) - (int)index] = newValue;
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
       }
 
       DISPATCH();
@@ -1342,6 +1399,16 @@ GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
   upvalue->next = NULL;
 
   return upvalue;
+}
+
+GCList* newList(VM *vm, int cap) {
+  GCList* list = ALLOCATE_GC_OBJ(vm, GCList, GC_LIST);
+  list->elements = ALLOCATE(vm, NULL, Constant, 8);
+  list->elementC = 0;
+  list->elementCap = cap;
+  list->listCurrentCap = 8;
+
+  return list;
 }
 
 GCMap* newMap(VM *vm) {
