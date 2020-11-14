@@ -11,8 +11,9 @@ static Constant stringIsNotEmpty(VM* vm, int arity, Constant *args) {
 }
 
 void initStringClass(VM *vm) {
-  vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), false, false);
+  vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true, false);
+  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
+
   defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
   defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
 }

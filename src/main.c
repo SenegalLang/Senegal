@@ -26,7 +26,6 @@ static void repl(VM* vm) {
 static void runFile(VM* vm, const char* path) {
   char* source = readFile(path);
   InterpretationResult result = interpret(vm, source);
-  free(source);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);

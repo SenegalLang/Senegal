@@ -12,12 +12,12 @@
 #define MIN_POSITIVE 5e-324
 
 static Constant numIsFinite(VM* vm, int arity, Constant* args) {
-  register double num = AS_NUMBER(args[0]);
+  register double num = AS_NUMBER(args[-1]);
   return BOOL_CONST(num != INFINITY && num != NEGATIVE_INFINITY && num != NAN);
 }
 
 static Constant numIsInfinite(VM* vm, int arity, Constant* args) {
-  register double num = AS_NUMBER(args[0]);
+  register double num = AS_NUMBER(args[-1]);
   return BOOL_CONST(num == INFINITY ||num == NEGATIVE_INFINITY);
 }
 
@@ -25,25 +25,25 @@ static Constant numToString(VM* vm, int arity, Constant* args) {
 
   char numString[3 + DBL_MANT_DIG - DBL_MIN_EXP];
 
-  sprintf(numString, "%lf", AS_NUMBER(args[0]));
+  sprintf(numString, "%lf", AS_NUMBER(args[-1]));
 
   return GC_OBJ_CONST(copyString(vm, NULL, numString, strlen(numString)));
 }
 
 static Constant numIsNan(VM* vm, int arity, Constant* args) {
-  return BOOL_CONST(AS_NUMBER(args[0]) == NAN);
+  return BOOL_CONST(AS_NUMBER(args[-1]) == NAN);
 }
 
 static Constant numIsNeg(VM* vm, int arity, Constant* args) {
-  return BOOL_CONST(AS_NUMBER(args[0]) < 0);
+  return BOOL_CONST(AS_NUMBER(args[-1]) < 0);
 }
 
 static Constant numAbs(VM* vm, int arity, Constant* args) {
-  return NUM_CONST(fabs(AS_NUMBER(args[0])));
+  return NUM_CONST(fabs(AS_NUMBER(args[-1])));
 }
 
 static Constant numCeil(VM* vm, int arity, Constant* args) {
-  return NUM_CONST(ceil(AS_NUMBER(args[0])));
+  return NUM_CONST(ceil(AS_NUMBER(args[-1])));
 }
 
 static Constant numClamp(VM* vm, int arity, Constant* args) {
@@ -72,7 +72,7 @@ static Constant numCompareTo(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numFloor(VM* vm, int arity, Constant* args) {
-  return NUM_CONST(floor(AS_NUMBER(args[0])));
+  return NUM_CONST(floor(AS_NUMBER(args[-1])));
 }
 
 static Constant numRemainder(VM* vm, int arity, Constant* args) {
@@ -87,7 +87,9 @@ static Constant numRemainder(VM* vm, int arity, Constant* args) {
 }
 
 void initNumClass(VM *vm) {
-  vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), false, false);
+  vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), true, false);
+  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "num", 3)), vm->numClass);
+
   defineClassNativeFunc(vm, "isFinite", numIsFinite, vm->numClass);
   defineClassNativeFunc(vm, "isInfinite", numIsInfinite, vm->numClass);
   defineClassNativeFunc(vm, "toString", numToString, vm->numClass);
@@ -101,7 +103,6 @@ void initNumClass(VM *vm) {
   defineClassNativeFunc(vm, "floor", numFloor, vm->numClass);
   defineClassNativeFunc(vm, "remainder", numRemainder, vm->numClass);
 
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "num", 3)), vm->numClass);
   defineClassNativeField(vm, "nan", NUM_CONST(NAN), vm->numClass);
   defineClassNativeField(vm, "infinity", NUM_CONST(INFINITY), vm->numClass);
   defineClassNativeField(vm, "negInfinity", NUM_CONST(NEGATIVE_INFINITY), vm->numClass);

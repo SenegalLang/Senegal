@@ -94,7 +94,6 @@ typedef struct {
     GCObject gc;
     Constant* elements;
     int elementC;
-    int elementCap;
     int listCurrentCap;
 } GCList;
 
@@ -144,6 +143,7 @@ struct sVM {
     GCObject** grayStack;
 
     GCClass* boolClass;
+    GCClass* listClass;
     GCClass* mapClass;
     GCClass* numClass;
     GCClass* stringClass;
@@ -151,6 +151,9 @@ struct sVM {
 
 
 void initVM(VM* vm);
+
+bool call(VM* vm, GCClosure* closure, int arity);
+bool callConstant(VM* vm,Constant callee, int arity);
 
 InterpretationResult interpret(VM* vm, char* source);
 InterpretationResult interpretImport(VM *vm, char *source);
@@ -162,7 +165,7 @@ GCClass* newClass(VM* vm, GCString* id, bool isFinal, bool isStrict);
 GCFunction* newFunction(VM* vm);
 GCInstance* newInstance(VM* vm, GCClass* class);
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method);
-GCList* newList(VM *vm, int cap);
+GCList* newList(VM *vm, int length);
 GCMap* newMap(VM *vm);
 GCNative* newNative(VM* vm, NativeFunc function);
 GCClosure* newClosure(VM* vm, GCFunction* function);

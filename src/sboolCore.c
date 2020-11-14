@@ -17,8 +17,9 @@ static Constant boolType(VM* vm, int arity, Constant *args) {
 }
 
 void initBoolClass(VM* vm) {
-  vm->boolClass = newClass(vm, copyString(vm, NULL, "bool", 4), false, false);
+  vm->boolClass = newClass(vm, copyString(vm, NULL, "bool", 4), true, false);
+  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "bool", 4)), vm->boolClass);
+
   defineClassNativeFunc(vm, "asNum", boolAsNum, vm->boolClass);
   defineClassNativeFunc(vm, "toString", boolToString, vm->boolClass);
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "bool", 4)), vm->boolClass);
 }

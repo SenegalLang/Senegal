@@ -1,5 +1,7 @@
 var senegal = { "age": 21 };
+
 senegal["name"] = "Mel";
+
 println(senegal["name"]); // Mel
 println(senegal["age"]); // 21
 println(senegal.isEmpty()); // false

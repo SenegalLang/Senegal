@@ -125,9 +125,10 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->strings);
 
   markGCObject(vm, (GCObject*)vm->boolClass);
+  markGCObject(vm, (GCObject*)vm->listClass);
+  markGCObject(vm, (GCObject*)vm->mapClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);
-  markGCObject(vm, (GCObject*)vm->mapClass);
 
   freeGCObjects(vm, NULL);
 }
@@ -181,6 +182,7 @@ static void markRoots(VM* vm, Compiler* compiler) {
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);
+  markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
 }
 

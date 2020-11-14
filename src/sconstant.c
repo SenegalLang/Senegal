@@ -26,6 +26,19 @@ void printConstant(Constant constant) {
 #if NAN_TAGGING
   if (IS_BOOL(constant)) {
     printf(AS_BOOL(constant) ? "true" : "false");
+  } else if (IS_LIST(constant)) {
+    GCList* list = AS_LIST(constant);
+    printf("[");
+
+    for (int i = 0; i < list->elementC; i++) {
+      printConstant(list->elements[(list->elementC - 1) - i]);
+
+      if (i != list->elementC - 1)
+        printf(",");
+    }
+
+    printf("]");
+
   } else if (IS_NULL(constant)) {
     printf("null");
   } else if (IS_NUMBER(constant)) {

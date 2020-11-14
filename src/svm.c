@@ -14,6 +14,7 @@
 #include "includes/sstringCore.h"
 #include "includes/snumCore.h"
 #include "includes/smapCore.h"
+#include "includes/slistCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -96,11 +97,13 @@ void initVM(VM* vm) {
   defineNativeFunc(vm, "println", printlnApi);
 
   initBoolClass(vm);
-  initStringClass(vm);
+  initListClass(vm);
   initMapClass(vm);
   initNumClass(vm);
+  initStringClass(vm);
 
   defineNativeInstance(vm, "bool", vm->boolClass);
+  defineNativeInstance(vm, "List", vm->listClass);
   defineNativeInstance(vm, "Map", vm->mapClass);
   defineNativeInstance(vm, "num", vm->numClass);
   defineNativeInstance(vm, "String", vm->stringClass);
@@ -128,7 +131,7 @@ static void concatenateStrings(VM* vm) {
   push(vm,GC_OBJ_CONST(newString));
 }
 
-static bool call(VM* vm, GCClosure* closure, int arity) {
+bool call(VM* vm, GCClosure* closure, int arity) {
 
   if (arity != closure->function->arity) {
     throwRuntimeError(vm, "Function %s expected %d arguments but found %d", closure->function->id->chars, closure->function->arity, arity);
@@ -148,7 +151,7 @@ static bool call(VM* vm, GCClosure* closure, int arity) {
   return true;
 }
 
-static bool callConstant(VM* vm,Constant callee, int arity) {
+bool callConstant(VM* vm,Constant callee, int arity) {
   if (IS_GC_OBJ(callee)) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
@@ -281,6 +284,18 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_LIST(receiver)) {
+    GCInstance* listInstance = newInstance(vm, vm->listClass);
+
+    Constant constant;
+    if (tableGetEntry(&listInstance->class->methods, id, &constant)) {
       vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -647,8 +662,7 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
-    CASE(OPCODE_NEWMAP):
-    {
+    CASE(OPCODE_NEWMAP): {
       int arity = READ_BYTE();
 
       GCMap* map = newMap(vm);
@@ -659,24 +673,16 @@ static InterpretationResult run(VM* vm) {
         tableInsert(vm, &map->table, key, value);
       }
 
-
       PUSH(GC_OBJ_CONST(map));
       DISPATCH();
     }
 
-    CASE(OPCODE_NEWLIST):
-    {
+    CASE(OPCODE_NEWLIST): {
       int arity = READ_BYTE();
 
-      GCList* list = newList(vm, 0);
+      GCList* list = newList(vm, arity);
       for (int i = 0; i < arity; i++) {
         Constant value = POP();
-
-        if (list->elementC == list->listCurrentCap) {
-          int oldCap = list->listCurrentCap;
-          GROW_CAP(list->listCurrentCap);
-          GROW_ARRAY(vm, NULL, Constant, list->elements, oldCap, list->listCurrentCap);
-        }
 
         list->elements[list->elementC++] = value;
       }
@@ -850,6 +856,20 @@ static InterpretationResult run(VM* vm) {
 
       Constant constant;
       if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_LIST(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "List", 4) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->listClass->fields, id, &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -1401,12 +1421,14 @@ GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
   return upvalue;
 }
 
-GCList* newList(VM *vm, int cap) {
+GCList* newList(VM *vm, int length) {
   GCList* list = ALLOCATE_GC_OBJ(vm, GCList, GC_LIST);
-  list->elements = ALLOCATE(vm, NULL, Constant, 8);
+
+  list->elements = ALLOCATE(vm, NULL, Constant, length);
   list->elementC = 0;
-  list->elementCap = cap;
-  list->listCurrentCap = 8;
+
+  list->listCurrentCap = 0;
+  GROW_CAP(list->listCurrentCap);
 
   return list;
 }
