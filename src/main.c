@@ -18,7 +18,40 @@ static void repl(VM* vm) {
       break;
     }
 
-    interpret(vm, line);
+		int lBraceCount, rBraceCount, i;
+
+    for (i = 0, lBraceCount = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+    for (i = 0, rBraceCount = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+
+		if (lBraceCount > rBraceCount) {
+			char code[1024];
+
+			for (;;) {
+				printf(".. ");
+
+				if (!fgets(line, sizeof(line), stdin)) {
+					printf("\n");
+					break;
+				}
+
+				int lBraceCount, rBraceCount, i;
+
+				for (i = 0, lBraceCount = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+				for (i = 0, rBraceCount = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+
+				if (lBraceCount < rBraceCount) {
+					break;
+				}
+
+				strcat(code, line);
+			}
+
+			interpret(vm, code);
+		}
+
+    else {
+			interpret(vm, line);
+		}
   }
 }
 
@@ -37,7 +70,7 @@ int main(int argc, const char* argv[]) {
 
   VM vm;
 
-//  setbuf(stdout, 0);
+  // setbuf(stdout, 0);
   initVM(&vm);
 
   initTable(&corePaths);
