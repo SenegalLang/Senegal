@@ -18,7 +18,7 @@ static Constant numIsFinite(VM* vm, int arity, Constant* args) {
 
 static Constant numIsInfinite(VM* vm, int arity, Constant* args) {
   register double num = AS_NUMBER(args[-1]);
-  return BOOL_CONST(num == INFINITY ||num == NEGATIVE_INFINITY);
+  return BOOL_CONST(num == INFINITY || num == NEGATIVE_INFINITY);
 }
 
 static Constant numToString(VM* vm, int arity, Constant* args) {
@@ -31,7 +31,7 @@ static Constant numToString(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numIsNan(VM* vm, int arity, Constant* args) {
-  return BOOL_CONST(AS_NUMBER(args[-1]) == NAN);
+  return BOOL_CONST(AS_NUMBER(args[-1]) == (0.0 / 0.0));
 }
 
 static Constant numIsNeg(VM* vm, int arity, Constant* args) {

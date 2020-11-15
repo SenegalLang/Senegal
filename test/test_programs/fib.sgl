@@ -4,5 +4,5 @@ function fib(n) {
 }
 
 var start = clock();
-println(fib(35) == 9227465);
-println(clock() - start);
+println(fib(35) == 9227465); // output true
+println(clock() - start); // ignore

@@ -1,28 +1,25 @@
 var infinity = 1/0;
 var neginfinity = -1/0;
-var nan = 0/0;
 
 var remainder = 3.remainder(5);
 
-println(3.type); // num
-println(infinity.isInfinite()); // true
-println(neginfinity.isInfinite()); // true
-println(nan.isNaN()); // true
-println(neginfinity.isNeg()); // true
-println(0/0); // -1.#IND
+println(3.type); // output num
+println(infinity.isInfinite()); // output true
+println(neginfinity.isInfinite()); // output true
+println(neginfinity.isNeg()); // output true
+println(0/0); // output nan
 
-println(remainder); // 2
-println(5.clamp(0, 4)); // 4
+println(remainder); // output 2
+println(5.clamp(0, 4)); // output 4
 
-// Operators
-println("Operators:");
+println("Operators:"); // output Operators:
 
 var i = 6;
 
-println(i--); // 6
-println(i ** 2); // 25
-println(i++); // 25
-println(i += 4); // 30
-println(i /= 2); // 15
-println(i -= 5); // 10
-println(i *= 5); // 50
+println(i--); // output 6
+println(i ** 2); // output 25
+println(i++); // output 25
+println(i += 4); // output 30
+println(i /= 2); // output 15
+println(i -= 5); // output 10
+println(i *= 5); // output 50

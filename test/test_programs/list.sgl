@@ -1,16 +1,16 @@
 var list = [1, 2, 3, 4, 5, 7];
 
-println(list); // [1, 2, 3, 4, 5, 7]
+println(list); // output [1,2,3,4,5,7]
 
 list[5] = 6;
 
-println(list[5]); // 6
-println(list.length()); // 6
+println(list[5]); // output 6
+println(list.length()); // output 6
 
-println("List forEach:");
+// println("List forEach:");
 
-function addAndPrint(e) {
-    println(e);
-}
+// function addAndPrint(e) {
+//   println(e);
+// }
 
-list.forEach(addAndPrint);
+// list.forEach(addAndPrint);
