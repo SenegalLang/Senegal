@@ -85,7 +85,7 @@ class ExpectationsParser {
 void main() {
 
   test.group('All test programs run with expected results', () {
-    final Directory directory = Directory('${Directory.current.parent.path}/test/test_programs/');
+    final Directory directory = Directory('./test_programs/');
     directory.listSync().forEach((file) {
       test.test(file.path, () async {
         await _testBirbScriptWithExpectations(file);
@@ -97,7 +97,7 @@ void main() {
 Future _testBirbScriptWithExpectations(FileSystemEntity file) async {
   final expectations = ExpectationsParser(file);
 
-  final process = await TestProcess.start('./senegal', [file.path], workingDirectory: expectations.workingDir);
+  final process = await TestProcess.start('./senegal', ['.${expectations.workingDir == '../' ? '/test/' : ''}${file.path.replaceFirst('.', '')}'], workingDirectory: expectations.workingDir);
 
   final shouldFailOnError = !expectations.doesExpectError();
   await for (final line in process.stderrStream()) {
