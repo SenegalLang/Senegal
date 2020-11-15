@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <io.h>
-#include <limits.h>
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
 #include "includes/svm.h"
@@ -44,7 +43,7 @@ int main(int argc, const char* argv[]) {
   initTable(&corePaths);
 
   // == ADD PATHS TO CORE LIBRARIES ==
-  char cwd[PATH_MAX];
+  char cwd[260];
 
   if (getcwd(cwd, sizeof(cwd)) == NULL) {
     fprintf(stderr, "Failed to get CWD");
