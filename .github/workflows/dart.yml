@@ -16,8 +16,7 @@ jobs:
             curl -X POST -L \
             -H "Authorization: Bearer ${{ secrets.ACCESS_TOKEN }}" \
             "https://www.googleapis.com/drive/v2/files/1pLBkD5JEjh49zMwVwKtolUwoR91184KD?alt=media&source=downloadUrl" --output test/senegal
-      
       - name: Install dependencies
-        run: cd test && pub get
+        run: cd test && chmod u+x senegal && pub get
       - name: Run tests
         run: cd test && pub run test
