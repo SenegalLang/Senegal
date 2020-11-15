@@ -17,3 +17,9 @@ jobs:
       run: make
     - name: make release
       run: make release
+    - name: Repository Dispatch
+      run: |
+          curl -X POST https://api.github.com/repos/Calamity210/Senegal/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.REPO_ACCESS_TOKEN }} \
+          --data '{"event_type": "make-success", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
