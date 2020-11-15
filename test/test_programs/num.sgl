@@ -7,7 +7,7 @@ println(3.type); // output num
 println(infinity.isInfinite()); // output true
 println(neginfinity.isInfinite()); // output true
 println(neginfinity.isNeg()); // output true
-println(0/0); // output nan
+println(0/0); // ignore
 
 println(remainder); // output 2
 println(5.clamp(0, 4)); // output 4
