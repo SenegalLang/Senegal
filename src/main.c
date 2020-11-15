@@ -8,10 +8,10 @@
 #include "includes/stable_utils.h"
 
 #define REPL_HELP \
-	"Usage: senegal [flags] | [senegal-file]\n\n" \
-	"Global options:\n" \
-	"-h, --help                 Print this usage information.\n" \
-	"    --version              Print the Senegal version.\n"
+  "Usage: senegal [flags] | [senegal-file]\n\n" \
+  "Global options:\n" \
+  "-h, --help                 Print this usage information.\n" \
+  "    --version              Print the Senegal version.\n"
 
 static void repl(VM* vm) {
   char line[1024];
@@ -24,44 +24,44 @@ static void repl(VM* vm) {
       break;
     }
 
-		int lBraceCount = 0;
-		int rBraceCount = 0;
+    int lBraceCount = 0;
+    int rBraceCount = 0;
 
-		for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
-		for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+    for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+    for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
 
-		if (lBraceCount > rBraceCount) {
-			char code[1024];
+    if (lBraceCount > rBraceCount) {
+      char code[1024];
 
-			memcpy(code, line, sizeof(line));
+      memcpy(code, line, sizeof(line));
 
-			for (;;) {
-				printf(".. ");
+      for (;;) {
+        printf(".. ");
 
-				if (!fgets(line, sizeof(line), stdin)) {
-					printf("\n");
-					break;
-				}
+        if (!fgets(line, sizeof(line), stdin)) {
+          printf("\n");
+          break;
+        }
 
-				int lBraceCount = 0;
-				int rBraceCount = 0;
+        int lBraceCount = 0;
+        int rBraceCount = 0;
 
-				for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
-				for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+        for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+        for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
 
-				strcat(code, line);
+        strcat(code, line);
 
-				if (lBraceCount < rBraceCount) {
-					break;
-				}
-			}
+        if (lBraceCount < rBraceCount) {
+          break;
+        }
+      }
 
-			interpret(vm, code);
-		} else if (strcmp(line, ".exit")) {
-			break;
-		} else {
-			interpret(vm, line);
-		}
+      interpret(vm, code);
+    } else if (strcmp(line, ".exit")) {
+      break;
+    } else {
+      interpret(vm, line);
+    }
   }
 }
 
@@ -103,17 +103,17 @@ int main(int argc, const char* argv[]) {
   if (argc == 1) {
     repl(&vm);
   } else if (argc == 2) {
-		if (0 == strcmp(argv[1], "-h") || 0 == strcmp(argv[1], "--help")) {
-			printf("%s", REPL_HELP);
+    if (0 == strcmp(argv[1], "-h") || 0 == strcmp(argv[1], "--help")) {
+      printf("%s", REPL_HELP);
 
-			exit(0);
-		}
+      exit(0);
+    }
 
-		if (0 == strcmp(argv[1], "--version")) {
-			printf("Senegal 0.0.1");
+    if (0 == strcmp(argv[1], "--version")) {
+      printf("Senegal 0.0.1");
 
-			exit(0);
-		}
+      exit(0);
+    }
 
     runFile(&vm, argv[1]);
   } else {
