@@ -27,6 +27,8 @@ static void repl(VM* vm) {
 		if (lBraceCount > rBraceCount) {
 			char code[1024];
 
+			memcpy(code, line, sizeof(line));
+
 			for (;;) {
 				printf(".. ");
 
@@ -41,11 +43,11 @@ static void repl(VM* vm) {
 				for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
 				for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
 
+				strcat(code, line);
+
 				if (lBraceCount < rBraceCount) {
 					break;
 				}
-
-				strcat(code, line);
 			}
 
 			interpret(vm, code);
