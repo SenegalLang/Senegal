@@ -4,7 +4,7 @@ module.exports = {
         type: 'category',
         label: 'Senegal Docs',
         items: [
-        // 'tour'
+        'tour'
         ],
       },
         {
