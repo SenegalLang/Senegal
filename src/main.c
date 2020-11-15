@@ -18,10 +18,11 @@ static void repl(VM* vm) {
       break;
     }
 
-		int lBraceCount, rBraceCount, i;
+		int lBraceCount = 0;
+		int rBraceCount = 0;
 
-    for (i = 0, lBraceCount = 0; line[i]; i++) lBraceCount += (line[i] == '{');
-    for (i = 0, rBraceCount = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+		for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+		for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
 
 		if (lBraceCount > rBraceCount) {
 			char code[1024];
@@ -34,10 +35,11 @@ static void repl(VM* vm) {
 					break;
 				}
 
-				int lBraceCount, rBraceCount, i;
+				int lBraceCount = 0;
+				int rBraceCount = 0;
 
-				for (i = 0, lBraceCount = 0; line[i]; i++) lBraceCount += (line[i] == '{');
-				for (i = 0, rBraceCount = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+				for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+				for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
 
 				if (lBraceCount < rBraceCount) {
 					break;
