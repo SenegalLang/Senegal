@@ -36,8 +36,6 @@ int removeChar(const char *src, char *dst, char c);
 int removeCharFromIndex(const char *src, char *dst, int index);
 
 static inline int getFractionDigitsCount(double d) {
-
-
   double intPart;
 
   int fractionalDigits = modf(d, &intPart);

@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <ctype.h>
 
 #include "includes/sutils.h"
@@ -97,7 +96,6 @@ static void skipWhitespaceAndComment(Lexer* lexer) {
           break;
         }
 
-        free(&n);
         return;
       }
 

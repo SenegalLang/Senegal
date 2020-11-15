@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <io.h>
+#include <unistd.h>
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
 #include "includes/svm.h"

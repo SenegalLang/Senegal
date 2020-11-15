@@ -1,8 +1,5 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include <io.h>
-#include <limits.h>
-#include <math.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -18,10 +15,6 @@
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
-#include "includes/svm.h"
-#include "includes/stable_utils.h"
-#include "includes/sinstruction_utils.h"
-
 #endif
 
 static void resetStack(VM* vm) {
@@ -76,7 +69,6 @@ static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   pop(vm);
   pop(vm);
 }
-
 
 void initVM(VM* vm) {
   resetStack(vm);
@@ -236,6 +228,19 @@ static void defineMethod(VM* vm, GCString* id) {
   GCClass* class = AS_CLASS(peek(vm, 1));
   tableInsert(vm, &class->methods, id, method);
   pop(vm);
+}
+
+static int power(int x, unsigned int y)
+{
+  int temp;
+  if (y == 0)
+    return 1;
+
+  temp = power(x, y / 2);
+  if ((y % 2) == 0)
+    return temp * temp;
+  else
+    return x * temp * temp;
 }
 
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
@@ -490,10 +495,10 @@ static InterpretationResult run(VM* vm) {
         return RUNTIME_ERROR;
       }
 
-      double power = AS_NUMBER(POP());
+      double powerNum = AS_NUMBER(POP());
       double num = AS_NUMBER(POP());
 
-      Constant c = NUM_CONST( pow(num, power));
+      Constant c = NUM_CONST(power(num, powerNum));
       PUSH(c);
       DISPATCH();
     }
