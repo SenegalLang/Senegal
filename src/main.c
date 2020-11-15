@@ -7,6 +7,12 @@
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 
+#define REPL_HELP \
+	"Usage: senegal [flags] | [senegal-file]\n\n" \
+	"Global options:\n" \
+	"-h, --help                 Print this usage information.\n" \
+	"    --version              Print the Senegal version.\n"
+
 static void repl(VM* vm) {
   char line[1024];
   
@@ -51,9 +57,9 @@ static void repl(VM* vm) {
 			}
 
 			interpret(vm, code);
-		}
-
-    else {
+		} else if (strcmp(line, ".exit")) {
+			break;
+		} else {
 			interpret(vm, line);
 		}
   }
@@ -97,9 +103,21 @@ int main(int argc, const char* argv[]) {
   if (argc == 1) {
     repl(&vm);
   } else if (argc == 2) {
+		if (0 == strcmp(argv[1], "-h") || 0 == strcmp(argv[1], "--help")) {
+			printf("%s", REPL_HELP);
+
+			exit(0);
+		}
+
+		if (0 == strcmp(argv[1], "--version")) {
+			printf("Senegal 0.0.1");
+
+			exit(0);
+		}
+
     runFile(&vm, argv[1]);
   } else {
-    fprintf(stderr, "Usage: senegal [path]\n");
+    fprintf(stderr, "%s", REPL_HELP);
     exit(64);
   }
 
