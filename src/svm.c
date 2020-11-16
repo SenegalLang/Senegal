@@ -347,7 +347,7 @@ static InterpretationResult run(VM* vm) {
   } while(false)
 
   #define CONCAT_STRINGS() \
-  do {                    \
+  do {                     \
     GCString* b = AS_STRING(peek(vm, 0)); \
     GCString* a = AS_STRING(peek(vm, 1));            \
                            \
@@ -487,12 +487,12 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
-    CASE(OPCODE_CONCAT):
-    CONCAT_STRINGS();
-    DISPATCH();
-
     CASE(OPCODE_ADD):
-      BINARY_OP(vm, NUM_CONST, +);
+      if (IS_STRING(PEEK()) || IS_STRING(PEEK2()))
+        CONCAT_STRINGS();
+      else
+        BINARY_OP(vm, NUM_CONST, +);
+
       DISPATCH();
 
     CASE(OPCODE_SUB):

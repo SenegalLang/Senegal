@@ -143,9 +143,9 @@ struct sVM {
     GCObject** grayStack;
 
     int frameCount;
-    Constant stack[STACK_MAX];
-
     CallFrame frames[FRAMES_MAX];
+
+    Constant stack[STACK_MAX];
     Constant* stackTop;
 };
 
