@@ -14,7 +14,6 @@
 
 #define DEBUG_LOG_GC 0
 #define DEBUG_PRINT_CODE 0
-#define DEBUG_TRACE_EXECUTION 0
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
@@ -37,8 +36,6 @@ int removeChar(const char *src, char *dst, char c);
 int removeCharFromIndex(const char *src, char *dst, int index);
 
 static inline int getFractionDigitsCount(double d) {
-
-
   double intPart;
 
   int fractionalDigits = modf(d, &intPart);

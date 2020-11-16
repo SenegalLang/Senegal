@@ -1,8 +1,5 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include <io.h>
-#include <limits.h>
-#include <math.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -14,13 +11,10 @@
 #include "includes/sstringCore.h"
 #include "includes/snumCore.h"
 #include "includes/smapCore.h"
+#include "includes/slistCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
-#include "includes/svm.h"
-#include "includes/stable_utils.h"
-#include "includes/sinstruction_utils.h"
-
 #endif
 
 static void resetStack(VM* vm) {
@@ -76,7 +70,6 @@ static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   pop(vm);
 }
 
-
 void initVM(VM* vm) {
   resetStack(vm);
 
@@ -90,20 +83,19 @@ void initVM(VM* vm) {
   initTable(&vm->globals);
   initTable(&vm->strings);
 
-  vm->constructString = NULL;
-  vm->constructString = copyString(vm, NULL, "construct", 9);
-
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
   defineNativeFunc(vm, "println", printlnApi);
 
   initBoolClass(vm);
-  initStringClass(vm);
+  initListClass(vm);
   initMapClass(vm);
   initNumClass(vm);
+  initStringClass(vm);
 
   defineNativeInstance(vm, "bool", vm->boolClass);
+  defineNativeInstance(vm, "List", vm->listClass);
   defineNativeInstance(vm, "Map", vm->mapClass);
   defineNativeInstance(vm, "num", vm->numClass);
   defineNativeInstance(vm, "String", vm->stringClass);
@@ -131,7 +123,7 @@ static void concatenateStrings(VM* vm) {
   push(vm,GC_OBJ_CONST(newString));
 }
 
-static bool call(VM* vm, GCClosure* closure, int arity) {
+bool call(VM* vm, GCClosure* closure, int arity) {
 
   if (arity != closure->function->arity) {
     throwRuntimeError(vm, "Function %s expected %d arguments but found %d", closure->function->id->chars, closure->function->arity, arity);
@@ -151,7 +143,7 @@ static bool call(VM* vm, GCClosure* closure, int arity) {
   return true;
 }
 
-static bool callConstant(VM* vm,Constant callee, int arity) {
+bool callConstant(VM* vm,Constant callee, int arity) {
   if (IS_GC_OBJ(callee)) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
@@ -159,7 +151,7 @@ static bool callConstant(VM* vm,Constant callee, int arity) {
         vm->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
-        if (tableGetEntry(&class->methods, vm->constructString, &constructor)) {
+        if (tableGetEntry(&class->methods, class->id, &constructor)) {
           return call(vm, AS_CLOSURE(constructor), arity);
         } else if (arity != 0) {
           throwRuntimeError(vm, "%s's constructor takes no arguments", class->id->chars);
@@ -238,6 +230,19 @@ static void defineMethod(VM* vm, GCString* id) {
   pop(vm);
 }
 
+static int power(int x, unsigned int y)
+{
+  int temp;
+  if (y == 0)
+    return 1;
+
+  temp = power(x, y / 2);
+  if ((y % 2) == 0)
+    return temp * temp;
+  else
+    return x * temp * temp;
+}
+
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 
   Constant method;
@@ -284,6 +289,18 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
+      vm->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_LIST(receiver)) {
+    GCInstance* listInstance = newInstance(vm, vm->listClass);
+
+    Constant constant;
+    if (tableGetEntry(&listInstance->class->methods, id, &constant)) {
       vm->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -478,10 +495,10 @@ static InterpretationResult run(VM* vm) {
         return RUNTIME_ERROR;
       }
 
-      double power = AS_NUMBER(POP());
+      double powerNum = AS_NUMBER(POP());
       double num = AS_NUMBER(POP());
 
-      Constant c = NUM_CONST( pow(num, power));
+      Constant c = NUM_CONST(power(num, powerNum));
       PUSH(c);
       DISPATCH();
     }
@@ -650,9 +667,8 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
-    CASE(OPCODE_NEWMAP):
-    {
-      int arity = READ_BYTE();;
+    CASE(OPCODE_NEWMAP): {
+      int arity = READ_BYTE();
 
       GCMap* map = newMap(vm);
       for (int i = 0; i < arity; i++) {
@@ -662,8 +678,21 @@ static InterpretationResult run(VM* vm) {
         tableInsert(vm, &map->table, key, value);
       }
 
-
       PUSH(GC_OBJ_CONST(map));
+      DISPATCH();
+    }
+
+    CASE(OPCODE_NEWLIST): {
+      int arity = READ_BYTE();
+
+      GCList* list = newList(vm, arity);
+      for (int i = 0; i < arity; i++) {
+        Constant value = POP();
+
+        list->elements[list->elementC++] = value;
+      }
+
+      PUSH(GC_OBJ_CONST(list));
       DISPATCH();
     }
 
@@ -680,6 +709,19 @@ static InterpretationResult run(VM* vm) {
         }
 
         PUSH(c);
+      } else if (IS_LIST(PEEK2())) {
+        int index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        push(vm, list->elements[(list->elementC - 1) - (int)index]);
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
       }
 
       DISPATCH();
@@ -691,10 +733,33 @@ static InterpretationResult run(VM* vm) {
       Constant newValue = POP();
 
       if (IS_MAP(PEEK2())) {
+        if (!IS_STRING(PEEK())) {
+          throwRuntimeError(vm, "Senegal maps only support String keys");
+          return RUNTIME_ERROR;
+        }
+
         GCString* key = AS_STRING(POP());
         GCMap* map = AS_MAP(POP());
 
         tableInsert(vm, &map->table, key, newValue);
+      } else if (IS_LIST(PEEK2())) {
+        if (!IS_NUMBER(PEEK())) {
+          throwRuntimeError(vm, "Index must be a numerical value");
+          return RUNTIME_ERROR;
+        }
+
+        double index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        list->elements[(list->elementC - 1) - (int)index] = newValue;
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
       }
 
       DISPATCH();
@@ -726,7 +791,7 @@ static InterpretationResult run(VM* vm) {
     if (IS_CLASS(PEEK())) {
       GCClass *class = AS_CLASS(PEEK2());
 
-      if (class->isFinal && frame->closure->function->id != vm->constructString) {
+      if (class->isFinal && frame->closure->function->id != class->id) {
         throwRuntimeError(vm, "Cannot mutate fields of a final class");
         return RUNTIME_ERROR;
       }
@@ -749,7 +814,7 @@ static InterpretationResult run(VM* vm) {
 
     GCInstance *instance = AS_INSTANCE(PEEK2());
 
-    if (instance->class->isFinal && frame->closure->function->id != vm->constructString) {
+    if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
       throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
@@ -757,7 +822,7 @@ static InterpretationResult run(VM* vm) {
     GCString *key = READ_STRING();
 
     Constant constant1;
-    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != vm->constructString) {
+    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != instance->class->id) {
       throwRuntimeError(vm, "Senegal cannot insert fields in a strict class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
@@ -796,6 +861,20 @@ static InterpretationResult run(VM* vm) {
 
       Constant constant;
       if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_LIST(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "List", 4) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->listClass->fields, id, &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -1345,6 +1424,18 @@ GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
   upvalue->next = NULL;
 
   return upvalue;
+}
+
+GCList* newList(VM *vm, int length) {
+  GCList* list = ALLOCATE_GC_OBJ(vm, GCList, GC_LIST);
+
+  list->elements = ALLOCATE(vm, NULL, Constant, length);
+  list->elementC = 0;
+
+  list->listCurrentCap = 0;
+  GROW_CAP(list->listCurrentCap);
+
+  return list;
 }
 
 GCMap* newMap(VM *vm) {

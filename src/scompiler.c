@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <io.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"

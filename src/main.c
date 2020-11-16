@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <io.h>
-#include <limits.h>
+#include <unistd.h>
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
 #include "includes/svm.h"
@@ -19,14 +18,48 @@ static void repl(VM* vm) {
       break;
     }
 
-    interpret(vm, line);
+    int lBraceCount = 0;
+    int rBraceCount = 0;
+
+    for (int i = 0; line[i]; i++) lBraceCount += (line[i] == '{');
+    for (int i = 0; line[i]; i++) rBraceCount += (line[i] == '}');
+
+    if (lBraceCount > rBraceCount) {
+      char block[1024];
+      memcpy(block, line, sizeof(line));
+
+      for (;;) {
+        printf(">> ");
+
+        if (!fgets(line, sizeof(line), stdin)) {
+          printf("\n");
+          break;
+        }
+
+
+        for (int i = 0; line[i]; i++) {
+          lBraceCount += line[i] == '{';
+          rBraceCount += line[i] == '}';
+        }
+
+        if (lBraceCount == rBraceCount) {
+          break;
+        }
+      }
+
+      interpret(vm, block);
+    } else if (strcmp(line, ".quit")) {
+      break;
+    } else {
+      interpret(vm, line);
+    }
+
   }
 }
 
 static void runFile(VM* vm, const char* path) {
   char* source = readFile(path);
   InterpretationResult result = interpret(vm, source);
-  free(source);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);
@@ -45,7 +78,7 @@ int main(int argc, const char* argv[]) {
   initTable(&corePaths);
 
   // == ADD PATHS TO CORE LIBRARIES ==
-  char cwd[PATH_MAX];
+  char cwd[260];
 
   if (getcwd(cwd, sizeof(cwd)) == NULL) {
     fprintf(stderr, "Failed to get CWD");

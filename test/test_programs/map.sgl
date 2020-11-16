@@ -1,7 +1,9 @@
 var senegal = { "age": 21 };
+
 senegal["name"] = "Mel";
-println(senegal["name"]); // Mel
-println(senegal["age"]); // 21
-println(senegal.isEmpty()); // false
-println(senegal.isNotEmpty()); // true
-println(senegal.length()); // 2
+
+println(senegal["name"]); // output Mel
+println(senegal["age"]); // output 21
+println(senegal.isEmpty()); // output false
+println(senegal.isNotEmpty()); // output true
+println(senegal.length()); // output 2

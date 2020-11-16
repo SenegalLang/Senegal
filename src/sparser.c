@@ -15,7 +15,7 @@ ParseRule rules[] = {
     [RPAREN] = {NULL, NULL, NONE},
     [LBRACE] = {parseMap, NULL, NONE},
     [RBRACE] = {NULL, NULL, NONE},
-    [LBRACKET] = {NULL, parseAccess, CALL},
+    [LBRACKET] = {parseList, parseAccess, CALL},
     [RBRACKET] = {NULL, NULL, NONE},
     [COMMA] = {NULL, NULL, NONE},
     [COLON] = {NULL, NULL, NONE},
@@ -441,29 +441,88 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
     setOP = OPCODE_SETGLOB;
   }
 
-  if (canAssign && match(parser, lexer, EQUAL)) {
-    parseExpression(vm, parser, compiler, cc, lexer, i);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
-  } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
+  if (canAssign) {
+    switch (parser->current.type) {
+      case EQUAL:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeByte(vm, parser, i, OPCODE_INC);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
 
-  } else if (canAssign && match(parser, lexer, MINUS_MINUS)) {
+      case PLUS_PLUS:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeByte(vm, parser, i, OPCODE_DEC);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_INC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
 
-  } else if (canAssign && match(parser, lexer, STAR_STAR)) {
-    if (!match(parser, lexer, NUMBER))
-      error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+      case MINUS_MINUS:
+        advance(parser, lexer);
 
-    writeShort(vm, parser, i, getOP, (uint8_t) id);
-    writeLoad(vm, parser, compiler, i, NUM_CONST(strtod(parser->previous.start, NULL)));
-    writeByte(vm, parser, i, OPCODE_POW);
-    writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_DEC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
+
+      case STAR_STAR:
+        advance(parser, lexer);
+
+        if (!check(parser, NUMBER))
+          error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_POW);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case PLUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_ADD);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case MINUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_SUB);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case STAR_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_MUL);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+
+      case SLASH_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_DIV);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      default:
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        break;
+    }
   } else {
     writeShort(vm, parser, i, getOP, (uint8_t) id);
   }
@@ -485,7 +544,7 @@ static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, C
 
   FunctionType type = METHOD;
 
-  if (parser->previous.length == 9 && memcmp(parser->previous.start, "construct", 9) == 0)
+  if (strncmp(parser->previous.start, cc->id.start, cc->id.length) == 0)
     type = CONSTRUCTOR;
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
@@ -564,7 +623,8 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   consume(parser, lexer, LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, RBRACE) && !check(parser, SENEGAL_EOF)) {
-    if (match(parser, lexer, FUNCTION))
+    if (match(parser, lexer, FUNCTION)
+    || (check(parser, ID) && strncmp(classId.start, parser->current.start, classId.length) == 0))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i);
   }
 
@@ -805,6 +865,22 @@ void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc,
     default:
       return;
   }
+}
+
+void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+
+  if (match(parser, lexer, RBRACKET))
+    writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newList(vm, 0)));
+
+  uint8_t entryCount = 0;
+  do {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    entryCount++;
+  } while (match(parser, lexer, COMMA));
+
+  consume(parser, lexer, RBRACKET, "Senegal expected list to be closed with `]`");
+
+  writeShort(vm, parser, i, OPCODE_NEWLIST, entryCount);
 }
 
 void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {

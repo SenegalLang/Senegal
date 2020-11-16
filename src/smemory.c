@@ -88,6 +88,20 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
       break;
     }
 
+    case GC_MAP: {
+      GCMap* map = (GCMap*)gc;
+      freeTable(vm, &map->table);
+      FREE(vm, compiler, GCMap, gc);
+      break;
+    }
+
+    case GC_LIST: {
+      GCList* list = (GCList*)gc;
+      FREE_ARRAY(vm, compiler, char, list, list->elementC);
+      FREE(vm, compiler, GCList, gc);
+      break;
+    }
+
     case GC_UPVALUE:
       FREE(vm, compiler, GCUpvalue, gc);
       break;
@@ -110,7 +124,11 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
-  vm->constructString = NULL;
+  markGCObject(vm, (GCObject*)vm->boolClass);
+  markGCObject(vm, (GCObject*)vm->listClass);
+  markGCObject(vm, (GCObject*)vm->mapClass);
+  markGCObject(vm, (GCObject*)vm->numClass);
+  markGCObject(vm, (GCObject*)vm->stringClass);
 
   freeGCObjects(vm, NULL);
 }
@@ -161,10 +179,10 @@ static void markRoots(VM* vm, Compiler* compiler) {
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
-  markGCObject(vm, (GCObject*)vm->constructString);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);
+  markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
 }
 
@@ -225,6 +243,20 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
     case GC_NATIVE:
     case GC_STRING:
       break;
+
+    case GC_MAP:
+      markTable(vm, &((GCMap*)gc)->table);
+      break;
+
+    case GC_LIST: {
+      GCList* list = (GCList*)gc;
+
+      for (int i = 0; i < list->elementC; i++) {
+        markGCObject(vm, AS_GC_OBJ(list->elements[i]));
+      }
+
+      break;
+    }
 
     case GC_UPVALUE:
       markConstant(vm, ((GCUpvalue*)gc)->closed);

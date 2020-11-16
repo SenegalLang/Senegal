@@ -16,3 +16,8 @@ out/
 
 docs/node_modules/
 docs/build/
+
+# Dart
+test/.dart_tool/
+test/.packages
+test/pubspec.lock

@@ -100,6 +100,7 @@ typedef enum {
     GC_FUNCTION,
     GC_INSTANCE,
     GC_INSTANCE_METHOD,
+    GC_LIST,
     GC_MAP,
     GC_NATIVE,
     GC_STRING,

@@ -41,6 +41,6 @@ function max(a, b) {
 	}
 }
 
-function remap(value, start1, stop1, start2, stop2) {
-  return (value - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+function remap(value, fromMin, fromMax, toMin, toMax) {
+  return (((value - fromMin) * (toMax - toMin))/(fromMax - fromMin)) + toMin;
 }

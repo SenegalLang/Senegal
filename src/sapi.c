@@ -53,6 +53,7 @@ Constant printApi(VM* vm, int arity, Constant* args) {
 }
 
 Constant printlnApi(VM* vm, int arity, Constant* args) {
+
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);
 

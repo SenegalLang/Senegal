@@ -238,6 +238,9 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_NEWMAP:
       return loadInstruction("OPCODE_NEWMAP", instructions, offset);
 
+    case OPCODE_NEWLIST:
+      return loadInstruction("OPCODE_NEWLIST", instructions, offset);
+
     case OPCODE_ACCESS:
       return loadInstruction("OPCODE_ACCESS", instructions, offset);
 
