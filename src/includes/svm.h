@@ -45,10 +45,9 @@ typedef struct {
 
 typedef struct GCUpvalue {
     GCObject gc;
-
-    Constant* place;
     Constant closed;
 
+    Constant* place;
     struct GCUpvalue* next;
 } GCUpvalue;
 
@@ -56,8 +55,8 @@ typedef struct {
     GCObject gc;
     GCFunction* function;
 
-    GCUpvalue** upvalues;
     int upvalueCount;
+    GCUpvalue** upvalues;
 } GCClosure;
 
 typedef struct {
@@ -75,8 +74,8 @@ typedef struct {
 
 typedef struct {
     GCObject gc;
-    GCClass* class;
     Table fields;
+    GCClass* class;
 } GCInstance;
 
 typedef struct {
@@ -92,9 +91,9 @@ typedef struct {
 
 typedef struct {
     GCObject gc;
-    Constant* elements;
     int elementC;
     int listCurrentCap;
+    Constant* elements;
 } GCList;
 
 #define IS_CLASS(c) isGCType(c, GC_CLASS)
@@ -122,11 +121,6 @@ typedef struct {
 } CallFrame;
 
 struct sVM {
-    CallFrame frames[FRAMES_MAX];
-    int frameCount;
-
-    Constant stack[STACK_MAX];
-    Constant* stackTop;
 
     size_t bytesAllocated;
     size_t nextGC;
@@ -138,22 +132,27 @@ struct sVM {
 
     GCUpvalue* openUpvalues;
 
-    int grayCount;
-    int grayCapacity;
-    GCObject** grayStack;
-
     GCClass* boolClass;
     GCClass* listClass;
     GCClass* mapClass;
     GCClass* numClass;
     GCClass* stringClass;
+
+    int grayCount;
+    int grayCapacity;
+    GCObject** grayStack;
+
+    int frameCount;
+    Constant stack[STACK_MAX];
+
+    CallFrame frames[FRAMES_MAX];
+    Constant* stackTop;
 };
 
 
 void initVM(VM* vm);
 
 bool call(VM* vm, GCClosure* closure, int arity);
-bool callConstant(VM* vm,Constant callee, int arity);
 
 InterpretationResult interpret(VM* vm, char* source);
 InterpretationResult interpretImport(VM *vm, char *source);

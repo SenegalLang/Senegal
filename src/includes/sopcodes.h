@@ -13,6 +13,7 @@ OPCODE(OPCODE_RSHIFT)
 OPCODE(OPCODE_BITNOT)
 
 // Arithmetic
+OPCODE(OPCODE_CONCAT) // String Concatenation
 OPCODE(OPCODE_ADD) // Addition
 OPCODE(OPCODE_SUB) // Subtract
 OPCODE(OPCODE_MUL) // Multiply

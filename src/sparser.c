@@ -750,6 +750,9 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case PLUS:
+      if (IS_STRING(vm->stackTop[-1] && IS_STRING(vm->stackTop[0])))
+        writeByte(vm, parser, i, OPCODE_CONCAT);
+
       writeByte(vm, parser, i, OPCODE_ADD);
       break;
 
@@ -758,10 +761,24 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case STAR:
+      if (AS_NUMBER(vm->stackTop[0]) == 1) {
+        pop(vm);
+        break;
+      }
+
       writeByte(vm, parser, i, OPCODE_MUL);
       break;
 
     case SLASH:
+      if (AS_NUMBER(vm->stackTop[0]) == 1) {
+        pop(vm);
+        break;
+      } else if (AS_NUMBER(vm->stackTop[0]) == AS_NUMBER(vm->stackTop[-1])) {
+        vm->stackTop -= 2;
+        push(vm, NUM_CONST(1));
+        break;
+      }
+
       writeByte(vm, parser, i, OPCODE_DIV);
       break;
 
