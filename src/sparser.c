@@ -758,10 +758,17 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case STAR:
+      if (AS_NUMBER(vm->stackTop[0]) == 1) {
+        pop(vm);
+        break;
+      }
+
       writeByte(vm, parser, i, OPCODE_MUL);
       break;
 
     case SLASH:
+
+
       writeByte(vm, parser, i, OPCODE_DIV);
       break;
 

@@ -1,0 +1,19 @@
+name: Dart
+
+on: [repository_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image:  google/dart:latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Chmod
+        run: chmod +x test/senegal
+      - name: Install dependencies
+        run: cd test && ls && pub get
+      - name: Run tests
+        run: cd test && pub run test

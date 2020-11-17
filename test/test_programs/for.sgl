@@ -1,3 +1,14 @@
+// output 0
+// output 1
+// output 2
+// output 3
+// output 4
+// output 5
+// output 6
+// output 7
+// output 8
+// output 10
+// output 11
 for (var i = 0; i <= 11; i = i+1) {
     if (i == 9) continue;
 

@@ -2,7 +2,6 @@
 id: style
 title: Senegal Styling Guide
 sidebar_label: Style Guide
-slug: /
 ---
 
 ## Indentation

@@ -6,19 +6,19 @@
 #include "includes/sapi.h"
 
 //#define NAN (0.0 / 0.0)
-//#define INFINITY (1.0 / 0.0)
-#define NEGATIVE_INFINITY (-1.0 / 0.0)
+#define INF (1.0 / 0.0)
+#define NEGATIVE_INF (-1.0 / 0.0)
 #define MAX_FINITE 1.7976931348623157e+308
 #define MIN_POSITIVE 5e-324
 
 static Constant numIsFinite(VM* vm, int arity, Constant* args) {
   register double num = AS_NUMBER(args[-1]);
-  return BOOL_CONST(num != INFINITY && num != NEGATIVE_INFINITY && num != NAN);
+  return BOOL_CONST(num != INF && num != NEGATIVE_INF && num != NAN);
 }
 
 static Constant numIsInfinite(VM* vm, int arity, Constant* args) {
   register double num = AS_NUMBER(args[-1]);
-  return BOOL_CONST(num == INFINITY ||num == NEGATIVE_INFINITY);
+  return BOOL_CONST(num == INF || num == NEGATIVE_INF);
 }
 
 static Constant numToString(VM* vm, int arity, Constant* args) {
@@ -31,7 +31,7 @@ static Constant numToString(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numIsNan(VM* vm, int arity, Constant* args) {
-  return BOOL_CONST(AS_NUMBER(args[-1]) == NAN);
+  return BOOL_CONST(AS_NUMBER(args[-1]) == (0.0 / 0.0));
 }
 
 static Constant numIsNeg(VM* vm, int arity, Constant* args) {
@@ -64,11 +64,11 @@ static Constant numCompareTo(VM* vm, int arity, Constant* args) {
   double other = AS_NUMBER(args[0]);
 
   if (num < other)
-    return -1;
+    return NUM_CONST(-1);
   else if (num > other)
-    return 1;
+    return NUM_CONST(1);
 
-  return 0;
+  return NUM_CONST(0);
 }
 
 static Constant numFloor(VM* vm, int arity, Constant* args) {
@@ -104,8 +104,8 @@ void initNumClass(VM *vm) {
   defineClassNativeFunc(vm, "remainder", numRemainder, vm->numClass);
 
   defineClassNativeField(vm, "nan", NUM_CONST(NAN), vm->numClass);
-  defineClassNativeField(vm, "infinity", NUM_CONST(INFINITY), vm->numClass);
-  defineClassNativeField(vm, "negInfinity", NUM_CONST(NEGATIVE_INFINITY), vm->numClass);
+  defineClassNativeField(vm, "infinity", NUM_CONST(INF), vm->numClass);
+  defineClassNativeField(vm, "negInfinity", NUM_CONST(NEGATIVE_INF), vm->numClass);
   defineClassNativeField(vm, "maxFinite", NUM_CONST(MAX_FINITE), vm->numClass);
   defineClassNativeField(vm, "minPositive", NUM_CONST(MIN_POSITIVE), vm->numClass);
 }

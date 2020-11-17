@@ -14,5 +14,5 @@ var bird = Senegal("Mel");
 
 assert(bird.name, "Mel");
 
-println(bird.name); // Mel
-println(bird.foo()); // null
+println(bird.name); // output Mel
+println(bird.foo()); // output null
