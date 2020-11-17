@@ -14,27 +14,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install Dependencies
+        run: sudo apt-get install apt-transport-https &&
+             sudo sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -' &&
+             sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list' &&
+             sudo apt-get update &&
+             sudo apt-get install dart
+
       - uses: actions/checkout@v2
       - name: make
         run: make
       - name: make release
         run: make release
-      - name: Commit files
-        run: |
-          git update-index --add --chmod=+x ./test/senegal
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -m "Auto commit senegal executable" -a
-
-        continue-on-error: true
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Repository Dispatch
-        run: |
-          curl -X POST https://api.github.com/repos/Calamity210/Senegal/dispatches \
-          -H 'Accept: application/vnd.github.everest-preview+json' \
-          -u ${{ secrets.REPO_ACCESS_TOKEN }} \
-          --data '{"event_type": "make-success", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
+      - name: Run Tests
+        run: mv ./senegal test/ && 
+             chmod +x test/senegal && 
+             cd test/ && 
+             dart pub get && 
+             dart pub run test
