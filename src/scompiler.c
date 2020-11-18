@@ -140,7 +140,7 @@ void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, Func
 }
 
 // Stops a compiler compiling some form of a function or instructions by writing an OPCODE_RET opcode,
-// setting the compiler to its parent and returning the compilers function.
+// setting the compiler to its parent and returning the compiler's function.
 GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions) {
   writeRetByte(vm, compiler, parser, instructions);
   GCFunction* function = compiler->function;
