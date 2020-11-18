@@ -60,7 +60,7 @@ static void repl(VM* vm) {
       }
 
       interpret(vm, block);
-    } else if (strcmp(line, ".exit") == 1) {
+    } else if (strcmp(line, ".exit\n") == 0) {
       break;
     } else {
       interpret(vm, line);
