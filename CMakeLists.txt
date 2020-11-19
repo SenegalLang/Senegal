@@ -3,6 +3,6 @@ project(Senegal C)
 
 set(CMAKE_C_STANDARD 99)
 
-file(GLOB src "**/*.h" "**/*.c")
+file(GLOB src "*/*.h" "*/*.c")
 
 add_executable(Senegal ${src})

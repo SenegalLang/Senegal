@@ -1,6 +1,5 @@
 var i = 10;
 
-
 if (i == 20) {
     println("i is 20");
 } else {
