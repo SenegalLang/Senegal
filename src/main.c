@@ -40,7 +40,7 @@ static void repl(VM* vm) {
       memcpy(block, line, sizeof(line));
 
       for (;;) {
-        printf(".. ");
+        printf("%.*s ", (lBraceCount - rBraceCount) + 1, ".....");
 
         if (!fgets(line, sizeof(line), stdin)) {
           printf("\n");
