@@ -1,6 +1,36 @@
 #include "includes/smathlib.h"
 #include "includes/sapi.h"
 
+static Constant sglMin(VM* vm, int arity, Constant* args) {
+  int left = AS_NUMBER(args[0]);
+  int right = AS_NUMBER(args[1]);
+
+  if (right < left) return NUM_CONST(right);
+
+  return NUM_CONST(left);
+}
+
+static Constant sglMax(VM* vm, int arity, Constant* args) {
+  int left = AS_NUMBER(args[0]);
+  int right = AS_NUMBER(args[1]);
+
+  if (right > left) return NUM_CONST(right);
+
+  return NUM_CONST(left);
+}
+
+static Constant sglRemap(VM* vm, int arity, Constant* args) {
+  double value = AS_NUMBER(args[0]);
+
+  double fromMin = AS_NUMBER(args[1]);
+  double fromMax = AS_NUMBER(args[2]);
+
+  double toMin = AS_NUMBER(args[3]);
+  double toMax = AS_NUMBER(args[4]);
+
+  return NUM_CONST((value - fromMin ) * (toMax - toMin) / (fromMax - fromMin) + toMin);
+}
+
 Constant initMathLib(VM* vm, int arity, Constant* args) {
   // Base of natural logarithms, e.
   defineGlobal(vm, "e", NUM_CONST(2.718281828459045));
@@ -24,4 +54,13 @@ Constant initMathLib(VM* vm, int arity, Constant* args) {
 
   // Square root of 2
   defineGlobal(vm, "sqrt2", NUM_CONST(1.4142135623730951));
+
+  // Determines the smallest value between 2 numbers, and then returns that value.
+  defineGlobalFunc(vm, "min", sglMin);
+
+  // Determines the largest value between 2 numbers, and then returns that value.
+  defineGlobalFunc(vm, "max", sglMax);
+
+  // Re-maps a number from one range to another.
+  defineGlobalFunc(vm, "remap", sglRemap);
 }
