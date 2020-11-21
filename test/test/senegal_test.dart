@@ -97,9 +97,10 @@ void main() {
 Future _testBirbScriptWithExpectations(FileSystemEntity file) async {
   final expectations = ExpectationsParser(file);
 
-  final process = await TestProcess.start('${Directory.current.path}/senegal',
+  final process = await TestProcess.start(
+      '${Directory.current.path}/senegal${Platform.isWindows ? '.exe' : ''}',
       ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}'],
-      workingDirectory: expectations.workingDir).catchError((e) {});
+      workingDirectory: expectations.workingDir);
 
   final shouldFailOnError = !expectations.doesExpectError();
   await for (final line in process.stderrStream()) {

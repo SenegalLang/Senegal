@@ -7,6 +7,7 @@
 #include "includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
+
 #include "includes/sboolCore.h"
 #include "includes/sstringCore.h"
 #include "includes/snumCore.h"
@@ -105,24 +106,6 @@ static Constant peek(VM* vm, int topDelta) {
   return vm->stackTop[- 1 - topDelta];
 }
 
-static void concatenateStrings(VM* vm) {
-  GCString* b = AS_STRING(peek(vm, 0));
-  GCString* a = AS_STRING(peek(vm, 1));
-
-  int length = a->length + b->length;
-  char* chars = ALLOCATE(vm, NULL, char, length + 1);
-
-  memcpy(chars, a->chars, a->length);
-  memcpy(chars + a->length, b->chars, b->length);
-
-  chars[length] = '\0';
-
-  GCString* newString = getString(vm, chars, length);
-  pop(vm);
-  pop(vm);
-  push(vm,GC_OBJ_CONST(newString));
-}
-
 bool call(VM* vm, GCClosure* closure, int arity) {
 
   if (arity != closure->function->arity) {
@@ -143,7 +126,7 @@ bool call(VM* vm, GCClosure* closure, int arity) {
   return true;
 }
 
-bool callConstant(VM* vm,Constant callee, int arity) {
+static bool callConstant(VM* vm, Constant callee, int arity) {
   if (IS_GC_OBJ(callee)) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
@@ -171,10 +154,9 @@ bool callConstant(VM* vm,Constant callee, int arity) {
       }
 
       case GC_NATIVE: {
-        NativeFunc nativeFunc = AS_NATIVE(callee);
-        Constant result = nativeFunc(vm, arity, vm->stackTop - arity);
-
+        Constant result = AS_NATIVE(callee)(vm, arity, vm->stackTop - arity);
         vm->stackTop -= arity + 1;
+
         push(vm, result);
 
         return true;
@@ -228,19 +210,6 @@ static void defineMethod(VM* vm, GCString* id) {
   GCClass* class = AS_CLASS(peek(vm, 1));
   tableInsert(vm, &class->methods, id, method);
   pop(vm);
-}
-
-static int power(int x, unsigned int y)
-{
-  int temp;
-  if (y == 0)
-    return 1;
-
-  temp = power(x, y / 2);
-  if ((y % 2) == 0)
-    return temp * temp;
-  else
-    return x * temp * temp;
 }
 
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
@@ -378,6 +347,25 @@ static InterpretationResult run(VM* vm) {
     PUSH(c); \
   } while(false)
 
+  #define CONCAT_STRINGS() \
+  do {                     \
+    GCString* b = AS_STRING(peek(vm, 0)); \
+    GCString* a = AS_STRING(peek(vm, 1));            \
+                           \
+    int length = a->length + b->length; \
+    char* chars = ALLOCATE(vm, NULL, char, length + 1); \
+    \
+    memcpy(chars, a->chars, a->length); \
+    memcpy(chars + a->length, b->chars, b->length); \
+    \
+    chars[length] = '\0'; \
+    \
+    GCString* newString = getString(vm, chars, length); \
+    pop(vm); \
+    pop(vm); \
+    push(vm,GC_OBJ_CONST(newString)); \
+  } while(false)
+
 #define BITWISE_OP(vm, constantType, op) \
   do {                    \
     if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) { \
@@ -417,17 +405,14 @@ static InterpretationResult run(VM* vm) {
 #endif
 
   // === Labels ===
-  RUN
-  {
-    CASE(OPCODE_TRUE):
-    {
+  RUN {
+    CASE(OPCODE_TRUE): {
       Constant c = BOOL_CONST(true);
       PUSH(c);
       DISPATCH();
     }
 
-    CASE(OPCODE_FALSE):
-    {
+    CASE(OPCODE_FALSE): {
       Constant c = BOOL_CONST(false);
       PUSH(c);
       DISPATCH();
@@ -504,49 +489,46 @@ static InterpretationResult run(VM* vm) {
     }
 
     CASE(OPCODE_ADD):
-    if (IS_STRING(PEEK()) && IS_STRING(PEEK2())) {
-      concatenateStrings(vm);
-    } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, NUM_CONST, +);
-    } else {
-      throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_ADD.");
-      return RUNTIME_ERROR;
-    }
-    DISPATCH();
+      if (IS_STRING(PEEK()) || IS_STRING(PEEK2()))
+        CONCAT_STRINGS();
+      else
+        BINARY_OP(vm, NUM_CONST, +);
+
+      DISPATCH();
 
     CASE(OPCODE_SUB):
-    BINARY_OP(vm, NUM_CONST, -);
-    DISPATCH();
+      BINARY_OP(vm, NUM_CONST, -);
+      DISPATCH();
 
     CASE(OPCODE_MUL):
-    if (IS_STRING(PEEK2()) && IS_NUMBER(PEEK())) {
+      if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
+        BINARY_OP(vm, NUM_CONST, *);
+      } else if (IS_STRING(PEEK2()) && IS_NUMBER(PEEK())) {
 
-      int multiplier = (int) AS_NUMBER(POP());
-      GCString *string = AS_STRING(POP());
+        int multiplier = (int) AS_NUMBER(POP());
+        GCString *string = AS_STRING(POP());
 
-      int length = string->length * multiplier;
-      char *chars = ALLOCATE(vm, NULL, char, length + 1);
+        int length = string->length * multiplier;
+        char *chars = ALLOCATE(vm, NULL, char, length + 1);
 
-      for (int i = 0; i < multiplier; i++)
-        memcpy(chars + i * string->length, string->chars, string->length);
+        for (int i = 0; i < multiplier; i++)
+          memcpy(chars + i * string->length, string->chars, string->length);
 
-      chars[length] = '\0';
+        chars[length] = '\0';
 
-      GCString *newString = getString(vm, chars, length);
+        GCString *newString = getString(vm, chars, length);
 
-      Constant c = GC_OBJ_CONST(newString);
-      PUSH(c);
-    } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, NUM_CONST, *);
-    } else {
-      throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_MUL.");
-      return RUNTIME_ERROR;
-    }
-    DISPATCH();
+        Constant c = GC_OBJ_CONST(newString);
+        PUSH(c);
+      } else {
+        throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_MUL.");
+        return RUNTIME_ERROR;
+      }
+      DISPATCH();
 
     CASE(OPCODE_DIV):
-    BINARY_OP(vm, NUM_CONST, /);
-    DISPATCH();
+      BINARY_OP(vm, NUM_CONST, /);
+      DISPATCH();
 
     CASE(OPCODE_EQUAL): {
     Constant b = POP();
@@ -1312,9 +1294,7 @@ static InterpretationResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-
 InterpretationResult interpret(VM* vm, char* source) {
-
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source);
 
@@ -1327,7 +1307,7 @@ InterpretationResult interpret(VM* vm, char* source) {
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  callConstant(vm, GC_OBJ_CONST(closure), 0);
+  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
 
   return run(vm);
 }
@@ -1346,7 +1326,7 @@ InterpretationResult interpretImport(VM *vm, char *source) {
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  callConstant(vm, GC_OBJ_CONST(closure), 0);
+  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
 
   return run(vm);
 }

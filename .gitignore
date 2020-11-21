@@ -21,3 +21,6 @@ docs/build/
 test/.dart_tool/
 test/.packages
 test/pubspec.lock
+
+## Profiling
+profile

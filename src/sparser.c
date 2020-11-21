@@ -29,6 +29,7 @@ ParseRule rules[] = {
     [PLUS] = {NULL, parseBinary, TERM},
     [PLUS_EQUAL] = {NULL, NULL, TERM},
     [PLUS_PLUS] = {NULL, NULL, TERM},
+    [QUESTION] = {NULL, parseTernary, ASSIGNMENT},
     [SEMI] = {NULL, NULL, NONE},
     [SLASH] = {NULL, parseBinary, FACTOR},
     [SLASH_EQUAL] = {NULL, NULL, FACTOR},
@@ -728,7 +729,6 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
   parsePrecedence(vm, parser, compiler, cc, lexer, (Precedence)(rule->precedence + 1), i);
 
   switch (op) {
-
     case AMP:
       writeByte(vm, parser, i, OPCODE_AND);
       break;
@@ -758,6 +758,11 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case STAR:
+      if (AS_NUMBER(vm->stackTop[0]) == 1) {
+        pop(vm);
+        break;
+      }
+
       writeByte(vm, parser, i, OPCODE_MUL);
       break;
 
@@ -947,6 +952,24 @@ void parseSuper(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, L
     parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("super"), false);
     writeShort(vm, parser, i, OPCODE_GETSUPER, id);
   }
+}
+
+void parseTernary(VM *vm, Parser *parser, Compiler *compiler, ClassCompiler *cc, Lexer *lexer, Instructions *i, bool canAssign) {
+
+  int thenJmp = writeJMP(vm, parser, i, OPCODE_JF);
+  writeByte(vm, parser, i, OPCODE_POP);
+
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+
+  int elseJMP = writeJMP(vm, parser, i, OPCODE_JMP);
+
+  patchJMP(parser, i, thenJmp);
+  writeByte(vm, parser, i, OPCODE_POP);
+
+  consume(parser, lexer, COLON, "Senegal expected `:` after the first ternary statement");
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+
+  patchJMP(parser, i, elseJMP);
 }
 
 void parseThis(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {

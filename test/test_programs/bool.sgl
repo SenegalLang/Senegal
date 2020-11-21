@@ -5,6 +5,6 @@ println("true == true: " + (true == true).toString()); // output true == true: t
 println("tBool == fBool: " + (tBool == fBool).toString()); // output tBool == fBool: false
 println("tBool && fBool: " + (tBool && fBool).toString()); // output tBool && fBool: false
 println("tBool: " + tBool.toString()); // output tBool: true
-println("tbool asNum: " + 14141414352523523223535.toString()); // output tbool asNum: 14141414352523523784704.000000
+println("tbool asNum: " + tBool.asNum().toString()); // output tbool asNum: 1.000000
 println("tBool type: " + tBool.type); // output tBool type: bool
 println("tBool isEmpty: " + "Senegal".isEmpty().toString()); // output tBool isEmpty: false

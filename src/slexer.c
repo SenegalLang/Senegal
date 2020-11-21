@@ -403,6 +403,9 @@ Token getNextToken(Lexer *lexer) {
       return newToken(lexer, match(lexer, '+') ?
                              PLUS_PLUS : match(lexer, '=') ? PLUS_EQUAL : PLUS);
 
+    case '?':
+      return newToken(lexer, QUESTION);
+
     case '/':
       return newToken(lexer, match(lexer, '=') ? SLASH_EQUAL : SLASH);
 
