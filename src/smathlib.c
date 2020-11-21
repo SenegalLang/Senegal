@@ -1,6 +1,8 @@
 #include "includes/smathlib.h"
 #include "includes/sapi.h"
 
+#include <math.h>
+
 static Constant sglMin(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
   int right = AS_NUMBER(args[1]);
