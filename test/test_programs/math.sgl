@@ -27,3 +27,4 @@ println(gcd(81, 153)); // output 9
 println(gcd(81, -153)); // output 9
 println(log(5.6)); // output 1.722766597741104
 println(round(5.8)); // output 6
+println(random(0, 10).type); // output num

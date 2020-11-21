@@ -2,6 +2,8 @@
 #include "includes/sapi.h"
 
 #include <math.h>
+#include <stdlib.h>
+#include <time.h>
 
 static Constant sglMin(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
@@ -115,6 +117,15 @@ static Constant sglRound(VM* vm, int arity, Constant* args) {
   return NUM_CONST(round(n));
 }
 
+static Constant sglRandom(VM* vm, int arity, Constant* args) { 
+  int minRng = AS_NUMBER(args[0]);
+  int maxRng = AS_NUMBER(args[1]);
+  
+  srand(time(NULL));
+
+  return NUM_CONST((rand() % ( maxRng - minRng + 1 )) + minRng);
+}
+
 Constant initMathLib(VM* vm, int arity, Constant* args) {
   // ============= VARIABLES =============
 
@@ -188,4 +199,7 @@ Constant initMathLib(VM* vm, int arity, Constant* args) {
 
   // Calculates the integer closest to the n parameter.
   defineGlobalFunc(vm, "round", sglRound);
+
+  // Returns a random number in between the provided range.
+  defineGlobalFunc(vm, "random", sglRandom);
 }
