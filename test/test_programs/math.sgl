@@ -21,3 +21,9 @@ println(asin(0.92)); // output 1.168080485214235
 println(acos(0.45)); // output 1.1040309877476
 println(atan(5.98)); // output 1.40510535008419
 println(atan2(2.53, -10.2)); // output 2.898460284233957
+println(toDegrees(1)); // output 57.29577951308232
+println(toRadians(57.29577951308232)); // output 1
+println(gcd(81, 153)); // output 9
+println(gcd(81, -153)); // output 9
+println(log(5.6)); // output 1.722766597741104
+println(round(5.8)); // output 6

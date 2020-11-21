@@ -76,6 +76,45 @@ static Constant sglAtan2(VM* vm, int arity, Constant* args) {
   return NUM_CONST(atan2(y, x));
 }
 
+static Constant sglToDegrees(VM* vm, int arity, Constant* args) { 
+  double x = AS_NUMBER(args[0]);
+
+  return NUM_CONST(x * (180.0 / 3.1415926535897932));
+}
+
+static Constant sglToRadians(VM* vm, int arity, Constant* args) { 
+  double x = AS_NUMBER(args[0]);
+
+  return NUM_CONST(x * (3.1415926535897932 / 180.0));
+}
+
+static Constant sglLog(VM* vm, int arity, Constant* args) { 
+  double n = AS_NUMBER(args[0]);
+
+  return NUM_CONST(log(n));
+}
+
+static Constant sglGcd(VM* vm, int arity, Constant* args) { 
+  int n1 = AS_NUMBER(args[0]);
+  int n2 = AS_NUMBER(args[1]);
+  int gcd;
+
+  n1 = ( n1 > 0) ? n1 : -n1;
+  n2 = ( n2 > 0) ? n2 : -n2;
+
+  for (int i = 1; i <= n1 && i <= n2; ++i) {
+    if (n1 % i == 0 && n2 % i == 0) gcd = i;
+  }
+
+  return NUM_CONST(gcd);
+}
+
+static Constant sglRound(VM* vm, int arity, Constant* args) { 
+  double n = AS_NUMBER(args[0]);
+
+  return NUM_CONST(round(n));
+}
+
 Constant initMathLib(VM* vm, int arity, Constant* args) {
   // ============= VARIABLES =============
 
@@ -134,4 +173,19 @@ Constant initMathLib(VM* vm, int arity, Constant* args) {
   // Calculates the angle (in radians) from a specified point to the coordinate origin as measured from the positive x-axis.
   // Note: The y-coordinate of the point is the first parameter, and the x-coordinate is the second parameter, due the the structure of calculating the tangent.
   defineGlobalFunc(vm, "atan2", sglAtan2);
+
+  // Convert angle x from radians to degrees.
+  defineGlobalFunc(vm, "toDegrees", sglToDegrees);
+
+  // Convert angle x from degrees to radians.
+  defineGlobalFunc(vm, "toRadians", sglToRadians);
+
+  // Return the greatest common divisor of the specified integer arguments in a List.
+  defineGlobalFunc(vm, "gcd", sglGcd);
+
+  // Calculates the natural logarithm (the base-e logarithm) of a number. This function expects the n parameter to be a value greater than 0.0.
+  defineGlobalFunc(vm, "log", sglLog);
+
+  // Calculates the integer closest to the n parameter.
+  defineGlobalFunc(vm, "round", sglRound);
 }
