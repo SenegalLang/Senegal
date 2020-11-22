@@ -5,11 +5,16 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifndef M_PI
+  #define M_PI 3.14159265358979323846
+#endif
+
 static Constant sglMin(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
   int right = AS_NUMBER(args[1]);
 
-  if (right < left) return NUM_CONST(right);
+  if (right < left) 
+    return NUM_CONST(right);
 
   return NUM_CONST(left);
 }
@@ -18,7 +23,8 @@ static Constant sglMax(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
   int right = AS_NUMBER(args[1]);
 
-  if (right > left) return NUM_CONST(right);
+  if (right > left) 
+    return NUM_CONST(right);
 
   return NUM_CONST(left);
 }
@@ -81,13 +87,13 @@ static Constant sglAtan2(VM* vm, int arity, Constant* args) {
 static Constant sglToDegrees(VM* vm, int arity, Constant* args) { 
   double x = AS_NUMBER(args[0]);
 
-  return NUM_CONST(x * (180.0 / 3.1415926535897932));
+  return NUM_CONST(x * (180.0 / M_PI));
 }
 
 static Constant sglToRadians(VM* vm, int arity, Constant* args) { 
   double x = AS_NUMBER(args[0]);
 
-  return NUM_CONST(x * (3.1415926535897932 / 180.0));
+  return NUM_CONST(x * (M_PI/ 180.0));
 }
 
 static Constant sglLog(VM* vm, int arity, Constant* args) { 
@@ -105,7 +111,8 @@ static Constant sglGcd(VM* vm, int arity, Constant* args) {
   n2 = ( n2 > 0) ? n2 : -n2;
 
   for (int i = 1; i <= n1 && i <= n2; ++i) {
-    if (n1 % i == 0 && n2 % i == 0) gcd = i;
+    if (n1 % i == 0 && n2 % i == 0) 
+      gcd = i;
   }
 
   return NUM_CONST(gcd);
@@ -121,12 +128,12 @@ static Constant sglRandom(VM* vm, int arity, Constant* args) {
   int minRng = AS_NUMBER(args[0]);
   int maxRng = AS_NUMBER(args[1]);
   
-  srand(time(NULL));
-
   return NUM_CONST((rand() % ( maxRng - minRng + 1 )) + minRng);
 }
 
 Constant initMathLib(VM* vm, int arity, Constant* args) {
+  srand(time(NULL));
+
   // ============= VARIABLES =============
 
   // Base of natural logarithms, e.
