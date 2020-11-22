@@ -9,12 +9,13 @@
 #include "includes/stable_utils.h"
 #include "includes/smathlib.h"
 
-#define REPL_HELP \
+#define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
   "Global options:\n" \
   "-h, --help                 Print this usage information.\n" \
-  "    --version              Print the Senegal version.\n" \
-  "    --execute [code]       Executes the code provided as an argument with type of a string."
+  "    --version              Print the Senegal version.\n"
+
+#define SENEGAL_VERSION "Senegal 0.0.1"
 
 static void repl(VM* vm) {
   char line[1024];
@@ -41,7 +42,7 @@ static void repl(VM* vm) {
       memcpy(block, line, sizeof(line));
 
       for (;;) {
-        printf("%.*s ", (lBraceCount - rBraceCount) + 1, ".....");
+        printf("%.*s ", (lBraceCount - rBraceCount) + 1, ">>>>>");
 
         if (!fgets(line, sizeof(line), stdin)) {
           printf("\n");
@@ -103,40 +104,24 @@ int main(int argc, const char* argv[]) {
   
   else if (argc == 2) {
     if (0 == strcmp(argv[1], "-h") || 0 == strcmp(argv[1], "--help")) {
-      printf("%s", REPL_HELP);
+      printf("%s", SENEGAL_HELP);
 
-      exit(0);
+      return 0;
     }
 
     else if (0 == strcmp(argv[1], "--version")) {
-      printf("Senegal 0.0.1");
+      printf("%c", SENEGAL_VERSION);
 
-      exit(0);
-    }
-
-    else if (0 == strcmp(argv[1], "--execute")) {
-      fprintf(stderr, "Senegal expected the code to execute as an argument with the type of a string.");
-
-      exit(0);
+      return 0;
     }
 
     runFile(&vm, argv[1]);
-  } 
-  
-  else if (argc == 3) {
-    if (0 == strcmp(argv[1], "--execute")) {
-      interpret(&vm, strdup(argv[2]));
-
-      exit(0);
-    }
-
-    fprintf(stderr, "%s", REPL_HELP);
-    exit(64);
   }
   
   else {
-    fprintf(stderr, "%s", REPL_HELP);
-    exit(64);
+    fprintf(stderr, "%s", SENEGAL_HELP);
+    
+    return 64;
   }
 
   freeVM(&vm);
