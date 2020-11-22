@@ -16,8 +16,8 @@ else
 	BUILD_DIR := build/release
 endif
 
-HEADERS := $(wildcard $(SOURCE_DIR)/includes/*.h)
-SOURCES := $(wildcard $(SOURCE_DIR)/*.c)
+HEADERS := $(wildcard */*.h)
+SOURCES := $(wildcard */*.c)
 OBJECTS := $(addprefix $(BUILD_DIR)/$(NAME)/, $(notdir $(SOURCES:.c=.o)))
 
 build/$(NAME): $(OBJECTS)
@@ -29,5 +29,3 @@ $(BUILD_DIR)/$(NAME)/%.o: $(SOURCE_DIR)/%.c $(HEADERS)
 	@ printf "%8s %-40s %s\n" $(CC) $< "$(CFLAGS)"
 	@ mkdir -p $(BUILD_DIR)/$(NAME)
 	@ $(CC) -c $(CFLAGS) -o $@ $<
-
-.PHONY: default

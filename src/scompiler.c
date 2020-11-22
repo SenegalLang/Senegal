@@ -140,7 +140,7 @@ void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, Func
 }
 
 // Stops a compiler compiling some form of a function or instructions by writing an OPCODE_RET opcode,
-// setting the compiler to its parent and returning the compilers function.
+// setting the compiler to its parent and returning the compiler's function.
 GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions) {
   writeRetByte(vm, compiler, parser, instructions);
   GCFunction* function = compiler->function;
@@ -173,14 +173,16 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
     char* importSource = copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars;
 
     // Core library
-    if (strncmp(importSource, "sgl:", 4) == 0) {
+    if (importSource[3] == ':') { // We make the assumption that a regular path would not contain :
       Constant constant;
 
       if (!tableGetEntry(&corePaths, copyString(vm, compiler, importSource, strlen(importSource)), &constant)) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
-      interpretImport(vm, readFile(AS_STRING(constant)->chars));
+      Constant result = AS_NATIVE(constant)(vm, 0, vm->stackTop);
+      vm->stackTop -= 1;
+
     } else {
       interpretImport(vm, readFile(importSource));
     }

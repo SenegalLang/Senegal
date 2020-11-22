@@ -18,6 +18,12 @@ void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* cla
   pop(vm);
 }
 
+void defineGlobal(VM* vm, const char* id, Constant field) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), field);
+  pop(vm);
+}
+
 Constant assertApi(VM* vm, int arity, Constant *args) {
   if (arity < 2) {
     printf("assert expected two arguments, but found  %d", arity);

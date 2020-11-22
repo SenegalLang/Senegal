@@ -7,6 +7,7 @@
 #include "includes/svm.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
+#include "includes/smathlib.h"
 
 #define REPL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -79,6 +80,13 @@ static void runFile(VM* vm, const char* path) {
     exit(70);
 }
 
+static void addPaths(VM* vm) {
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:math", 8),
+              GC_OBJ_CONST(newNative(vm, initMathLib)));
+
+}
+
 int main(int argc, const char* argv[]) {
   VM vm;
 
@@ -87,20 +95,7 @@ int main(int argc, const char* argv[]) {
 
   initTable(&corePaths);
 
-  // == ADD PATHS TO CORE LIBRARIES ==
-  char cwd[260];
-
-  if (getcwd(cwd, sizeof(cwd)) == NULL) {
-    fprintf(stderr, "Failed to get CWD");
-  }
-
-  // While in development, cwd should be in the project root.
-  // Once we push to stable, it will be within the bin/ directory
-  char* mathPath = strcat(cwd, "/core/math/math.sgl");
-
-  tableInsert(&vm, &corePaths,
-              copyString(&vm, NULL, "sgl:math", 8),
-              GC_OBJ_CONST(copyString(&vm, NULL,mathPath, strlen(mathPath))));
+  addPaths(&vm);
 
   if (argc == 1) {
     repl(&vm);

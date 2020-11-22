@@ -1,0 +1,7 @@
+var i = 10;
+
+if (i == 20) {
+    println("i is 20");
+} else {
+    i == 10 ? println("i is 10") : println("i is neither 20 nor 10"); // output i is 10
+}

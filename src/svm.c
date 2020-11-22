@@ -7,6 +7,7 @@
 #include "includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
+
 #include "includes/sboolCore.h"
 #include "includes/sstringCore.h"
 #include "includes/snumCore.h"
@@ -125,7 +126,7 @@ bool call(VM* vm, GCClosure* closure, int arity) {
   return true;
 }
 
-static bool callConstant(VM* vm,Constant callee, int arity) {
+static bool callConstant(VM* vm, Constant callee, int arity) {
   if (IS_GC_OBJ(callee)) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
@@ -1293,9 +1294,7 @@ static InterpretationResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-
 InterpretationResult interpret(VM* vm, char* source) {
-
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source);
 
@@ -1308,7 +1307,7 @@ InterpretationResult interpret(VM* vm, char* source) {
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  callConstant(vm, GC_OBJ_CONST(closure), 0);
+  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
 
   return run(vm);
 }
@@ -1327,7 +1326,7 @@ InterpretationResult interpretImport(VM *vm, char *source) {
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  callConstant(vm, GC_OBJ_CONST(closure), 0);
+  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
 
   return run(vm);
 }
