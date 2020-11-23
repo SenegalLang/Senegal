@@ -149,7 +149,7 @@ Constant initMathLib(VM* vm, int arity, Constant* args) {
   // 10th base logarithm of e.
   defineGlobal(vm, "log10e", NUM_CONST(0.4342944819032518));
 
-  defineGlobal(vm, "pi", NUM_CONST(3.1415926535897932));
+  defineGlobal(vm, "pi", NUM_CONST(PI));
 
   // Square root of 1/2
   defineGlobal(vm, "sqrt1_2", NUM_CONST(0.7071067811865476));
