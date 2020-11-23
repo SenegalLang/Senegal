@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifndef M_PI
-  #define M_PI 3.14159265358979323846
-#endif
+#define PI 3.14159265358979323846
 
 static Constant sglMin(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
@@ -87,13 +85,13 @@ static Constant sglAtan2(VM* vm, int arity, Constant* args) {
 static Constant sglToDegrees(VM* vm, int arity, Constant* args) { 
   double x = AS_NUMBER(args[0]);
 
-  return NUM_CONST(x * (180.0 / M_PI));
+  return NUM_CONST(x * (180.0 / PI));
 }
 
 static Constant sglToRadians(VM* vm, int arity, Constant* args) { 
   double x = AS_NUMBER(args[0]);
 
-  return NUM_CONST(x * (M_PI/ 180.0));
+  return NUM_CONST(x * (PI/ 180.0));
 }
 
 static Constant sglLog(VM* vm, int arity, Constant* args) { 
