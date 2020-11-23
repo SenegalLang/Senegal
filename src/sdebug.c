@@ -248,7 +248,6 @@ int disassembleInstruction(Instructions *instructions, int offset) {
       return invokeInstruction("OPCODE_SETACCESS", instructions, offset);
 
     case OPCODE_NEWFINALCLASS:
-    case OPCODE_NEWSTRICTCLASS:
     case OPCODE_NEWCLASS:
       return loadInstruction("OPCODE_NEWCLASS", instructions, offset);
 
@@ -264,8 +263,11 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_SETFIELD:
       return loadInstruction("OPCODE_SETFIELD", instructions, offset);
 
-    case OPCODE_METHOD:
-      return loadInstruction("OPCODE_METHOD", instructions, offset);
+    case OPCODE_NEWMETHOD:
+      return loadInstruction("OPCODE_NEWMETHOD", instructions, offset);
+
+    case OPCODE_NEWFIELD:
+      return loadInstruction("OPCODE_NEWFIELD", instructions, offset);
 
     case OPCODE_NEWGLOB:
       return loadInstruction("OPCODE_NEWGLOB", instructions, offset);

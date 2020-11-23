@@ -201,9 +201,6 @@ static TokenType idToken(Lexer* lexer) {
     case 's':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
-          case 't':
-            return collectKeyword(lexer, 2, 4, "rict", STRICT);
-
           case 'u':
             return collectKeyword(lexer, 2, 3, "per", SUPER);
 

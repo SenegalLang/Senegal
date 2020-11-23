@@ -25,7 +25,7 @@ static Constant listLength(VM* vm, int arity, Constant* args) {
 }
 
 void initListClass(VM *vm) {
-  vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true, false);
+  vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "List", 4)), vm->listClass);
 
   defineClassNativeFunc(vm, "forEach", listForEach, vm->listClass);
