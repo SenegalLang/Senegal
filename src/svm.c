@@ -853,42 +853,26 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_CLASS(left)) {
-      GCClass* class = AS_CLASS(left);
-      GCString* id = READ_STRING();
+    if (!IS_INSTANCE(left)) {
+      throwRuntimeError(vm, "Tried accessing fields of non-class or instance objects");
+      return RUNTIME_ERROR;
+    }
 
-      Constant constant;
-      if (tableGetEntry(&class->fields, id, &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      }
+    GCInstance *instance = AS_INSTANCE(left);
+    GCString *id = READ_STRING();
 
-      if (!bindMethod(vm, class, id)) {
-        return RUNTIME_ERROR;
-      }
-
-      DISPATCH();
-    } else if (IS_INSTANCE(left)) {
-      GCInstance *instance = AS_INSTANCE(left);
-      GCString *id = READ_STRING();
-
-      Constant constant;
-      if (tableGetEntry(&instance->class->fields, id, &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      }
-
-      if (!bindMethod(vm, instance->class, id)) {
-        return RUNTIME_ERROR;
-      }
-
+    Constant constant;
+    if (tableGetEntry(&instance->class->fields, id, &constant)) {
+      POP();
+      PUSH(constant);
       DISPATCH();
     }
 
-    throwRuntimeError(vm, "Tried accessing fields of non-class or instance objects");
-    return RUNTIME_ERROR;
+    if (!bindMethod(vm, instance->class, id)) {
+      return RUNTIME_ERROR;
+    }
+
+    DISPATCH();
   }
 
     CASE(OPCODE_NEWMETHOD):

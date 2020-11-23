@@ -8,7 +8,7 @@ class Senegal {
     function foo() {}
 
     function toString() {
-        return name;
+        return this.name;
     }
 }
 
