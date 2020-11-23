@@ -7,6 +7,7 @@
 
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class);
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class);
+void defineGlobal(VM* vm, const char* id, Constant field);
 
 Constant assertApi(VM* vm, int arity, Constant* args);
 Constant clockApi(VM* vm, int arity, Constant* args);

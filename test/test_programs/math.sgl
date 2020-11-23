@@ -1,0 +1,12 @@
+// root
+
+import "sgl:math"
+
+println(e); // output 2.718281828459045
+println(ln10); // output 2.302585092994046
+println(ln2); // output 0.6931471805599453
+println(log2e); // output 1.442695040888963
+println(log10e); // output 0.4342944819032518
+println(pi); // output 3.141592653589793
+println(sqrt1_2); // output 0.7071067811865476
+println(sqrt2); // output 1.414213562373095

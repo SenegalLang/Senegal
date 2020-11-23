@@ -1,21 +1,14 @@
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "includes/sutils.h"
 #include "includes/slexer.h"
 
-void initLexer(Lexer* lexer, const char *source) {
+void initLexer(Lexer* lexer, char *source) {
   lexer->start = source;
   lexer->current = source;
   lexer->line = 1;
-}
-
-static bool isAlpha(char c) {
-  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
-static bool isDigit(char c) {
-  return c >= '0' && c <= '9';
 }
 
 static bool isAtEnd(Lexer* lexer) {
@@ -66,6 +59,13 @@ static Token errorToken(Lexer* lexer, const char* message) {
   return token;
 }
 
+static void removeNextCharFromSource(Lexer* lexer, int index) {
+  int length = (int)(lexer->current - lexer->start);
+  removeCharFromIndex(lexer->start, lexer->start, length + index);
+  lexer->current = lexer->start;
+  lexer->current += length;
+}
+
 static void skipWhitespaceAndComment(Lexer* lexer) {
   for (;;) {
     char c = peek(lexer);
@@ -96,7 +96,6 @@ static void skipWhitespaceAndComment(Lexer* lexer) {
           break;
         }
 
-        free(&n);
         return;
       }
 
@@ -183,7 +182,15 @@ static TokenType idToken(Lexer* lexer) {
       break;
 
     case 'i':
-      return collectKeyword(lexer, 1, 1, "f", IF);
+      if (lexer->current - lexer->start > 1) {
+        switch (lexer->start[1]) {
+          case 'f':
+            return collectKeyword(lexer, 2, 0, "", IF);
+
+          case 'm':
+            return collectKeyword(lexer, 2, 4, "port", IMPORT);
+        }
+      }
 
     case 'n':
       return collectKeyword(lexer, 1, 3, "ull", SENEGAL_NULL);
@@ -233,7 +240,7 @@ static TokenType idToken(Lexer* lexer) {
 static Token collectId(Lexer* lexer) {
   char c = peek(lexer);
 
-  while (isAlpha(c) || isDigit(c) || c == '_') {
+  while (isalpha(c) || isdigit(c) || c == '_') {
     advance(lexer);
     c = peek(lexer);
   }
@@ -242,19 +249,20 @@ static Token collectId(Lexer* lexer) {
 }
 
 static Token collectNumber(Lexer* lexer) {
-  while (isDigit(peek(lexer)))
+  while (isdigit(peek(lexer)))
     advance(lexer);
 
-  if (peek(lexer) == '.' && isDigit(peekNext(lexer))) {
+  if (peek(lexer) == '.' && isdigit(peekNext(lexer))) {
     advance(lexer);
 
-    while (isDigit(peek(lexer)))
+    while (isdigit(peek(lexer)))
       advance(lexer);
   }
 
   return newToken(lexer, NUMBER);
 }
 
+// TODO(Calamity210): Walking lexer.start to remove a character is expensive, concatenating to a smaller string is a much better option
 static Token collectString(Lexer* lexer) {
   TokenType type = STRING;
 
@@ -272,6 +280,59 @@ static Token collectString(Lexer* lexer) {
 
     if (c == '$' && peekNext(lexer) == '{')
       type = INTERPOLATION;
+
+    if (c == '\\') {
+
+      switch (peekNext(lexer)) {
+
+        case '0':
+          lexer->current[0] = '\0';
+          advance(lexer);
+          break;
+
+        case 'a':
+          lexer->current[0] = '\a';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'b':
+          lexer->current[0] = '\b';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'f':
+          lexer->current[0] = '\f';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'n':
+          lexer->current[0] = '\n';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'r':
+          lexer->current[0] = '\r';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 't':
+          lexer->current[0] = '\t';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+        case 'v':
+          lexer->current[0] = '\v';
+          removeNextCharFromSource(lexer, 1);
+          break;
+
+
+        default: {
+          if (!isdigit(c)) {
+            removeNextCharFromSource(lexer, 0);
+          }
+        }
+      }
+    }
 
     advance(lexer);
   }
@@ -293,10 +354,10 @@ Token getNextToken(Lexer *lexer) {
 
   char c = advance(lexer);
 
-  if (isDigit(c))
+  if (isdigit(c))
     return collectNumber(lexer);
 
-  if (isAlpha(c) || c == '_')
+  if (isalpha(c) || c == '_')
     return collectId(lexer);
 
   switch (c) {
@@ -341,6 +402,9 @@ Token getNextToken(Lexer *lexer) {
     case '+':
       return newToken(lexer, match(lexer, '+') ?
                              PLUS_PLUS : match(lexer, '=') ? PLUS_EQUAL : PLUS);
+
+    case '?':
+      return newToken(lexer, QUESTION);
 
     case '/':
       return newToken(lexer, match(lexer, '=') ? SLASH_EQUAL : SLASH);

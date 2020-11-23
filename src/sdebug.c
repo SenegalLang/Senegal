@@ -63,7 +63,7 @@ static int byteNInstruction(const char* name, Instructions* instructions, int n,
 
 static int jmpInstruction(const char* name, int sign, Instructions* instructions, int offset) {
   uint16_t jump = (uint16_t)(instructions->bytes[offset + 1] << 8) | instructions->bytes[offset + 2];
-  printf("%-16s %4d -> %d\n", name, offset,offset + 3 + sign * jump);
+  printf("%-16s %4d -> %d\n", name, offset, offset + 3 + sign * jump);
 
   return offset + 3;
 }
@@ -93,6 +93,15 @@ int disassembleInstruction(Instructions *instructions, int offset) {
   uint8_t opcode = instructions->bytes[offset];
 
   switch (opcode) {
+    case OPCODE_INC:
+      return noOperandInstruction("OPCODE_INC", offset);
+
+    case OPCODE_DEC:
+      return noOperandInstruction("OPCODE_DEC", offset);
+
+    case OPCODE_POW:
+      return noOperandInstruction("OPCODE_POW", offset);
+
     case OPCODE_ADD:
       return noOperandInstruction("OPCODE_ADD", offset);
 
@@ -225,6 +234,18 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_SUPERINVOKE:
     case OPCODE_INVOKE:
       return invokeInstruction("OPCODE_INVOKE", instructions, offset);
+
+    case OPCODE_NEWMAP:
+      return loadInstruction("OPCODE_NEWMAP", instructions, offset);
+
+    case OPCODE_NEWLIST:
+      return loadInstruction("OPCODE_NEWLIST", instructions, offset);
+
+    case OPCODE_ACCESS:
+      return loadInstruction("OPCODE_ACCESS", instructions, offset);
+
+    case OPCODE_SETACCESS:
+      return invokeInstruction("OPCODE_SETACCESS", instructions, offset);
 
     case OPCODE_NEWFINALCLASS:
     case OPCODE_NEWSTRICTCLASS:

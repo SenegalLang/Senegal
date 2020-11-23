@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
 #include "includes/svm.h"
 #include "includes/smemory.h"
+#include "includes/stable_utils.h"
+#include "includes/smathlib.h"
 
 static void repl(VM* vm) {
   char line[1024];
+
   for (;;) {
-    printf(">");
+    printf("> ");
 
     if (!fgets(line, sizeof(line), stdin)) {
       printf("\n");
@@ -19,42 +23,9 @@ static void repl(VM* vm) {
   }
 }
 
-static char* readFile(const char* path) {
-  FILE* file = fopen(path, "rb");
-
-  if (file == NULL) {
-    fprintf(stderr, "Senegal was unable to open file \"%s\".\n", path);
-    exit(74);
-  }
-
-  fseek(file, 0L, SEEK_END);
-  size_t fileSize = ftell(file);
-  rewind(file);
-
-  char* buffer = (char*)malloc(fileSize + 1);
-
-  if (buffer == NULL) {
-    fprintf(stderr, "Senegal was unable to allocate enough memory to read \"%s\".\n", path);
-    exit(74);
-  }
-
-  size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
-
-  if (bytesRead < fileSize) {
-    fprintf(stderr, "Senegal could not read file  \"%s\".\n", path);
-    exit(74);
-  }
-
-  buffer[bytesRead] = '\0';
-
-  fclose(file);
-  return buffer;
-}
-
 static void runFile(VM* vm, const char* path) {
   char* source = readFile(path);
   InterpretationResult result = interpret(vm, source);
-  free(source);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);
@@ -63,10 +34,24 @@ static void runFile(VM* vm, const char* path) {
     exit(70);
 }
 
+static void addPaths(VM* vm) {
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:math", 8),
+              GC_OBJ_CONST(newNative(vm, initMathLib)));
+
+}
+
 int main(int argc, const char* argv[]) {
+
   VM vm;
 
+//  setbuf(stdout, 0);
   initVM(&vm);
+
+  initTable(&corePaths);
+
+  addPaths(&vm);
+
   if (argc == 1) {
     repl(&vm);
   } else if (argc == 2) {

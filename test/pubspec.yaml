@@ -1,0 +1,9 @@
+name: Senegal
+description: Senegal Programming Language
+version: 0.0.1
+environment:
+  sdk: '>=2.8.1 <3.0.0'
+dependencies:
+  test_process: ^1.0.5
+dev_dependencies:
+  test: ^1.14.4

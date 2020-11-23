@@ -17,12 +17,11 @@ typedef struct {
 } Line;
 
 typedef struct {
+    ConstantPool constants;
 
-    uint8_t* bytes;
     int bytesCapacity;
     int bytesCount;
-
-    ConstantPool constants;
+    uint8_t* bytes;
 
     int lineC;
     int lineCap;

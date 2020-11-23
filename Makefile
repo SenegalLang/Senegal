@@ -6,7 +6,7 @@ clean:
 	@ rm -rf gen
 
 profile:
-	@ $(MAKE) -f senegal.make NAME=senegald MODE=profile SOURCE_DIR=src
+	@ $(MAKE) -f senegal.make NAME=senegalp MODE=profile SOURCE_DIR=src
 	@ cp build/senegal senegal
 
 debug:

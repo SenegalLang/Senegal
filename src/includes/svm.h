@@ -45,10 +45,9 @@ typedef struct {
 
 typedef struct GCUpvalue {
     GCObject gc;
-
-    Constant* place;
     Constant closed;
 
+    Constant* place;
     struct GCUpvalue* next;
 } GCUpvalue;
 
@@ -56,8 +55,8 @@ typedef struct {
     GCObject gc;
     GCFunction* function;
 
-    GCUpvalue** upvalues;
     int upvalueCount;
+    GCUpvalue** upvalues;
 } GCClosure;
 
 typedef struct {
@@ -75,8 +74,8 @@ typedef struct {
 
 typedef struct {
     GCObject gc;
-    GCClass* class;
     Table fields;
+    GCClass* class;
 } GCInstance;
 
 typedef struct {
@@ -85,10 +84,24 @@ typedef struct {
     GCClosure* method;
 } GCInstanceMethod;
 
+typedef struct {
+    GCObject gc;
+    Table table;
+} GCMap;
+
+typedef struct {
+    GCObject gc;
+    int elementC;
+    int listCurrentCap;
+    Constant* elements;
+} GCList;
+
 #define IS_CLASS(c) isGCType(c, GC_CLASS)
 #define IS_FUNCTION(c) isGCType(c, GC_FUNCTION)
 #define IS_INSTANCE(c) isGCType(c, GC_INSTANCE)
 #define IS_INSTANCE_METHOD(c) isGCType(c, GC_INSTANCE_METHOD)
+#define IS_LIST(c) isGCType(c, GC_LIST)
+#define IS_MAP(c) isGCType(c, GC_MAP)
 #define IS_NATIVE(c) isGCType(c, GC_NATIVE)
 #define IS_CLOSURE(c) isGCType(c, GC_CLOSURE)
 
@@ -96,6 +109,8 @@ typedef struct {
 #define AS_FUNCTION(c) ((GCFunction*)AS_GC_OBJ(c))
 #define AS_INSTANCE(c) ((GCInstance*)AS_GC_OBJ(c))
 #define AS_INSTANCE_METHOD(c) ((GCInstanceMethod*)AS_GC_OBJ(c))
+#define AS_LIST(c) ((GCList*)AS_GC_OBJ(c))
+#define AS_MAP(c) ((GCMap*)AS_GC_OBJ(c))
 #define AS_NATIVE(c) (((GCNative*)AS_GC_OBJ(c))->function)
 #define AS_CLOSURE(c) (((GCClosure*)AS_GC_OBJ(c)))
 
@@ -106,11 +121,6 @@ typedef struct {
 } CallFrame;
 
 struct sVM {
-    CallFrame frames[FRAMES_MAX];
-    int frameCount;
-
-    Constant stack[STACK_MAX];
-    Constant* stackTop;
 
     size_t bytesAllocated;
     size_t nextGC;
@@ -122,22 +132,30 @@ struct sVM {
 
     GCUpvalue* openUpvalues;
 
+    GCClass* boolClass;
+    GCClass* listClass;
+    GCClass* mapClass;
+    GCClass* numClass;
+    GCClass* stringClass;
+
     int grayCount;
     int grayCapacity;
     GCObject** grayStack;
 
-    // Class method names
-    GCString* constructString;
+    int frameCount;
+    CallFrame frames[FRAMES_MAX];
 
-    GCClass* boolClass;
-    GCClass* stringClass;
-    GCClass* numClass;
+    Constant stack[STACK_MAX];
+    Constant* stackTop;
 };
 
 
 void initVM(VM* vm);
 
-InterpretationResult interpret(VM* vm, const char* source);
+bool call(VM* vm, GCClosure* closure, int arity);
+
+InterpretationResult interpret(VM* vm, char* source);
+InterpretationResult interpretImport(VM *vm, char *source);
 
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);
@@ -146,6 +164,8 @@ GCClass* newClass(VM* vm, GCString* id, bool isFinal, bool isStrict);
 GCFunction* newFunction(VM* vm);
 GCInstance* newInstance(VM* vm, GCClass* class);
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method);
+GCList* newList(VM *vm, int length);
+GCMap* newMap(VM *vm);
 GCNative* newNative(VM* vm, NativeFunc function);
 GCClosure* newClosure(VM* vm, GCFunction* function);
 GCUpvalue* newUpvalue(VM* vm, Constant* constant);

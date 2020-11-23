@@ -1,0 +1,16 @@
+var string = "This is a test";
+
+println(string + " string"); // output This is a test string
+println("Null\0bit"); // output Null
+println("Alarm\a"); // ignore
+println("Back \bspace"); // ignore
+println("Form\ffeed"); // ignore
+println("Line\nfeed"); // output Line
+                       //output feed
+println("Horizontal\ttab"); // ignore
+println("\\slash"); // output \slash
+println("Double quote in \" String"); // output Double quote in " String
+
+// NEED TO BE CORRECTED
+// println("Carriage\rreturn");
+// println("Vertical\vtab");

@@ -3,11 +3,12 @@
 
 typedef enum {
     // Keywords
-    ASYNC, AWAIT, BREAK, CASE, CLASS, CONTINUE, DEFAULT, ELSE, EXTENDS, FALSE, FINAL, FOR, FUNCTION, IF,
+    ASYNC, AWAIT, BREAK, CASE, CLASS, CONTINUE, DEFAULT, ELSE, EXTENDS, FALSE, FINAL, FOR, FUNCTION, IF, IMPORT,
     RETURN, SENEGAL_NULL, STRICT, SUPER, SWITCH, THIS, TRUE, VAR, WHILE,
 
     ID,
 
+    // WIP
     INTERPOLATION,
 
     STRING, NUMBER,
@@ -19,7 +20,7 @@ typedef enum {
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACKET, RBRACKET,
 
     CARET, COMMA, COLON, DOT, MINUS, MINUS_EQUAL, MINUS_MINUS, PLUS,
-    PLUS_EQUAL, PLUS_PLUS, SEMI, SLASH, SLASH_EQUAL, STAR, STAR_EQUAL, STAR_STAR,
+    PLUS_EQUAL, PLUS_PLUS, QUESTION, SEMI, SLASH, SLASH_EQUAL, STAR, STAR_EQUAL, STAR_STAR,
 
     ERROR, SENEGAL_EOF
 
@@ -33,13 +34,13 @@ typedef struct {
 } Token;
 
 typedef struct {
-    const char* start;
-    const char* current;
+    char* start;
+    char* current;
     int line;
 } Lexer;
 
 
-void initLexer(Lexer* lexer, const char* source);
+void initLexer(Lexer* lexer, char* source);
 Token getNextToken(Lexer* lexer);
 
 #endif //SENEGAL_SLEXER_H
