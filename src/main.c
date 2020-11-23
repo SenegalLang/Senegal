@@ -56,9 +56,9 @@ static void repl(VM* vm) {
 
         strcat(block, line);
 
-        if (lBraceCount == rBraceCount) {
+        if (lBraceCount == rBraceCount)
           break;
-        }
+        
       }
 
       interpret(vm, block);
@@ -103,13 +103,13 @@ int main(int argc, const char* argv[]) {
   } 
   
   else if (argc == 2) {
-    if (0 == strcmp(argv[1], "-h") || 0 == strcmp(argv[1], "--help")) {
+    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
       printf("%s", SENEGAL_HELP);
 
       return 0;
     }
 
-    else if (0 == strcmp(argv[1], "--version")) {
+    else if (strcmp(argv[1], "--version") == 0) {
       printf("%c", SENEGAL_VERSION);
 
       return 0;
