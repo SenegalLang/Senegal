@@ -24,6 +24,14 @@ void defineGlobal(VM* vm, const char* id, Constant field) {
   pop(vm);
 }
 
+void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
 Constant assertApi(VM* vm, int arity, Constant *args) {
   if (arity < 2) {
     printf("assert expected two arguments, but found  %d", arity);
