@@ -7,6 +7,7 @@
 # Installing from Source
 
 ## Building on a Unix-like system
+### Using `cmake`:
 1. Make sure you have installed the dependencies:
 
   	* `gcc`
@@ -27,6 +28,28 @@
 	$ cmake ..
 	$ cmake --build . && ./Senegal
 	```
+
+### Using `make`
+1. Make sure you have installed the dependencies:
+
+  	* `gcc`
+	* `GNU make`
+	* `git`
+
+2. Clone the source code using `git`:
+
+	```sh
+	$ git clone https://github.com/Calamity210/Senegal
+	$ cd Senegal
+	```
+
+3. Build and run:
+```sh
+	$ make
+	$ make debug
+	$ cd build
+	$ ./senegal
+```
 
 ## Building on Windows
 1. Make you have installed the dependencies:
