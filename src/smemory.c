@@ -66,8 +66,6 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
     }
 
     case GC_INSTANCE: {
-      GCInstance* instance = (GCInstance*)gc;
-      freeTable(vm, &instance->fields);
       FREE(vm, compiler, GCInstance, gc);
       break;
     }
@@ -228,7 +226,6 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
     case GC_INSTANCE: {
       GCInstance* instance = (GCInstance*)gc;
       markGCObject(vm, (GCObject*)instance->class);
-      markTable(vm, &instance->fields);
       break;
     }
 

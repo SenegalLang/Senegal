@@ -64,17 +64,13 @@ typedef struct {
     GCString* id;
 
     bool isFinal;
-    bool isStrict;
 
-    // TODO: support adding class fields from within class body
     Table fields;
-
     Table methods;
 } GCClass;
 
 typedef struct {
     GCObject gc;
-    Table fields;
     GCClass* class;
 } GCInstance;
 
@@ -160,7 +156,7 @@ InterpretationResult interpretImport(VM *vm, char *source);
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);
 
-GCClass* newClass(VM* vm, GCString* id, bool isFinal, bool isStrict);
+GCClass* newClass(VM* vm, GCString* id, bool isFinal);
 GCFunction* newFunction(VM* vm);
 GCInstance* newInstance(VM* vm, GCClass* class);
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method);

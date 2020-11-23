@@ -246,6 +246,18 @@ static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler,
   defineVariable(vm, parser, compiler, i, global);
 }
 
+static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+  uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
+
+  if (match(parser, lexer, EQUAL))
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+  else
+    writeByte(vm, parser, i, OPCODE_NULL);
+
+  consume(parser, lexer, SEMI, "Senegal expected `;` after variable declaration.");
+  writeShort(vm, parser, i, OPCODE_NEWFIELD, global);
+}
+
 // == Functions ==
 static void startScope(Compiler* compiler) {
   compiler->depth++;
@@ -381,7 +393,6 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
   int id = resolveLocal(parser, compiler, &name);
 
   if (id != -1) {
-
     switch (id) {
       case 0:
         getOP = OPCODE_GETLOC0;
@@ -433,9 +444,6 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
 
     getOP = OPCODE_GETLOC;
     setOP = OPCODE_SETLOC;
-  } else if ((id = resolveUpvalue(parser, compiler, &name)) != -1) {
-    getOP = OPCODE_GETUPVAL;
-    setOP = OPCODE_SETUPVAL;
   } else {
     id = idConstant(vm, parser, compiler, i, &name);
     getOP = OPCODE_GETGLOB;
@@ -549,7 +557,7 @@ static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, C
     type = CONSTRUCTOR;
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
-  writeShort(vm, parser, i, OPCODE_METHOD, constant);
+  writeShort(vm, parser, i, OPCODE_NEWMETHOD, constant);
 }
 
 static uint8_t argumentList(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
@@ -579,7 +587,7 @@ static Token syntheticToken(const char* text) {
   return token;
 }
 
-static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal, bool isStrict) {
+static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal) {
   consume(parser, lexer, ID, "Senegal expected an identifier after `class` keyword");
 
   Token classId = parser->previous;
@@ -589,8 +597,6 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
   if (isFinal)
     writeShort(vm, parser, i, OPCODE_NEWFINALCLASS, idConst);
-  else if (isStrict)
-    writeShort(vm, parser, i, OPCODE_NEWSTRICTCLASS, idConst);
   else
     writeShort(vm, parser, i, OPCODE_NEWCLASS, idConst);
 
@@ -627,6 +633,9 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
     if (match(parser, lexer, FUNCTION)
     || (check(parser, ID) && strncmp(classId.start, parser->current.start, classId.length) == 0))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i);
+
+    else if (match(parser, lexer, VAR))
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i);
   }
 
   consume(parser, lexer, RBRACE, "Senegal expected `}` after class body");
@@ -642,13 +651,9 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
   bool isFinal = match(parser, lexer, FINAL);
-  bool isStrict = false;
-
-  if (!isFinal)
-    isStrict = match(parser, lexer, STRICT);
 
   if (match(parser, lexer, CLASS))
-    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal, isStrict);
+    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
   else if (match(parser, lexer, FUNCTION))
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, VAR))
@@ -663,13 +668,9 @@ void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* par
 void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
   bool isFinal = match(parser, lexer, FINAL);
-  bool isStrict = false;
-
-  if (!isFinal)
-    isStrict = match(parser, lexer, STRICT);
 
   if (match(parser, lexer, CLASS))
-    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal, isStrict);
+    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
   else if (match(parser, lexer, FUNCTION))
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, VAR))
