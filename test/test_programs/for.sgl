@@ -9,8 +9,9 @@
 // output 8
 // output 10
 // output 11
-for (var i = 0; i <= 11; i = i+1) {
-    if (i == 9) continue;
+for (var i = 0; i <= 11; i++) {
+    if (i == 9)
+        continue;
 
     println(i);
 }

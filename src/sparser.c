@@ -426,16 +426,88 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
     }
 
     if (getOP != 0) {
-      if (canAssign && match(parser, lexer, EQUAL)) {
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, setOP);
-      } else if (canAssign && match(parser, lexer, PLUS_PLUS)) {
+      if (canAssign) {
+        switch (parser->current.type) {
+          case EQUAL:
+            advance(parser, lexer);
 
-        // TODO(Calamity): Correct
-        writeByte(vm, parser, i, getOP);
-        writeByte(vm, parser, i, OPCODE_INC);
-        writeByte(vm, parser, i, i->bytes[3]);
-        writeByte(vm, parser, i, setOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case PLUS_PLUS:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            writeByte(vm, parser, i, OPCODE_DUP);
+            writeByte(vm, parser, i, OPCODE_INC);
+            writeByte(vm, parser, i, setOP);
+            writeByte(vm, parser, i, OPCODE_POP);
+            break;
+
+          case MINUS_MINUS:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            writeByte(vm, parser, i, OPCODE_DUP);
+            writeByte(vm, parser, i, OPCODE_DEC);
+            writeByte(vm, parser, i, setOP);
+            writeByte(vm, parser, i, OPCODE_POP);
+            break;
+
+          case STAR_STAR:
+            advance(parser, lexer);
+
+            if (!check(parser, NUMBER))
+              error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_POW);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case PLUS_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_ADD);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case MINUS_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_SUB);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case STAR_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_MUL);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+
+          case SLASH_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_DIV);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          default:
+            writeByte(vm, parser, i, getOP);
+            break;
+        }
       } else {
         writeByte(vm, parser, i, getOP);
       }
@@ -1161,11 +1233,10 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
       consume(parser, lexer, LPAREN, "Senegal expected for statement to be enclosed in parenthesis.");
 
+      // Initializer
       if (match(parser, lexer, VAR)) {
         parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-      } else if (match(parser, lexer, SEMI)) {
-
-      } else {
+      } else if (!match(parser, lexer, SEMI)) {
         parseExpressionStatement(vm, parser, compiler, cc, lexer, i);
       }
 
@@ -1176,15 +1247,17 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
       int exitJMP = -1;
 
+      // Condition
       if (!match(parser, lexer, SEMI)) {
         parseExpression(vm, parser, compiler, cc, lexer, i);
         consume(parser, lexer, SEMI, "Senegal expected a semi colon after a for loops condition statement.");
 
-
+        // If condition is not matched
         exitJMP = writeJMP(vm, parser, i, OPCODE_JF);
         writeByte(vm, parser, i, OPCODE_POP);
       }
 
+      // Increment
       if (!match(parser, lexer, RPAREN)) {
         int bodyJMP = writeJMP(vm, parser, i, OPCODE_JMP);
 
