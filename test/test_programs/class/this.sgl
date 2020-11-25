@@ -1,0 +1,10 @@
+class Foo {
+    var id;
+
+    Foo() {
+        this.id = "Foo";
+        println(this.id); // output Foo
+    }
+}
+
+Foo();

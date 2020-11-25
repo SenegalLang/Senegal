@@ -709,6 +709,11 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
     else if (match(parser, lexer, VAR))
       parseFieldDeclaration(vm, parser, compiler, cc, lexer, i);
+
+    else {
+      advance(parser, lexer);
+      error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body");
+    }
   }
 
   consume(parser, lexer, RBRACE, "Senegal expected `}` after class body");

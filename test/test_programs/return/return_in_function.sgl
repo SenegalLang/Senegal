@@ -1,0 +1,5 @@
+function addOne(n) {
+    return n + 1;
+}
+
+println(addOne(1)); // output 2

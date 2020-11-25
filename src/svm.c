@@ -892,6 +892,7 @@ static InterpretationResult run(VM* vm) {
     }
 
     GCClass *sub = AS_CLASS(PEEK());
+    tableInsertAll(vm, &AS_CLASS(super)->fields, &sub->fields);
     tableInsertAll(vm, &AS_CLASS(super)->methods, &sub->methods);
 
     POP();
