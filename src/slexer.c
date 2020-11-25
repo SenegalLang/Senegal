@@ -246,7 +246,20 @@ static Token collectId(Lexer* lexer) {
 }
 
 static Token collectNumber(Lexer* lexer) {
-  while (isdigit(peek(lexer)))
+
+  if (lexer->current[-1] == '0' && *lexer->current == 'x') {
+    advance(lexer);
+
+    lexer->start = lexer->current;
+
+    while (isxdigit((peek(lexer))))
+      advance(lexer);
+
+    return newToken(lexer, HEX);
+  }
+
+
+  while (isdigit((peek(lexer))))
     advance(lexer);
 
   if (peek(lexer) == '.' && isdigit(peekNext(lexer))) {
@@ -274,9 +287,6 @@ static Token collectString(Lexer* lexer) {
 
     if (c == '\n')
       lexer->line++;
-
-    if (c == '$' && peekNext(lexer) == '{')
-      type = INTERPOLATION;
 
     if (c == '\\') {
 

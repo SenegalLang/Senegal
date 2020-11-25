@@ -49,6 +49,7 @@ ParseRule rules[] = {
     [ID] = {parseIdentifier, NULL, NONE},
     [STRING] = {parseString, NULL, NONE},
     [NUMBER] = {parseNumber, NULL, NONE},
+    [HEX] = {parseHex, NULL, NONE},
     [AMP] = {NULL, parseBinary, BIT_AND},
     [AMP_AMP] = {NULL, parseAnd, PREC_AND},
     [CLASS] = {NULL, NULL, NONE},
@@ -920,6 +921,10 @@ void parseFunctionCall(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler
 void parseGroup(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   parseExpression(vm, parser, compiler, cc, lexer, i);
   consume(parser, lexer, RPAREN, "Senegal expected `)` after a grouped expression");
+}
+
+void parseHex(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  writeLoad(vm, parser, compiler, i, NUM_CONST(strtol(parser->previous.start, NULL, 16)));
 }
 
 void parseIdentifier(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {

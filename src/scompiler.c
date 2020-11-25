@@ -53,6 +53,8 @@ void consume(Parser* parser, Lexer* lexer, TokenType type, const char* message) 
     advance(parser, lexer);
     return;
   }
+
+  printf("%d\n", parser->current.type);
   error(parser, &parser->current, message);
 }
 
@@ -180,7 +182,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
-      Constant result = AS_NATIVE(constant)(vm, 0, vm->stackTop);
+      AS_NATIVE(constant)(vm, 0, vm->stackTop);
       vm->stackTop -= 1;
 
     } else {
