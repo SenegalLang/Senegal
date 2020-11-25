@@ -1,0 +1,3 @@
+var bool = false;
+
+!bool = true; // error <Line 3 Error:=> `Invalid assignment target.`

@@ -1,0 +1,4 @@
+var first = 5;
+var second = 3;
+
+first + second = 30; // error <Line 4 Error:=> `Invalid assignment target.`

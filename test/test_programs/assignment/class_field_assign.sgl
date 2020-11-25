@@ -1,0 +1,31 @@
+class MutableClass {
+    var field = 0;
+
+    MutableClass() {
+        this.field = 10;
+    }
+}
+
+var mutableClassInstance = MutableClass();
+
+println(mutableClassInstance.field); // output 10
+
+mutableClassInstance.field = 20;
+println(mutableClassInstance.field); // output 20
+
+final class FinalClass {
+    var field = 0;
+
+    FinalClass() {
+        this.field = 10;
+    }
+
+}
+
+var finalClassInstance = FinalClass();
+
+println(finalClassInstance.field); // output 10
+
+finalClassInstance.field = 20;
+// error Senegal cannot mutate fields of a final class: FinalClass
+// error <Line 29> Global Scope

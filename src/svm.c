@@ -38,7 +38,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 
     size_t instruction = frame->pc - function->instructions.bytes - 1;
 
-    fprintf(stderr, "<line %d> ",
+    fprintf(stderr, "<Line %d> ",
             function->instructions.lines[instruction].line);
     if (function->id == NULL) {
       fprintf(stderr, "Global Scope\n");

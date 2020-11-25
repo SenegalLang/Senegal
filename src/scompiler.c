@@ -54,7 +54,6 @@ void consume(Parser* parser, Lexer* lexer, TokenType type, const char* message) 
     return;
   }
 
-  printf("%d\n", parser->current.type);
   error(parser, &parser->current, message);
 }
 

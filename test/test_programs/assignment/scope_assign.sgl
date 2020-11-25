@@ -1,0 +1,17 @@
+function foo(a) {
+    function b() {
+        a = 10;
+        // error Senegal attempted to reassign an undefined variable: a
+        // error <Line 0> b()
+        // error <Line 18> foo()
+        // error <Line 3> Global Scope
+    }
+
+    a = 10;
+    println(a); // output 10
+
+    b();
+}
+
+foo(9);
+

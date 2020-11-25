@@ -1,0 +1,8 @@
+var globalVariable = 0;
+println(globalVariable); // output 0
+
+globalVariable = false;
+println(globalVariable); // output false
+
+globalVariable = "foo";
+println(globalVariable); // output foo
