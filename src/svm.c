@@ -781,7 +781,7 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_GETFIELD): {
 
-    register Constant left = PEEK();
+    Constant left = PEEK();
 
     if (IS_BOOL(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "bool", 4) == 0)) {
       GCString *id = READ_STRING();
@@ -891,7 +891,8 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    GCClass *sub = AS_CLASS(PEEK());
+    GCClass* sub = AS_CLASS(PEEK());
+
     tableInsertAll(vm, &AS_CLASS(super)->fields, &sub->fields);
     tableInsertAll(vm, &AS_CLASS(super)->methods, &sub->methods);
 
@@ -946,8 +947,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    Constant c = constant;
-    PUSH(c);
+    PUSH(constant);
     DISPATCH();
   }
 

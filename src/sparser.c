@@ -220,9 +220,6 @@ static uint8_t parseVariable(VM* vm, Parser* parser, Compiler* compiler, Lexer* 
 
   declareVariable(parser, compiler);
 
-  if (compiler->depth > 0)
-    return 0;
-
   return idConstant(vm, parser, compiler, i, &parser->previous);
 }
 
