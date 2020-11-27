@@ -21,7 +21,7 @@ final class FinalClass {
     }
 
 }
-
+    
 var finalClassInstance = FinalClass();
 
 println(finalClassInstance.field); // output 10

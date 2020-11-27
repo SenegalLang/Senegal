@@ -8,6 +8,7 @@
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 #include "includes/smathlib.h"
+#include "includes/siolib.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -85,6 +86,10 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:math", 8),
               GC_OBJ_CONST(newNative(vm, initMathLib)));
+
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:io", 6),
+              GC_OBJ_CONST(newNative(vm, initIoLib)));
 
 }
 

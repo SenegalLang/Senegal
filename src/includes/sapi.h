@@ -12,7 +12,6 @@ void defineGlobal(VM* vm, const char* id, Constant field);
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function);
 
 Constant assertApi(VM* vm, int arity, Constant* args);
-Constant clockApi(VM* vm, int arity, Constant* args);
 Constant printApi(VM* vm, int arity, Constant* args);
 Constant printlnApi(VM* vm, int arity, Constant* args);
 

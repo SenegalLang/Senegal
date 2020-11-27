@@ -85,7 +85,6 @@ void initVM(VM* vm) {
   initTable(&vm->strings);
 
   defineNativeFunc(vm, "assert", assertApi);
-  defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
   defineNativeFunc(vm, "println", printlnApi);
 

@@ -122,7 +122,9 @@ static Constant sglRound(VM* vm, int arity, Constant* args) {
   return NUM_CONST(round(n));
 }
 
-static Constant sglRandom(VM* vm, int arity, Constant* args) { 
+static Constant sglRandom(VM* vm, int arity, Constant* args) {
+  srand(time(NULL));
+
   int minRng = AS_NUMBER(args[0]);
   int maxRng = AS_NUMBER(args[1]);
   
@@ -130,9 +132,7 @@ static Constant sglRandom(VM* vm, int arity, Constant* args) {
 }
 
 Constant initMathLib(VM* vm, int arity, Constant* args) {
-  srand(time(NULL));
-
-  // ============= VARIABLES =============
+  /* Constants */
 
   // Base of natural logarithms, e.
   defineGlobal(vm, "e", NUM_CONST(2.718281828459045));
@@ -157,7 +157,7 @@ Constant initMathLib(VM* vm, int arity, Constant* args) {
   // Square root of 2
   defineGlobal(vm, "sqrt2", NUM_CONST(1.4142135623730951));
 
-  // ============= FUNCTIONS =============
+  /* Functions */
 
   // Determines the smallest value between 2 numbers, and then returns that value.
   defineGlobalFunc(vm, "min", sglMin);

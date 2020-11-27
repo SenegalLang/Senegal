@@ -57,10 +57,6 @@ Constant assertApi(VM* vm, int arity, Constant *args) {
   }
 }
 
-Constant clockApi(VM* vm, int arity, Constant* args) {
-  return NUM_CONST((double)clock() / CLOCKS_PER_SEC);
-}
-
 Constant printApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);

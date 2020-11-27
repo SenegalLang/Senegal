@@ -273,13 +273,13 @@ static Token collectNumber(Lexer* lexer) {
 }
 
 // TODO(Calamity210): Walking lexer.start to remove a character is expensive, concatenating to a smaller string is a much better option
-static Token collectString(Lexer* lexer) {
+static Token collectString(Lexer* lexer, char quotation) {
   TokenType type = STRING;
 
   for (;;) {
     char c = peek(lexer);
 
-    if (c == '"')
+    if (c == quotation)
       break;
 
     if (c == '\0')
@@ -442,7 +442,8 @@ Token getNextToken(Lexer *lexer) {
       return newToken(lexer, match(lexer, '|') ? PIPE_PIPE : PIPE);
 
     case '"':
-      return collectString(lexer);
+    case '\'':
+      return collectString(lexer, c);
 
     default:
       return errorToken(lexer, "Senegal encountered an unexpected token.");
