@@ -103,7 +103,7 @@ static Constant sglLog(VM* vm, int arity, Constant* args) {
 static Constant sglGcd(VM* vm, int arity, Constant* args) { 
   int n1 = AS_NUMBER(args[0]);
   int n2 = AS_NUMBER(args[1]);
-  int gcd;
+  int gcd = 1;
 
   n1 = ( n1 > 0) ? n1 : -n1;
   n2 = ( n2 > 0) ? n2 : -n2;

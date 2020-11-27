@@ -18,6 +18,8 @@ static Constant listForEach(VM* vm, int arity, Constant* args) {
     push(vm, list->elements[i]);
     call(vm, closure, arity);
   }
+
+  return NULL_CONST;
 }
 
 static Constant listLength(VM* vm, int arity, Constant* args) {

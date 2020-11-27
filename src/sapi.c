@@ -55,11 +55,15 @@ Constant assertApi(VM* vm, int arity, Constant *args) {
 
     exit(1);
   }
+
+  return NULL_CONST;
 }
 
 Constant printApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);
+
+  return NULL_CONST;
 }
 
 Constant printlnApi(VM* vm, int arity, Constant* args) {
@@ -68,4 +72,6 @@ Constant printlnApi(VM* vm, int arity, Constant* args) {
     printConstant(args[i]);
 
   printf("\n");
+
+  return NULL_CONST;
 }
