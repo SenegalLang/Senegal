@@ -181,8 +181,8 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
-      AS_NATIVE(constant)(vm, 0, vm->stackTop);
-      vm->stackTop -= 1;
+      AS_NATIVE(constant)(vm, 0, vm->fiber->stackTop);
+      vm->fiber->stackTop -= 1;
 
     } else {
       interpretImport(vm, readFile(importSource));

@@ -91,11 +91,6 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:io", 6),
               GC_OBJ_CONST(newNative(vm, initIoLib)));
-
-  tableInsert(vm, &corePaths,
-              copyString(vm, NULL, "sgl:http", 8),
-              GC_OBJ_CONST(newNative(vm, initHttpLib)));
-
 }
 
 int main(int argc, const char* argv[]) {

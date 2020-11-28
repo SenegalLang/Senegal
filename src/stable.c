@@ -56,7 +56,7 @@ bool tableGetEntry(Table* table, GCString* key, Constant* c) {
 }
 
 GCString *tableFindString(Table *table, const char *chars, int length, uint32_t hash) {
-  if (table->count == 0)
+   if (table->count == 0)
     return NULL;
 
   uint32_t index = hash & table->cap; // hash % cap

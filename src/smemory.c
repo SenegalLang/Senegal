@@ -122,6 +122,7 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
+  markGCObject(vm, (GCObject*)vm->fiber);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
@@ -163,15 +164,15 @@ void markConstant(VM* vm, Constant constant) {
 }
 
 static void markRoots(VM* vm, Compiler* compiler) {
-  for (Constant* constant = vm->stack; constant < vm->stackTop; constant++ ) {
+  for (Constant* constant = vm->fiber->stack; constant < vm->fiber->stackTop; constant++ ) {
     markConstant(vm, *constant);
   }
 
-  for (int i = 0; i < vm->frameCount; i++) {
-    markGCObject(vm, (GCObject*)vm->frames[i].closure);
+  for (int i = 0; i < vm->fiber->frameCount; i++) {
+    markGCObject(vm, (GCObject*)vm->fiber->frames[i].closure);
   }
 
-  for (GCUpvalue* upvalue = vm->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
+  for (GCUpvalue* upvalue = vm->fiber->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
     markGCObject(vm, (GCObject*)upvalue);
   }
 

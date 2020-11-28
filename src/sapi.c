@@ -7,27 +7,27 @@
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &class->methods, AS_STRING(vm->fiber->stack[0]), vm->fiber->stack[1]);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->fields, AS_STRING(vm->stack[0]), field);
+  tableInsert(vm, &class->fields, AS_STRING(vm->fiber->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobal(VM* vm, const char* id, Constant field) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), field);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->fiber->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->fiber->stack[0]), vm->fiber->stack[1]);
   pop(vm);
   pop(vm);
 }

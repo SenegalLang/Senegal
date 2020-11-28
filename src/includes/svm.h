@@ -20,6 +20,12 @@ typedef enum {
     PROGRAM
 } FunctionType;
 
+typedef enum {
+    ROOT,
+    RUNNING,
+    OTHER
+} FiberState;
+
 typedef struct {
     GCObject gc;
     int arity;
@@ -116,7 +122,26 @@ typedef struct {
     Constant* constants;
 } CallFrame;
 
+typedef struct sFiber {
+    GCObject gc;
+
+    Constant stack[STACK_MAX];
+    Constant* stackTop;
+
+    CallFrame frames[FRAMES_MAX];
+    int frameCount;
+
+    GCUpvalue* openUpvalues;
+
+    struct sFiber* caller;
+
+    Constant error;
+
+    FiberState state;
+} GCFiber;
+
 struct sVM {
+    GCFiber* fiber;
 
     size_t bytesAllocated;
     size_t nextGC;
@@ -125,8 +150,6 @@ struct sVM {
 
     Table globals;
     Table strings;
-
-    GCUpvalue* openUpvalues;
 
     GCClass* boolClass;
     GCClass* listClass;
@@ -137,16 +160,11 @@ struct sVM {
     int grayCount;
     int grayCapacity;
     GCObject** grayStack;
-
-    int frameCount;
-    CallFrame frames[FRAMES_MAX];
-
-    Constant stack[STACK_MAX];
-    Constant* stackTop;
 };
 
 
 void initVM(VM* vm);
+void initFiber(GCFiber* fiber);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 

@@ -837,7 +837,7 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case SENEGAL_STAR:
-      if (AS_NUMBER(vm->stackTop[0]) == 1) {
+      if (AS_NUMBER(vm->fiber->stackTop[0]) == 1) {
         pop(vm);
         break;
       }
