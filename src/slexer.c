@@ -39,7 +39,7 @@ static bool match(Lexer* lexer, char expected) {
   return true;
 }
 
-static Token newToken(Lexer* lexer, TokenType type) {
+static Token newToken(Lexer* lexer, SenegalTokenType type) {
   Token token;
   token.type = type;
   token.start = lexer->start;
@@ -51,7 +51,7 @@ static Token newToken(Lexer* lexer, TokenType type) {
 
 static Token errorToken(Lexer* lexer, const char* message) {
   Token token;
-  token.type = ERROR;
+  token.type = SENEGAL_ERROR;
   token.start = message;
   token.length = (int)strlen(message);
   token.line = lexer->line;
@@ -105,60 +105,60 @@ static void skipWhitespaceAndComment(Lexer* lexer) {
   }
 }
 
-static TokenType collectKeyword(Lexer* lexer, int start, int length, const char* rest, TokenType type) {
+static SenegalTokenType collectKeyword(Lexer* lexer, int start, int length, const char* rest, SenegalTokenType type) {
   if (lexer->current - lexer->start == start + length
       && memcmp(lexer->start + start, rest, length) == 0)
     return type;
 
-  return ID;
+  return SENEGAL_ID;
 }
 
-static TokenType idToken(Lexer* lexer) {
+static SenegalTokenType idToken(Lexer* lexer) {
 
   switch (lexer->start[0]) {
     case 'a':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 's':
-            return collectKeyword(lexer, 2, 3, "ync", ASYNC);
+            return collectKeyword(lexer, 2, 3, "ync", SENEGAL_ASYNC);
 
           case 'w':
-            return collectKeyword(lexer, 2, 3, "ait", AWAIT);
+            return collectKeyword(lexer, 2, 3, "ait", SENEGAL_AWAIT);
         }
       }
       break;
 
     case 'b':
-      return collectKeyword(lexer, 1, 4, "reak", BREAK);
+      return collectKeyword(lexer, 1, 4, "reak", SENEGAL_BREAK);
 
     case 'c':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'a':
-            return collectKeyword(lexer, 2, 2, "se", CASE);
+            return collectKeyword(lexer, 2, 2, "se", SENEGAL_CASE);
 
           case 'l':
-            return collectKeyword(lexer, 2, 3, "ass", CLASS);
+            return collectKeyword(lexer, 2, 3, "ass", SENEGAL_CLASS);
 
           case 'o':
-            return collectKeyword(lexer, 2, 6, "ntinue", CONTINUE);
+            return collectKeyword(lexer, 2, 6, "ntinue", SENEGAL_CONTINUE);
         }
       }
 
       break;
 
     case 'd':
-      return collectKeyword(lexer, 1, 6, "efault", DEFAULT);
+      return collectKeyword(lexer, 1, 6, "efault", SENEGAL_DEFAULT);
 
 
     case 'e':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'l':
-            return collectKeyword(lexer, 2, 2, "se", ELSE);
+            return collectKeyword(lexer, 2, 2, "se", SENEGAL_ELSE);
 
           case 'x':
-            return collectKeyword(lexer, 2, 5, "tends", EXTENDS);
+            return collectKeyword(lexer, 2, 5, "tends", SENEGAL_EXTENDS);
         }
       }
       break;
@@ -167,16 +167,16 @@ static TokenType idToken(Lexer* lexer) {
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'a':
-            return collectKeyword(lexer, 2, 3, "lse", FALSE);
+            return collectKeyword(lexer, 2, 3, "lse", SENEGAL_FALSE);
 
           case 'i':
-            return collectKeyword(lexer, 2, 3, "nal", FINAL);
+            return collectKeyword(lexer, 2, 3, "nal", SENEGAL_FINAL);
 
           case 'o':
-            return collectKeyword(lexer, 2, 1, "r", FOR);
+            return collectKeyword(lexer, 2, 1, "r", SENEGAL_FOR);
 
           case 'u':
-            return collectKeyword(lexer, 2, 6, "nction", FUNCTION);
+            return collectKeyword(lexer, 2, 6, "nction", SENEGAL_FUNCTION);
         }
       }
       break;
@@ -185,10 +185,10 @@ static TokenType idToken(Lexer* lexer) {
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'f':
-            return collectKeyword(lexer, 2, 0, "", IF);
+            return collectKeyword(lexer, 2, 0, "", SENEGAL_IF);
 
           case 'm':
-            return collectKeyword(lexer, 2, 4, "port", IMPORT);
+            return collectKeyword(lexer, 2, 4, "port", SENEGAL_IMPORT);
         }
       }
 
@@ -196,16 +196,16 @@ static TokenType idToken(Lexer* lexer) {
       return collectKeyword(lexer, 1, 3, "ull", SENEGAL_NULL);
 
     case 'r':
-      return collectKeyword(lexer, 1, 5, "eturn", RETURN);
+      return collectKeyword(lexer, 1, 5, "eturn", SENEGAL_RETURN);
 
     case 's':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'u':
-            return collectKeyword(lexer, 2, 3, "per", SUPER);
+            return collectKeyword(lexer, 2, 3, "per", SENEGAL_SUPER);
 
           case 'w':
-            return collectKeyword(lexer, 2, 4, "itch", SWITCH);
+            return collectKeyword(lexer, 2, 4, "itch", SENEGAL_SWITCH);
         }
       }
       break;
@@ -214,24 +214,24 @@ static TokenType idToken(Lexer* lexer) {
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'h':
-            return collectKeyword(lexer, 2, 2, "is", THIS);
+            return collectKeyword(lexer, 2, 2, "is", SENEGAL_THIS);
 
           case 'r':
-            return collectKeyword(lexer, 2, 2, "ue", TRUE);
+            return collectKeyword(lexer, 2, 2, "ue", SENEGAL_TRUE);
         }
       }
 
       break;
 
     case 'v':
-      return collectKeyword(lexer, 1, 2, "ar", VAR);
+      return collectKeyword(lexer, 1, 2, "ar", SENEGAL_VAR);
 
     case 'w':
-      return collectKeyword(lexer, 1, 4, "hile", WHILE);
+      return collectKeyword(lexer, 1, 4, "hile", SENEGAL_WHILE);
 
   }
 
-  return ID;
+  return SENEGAL_ID;
 }
 
 static Token collectId(Lexer* lexer) {
@@ -255,7 +255,7 @@ static Token collectNumber(Lexer* lexer) {
     while (isxdigit((peek(lexer))))
       advance(lexer);
 
-    return newToken(lexer, HEX);
+    return newToken(lexer, SENEGAL_HEX);
   }
 
 
@@ -269,12 +269,12 @@ static Token collectNumber(Lexer* lexer) {
       advance(lexer);
   }
 
-  return newToken(lexer, NUMBER);
+  return newToken(lexer, SENEGAL_NUMBER);
 }
 
 // TODO(Calamity210): Walking lexer.start to remove a character is expensive, concatenating to a smaller string is a much better option
 static Token collectString(Lexer* lexer, char quotation) {
-  TokenType type = STRING;
+  SenegalTokenType type = SENEGAL_STRING;
 
   for (;;) {
     char c = peek(lexer);
@@ -369,77 +369,78 @@ Token getNextToken(Lexer *lexer) {
 
   switch (c) {
     case ':':
-      return newToken(lexer, COLON);
+      return newToken(lexer, SENEGAL_COLON);
 
 
     case '(':
-      return newToken(lexer, LPAREN);
+      return newToken(lexer, SENEGAL_LPAREN);
 
     case ')':
-      return newToken(lexer, RPAREN);
+      return newToken(lexer, SENEGAL_RPAREN);
 
     case '{':
-      return newToken(lexer, LBRACE);
+      return newToken(lexer, SENEGAL_LBRACE);
 
     case '}':
-      return newToken(lexer, RBRACE);
+      return newToken(lexer, SENEGAL_RBRACE);
 
     case '[':
-      return newToken(lexer, LBRACKET);
+      return newToken(lexer, SENEGAL_LBRACKET);
 
     case ']':
-      return newToken(lexer, RBRACKET);
+      return newToken(lexer, SENEGAL_RBRACKET);
 
     case ';':
-      return newToken(lexer, SEMI);
+      return newToken(lexer, SENEGAL_SEMI);
 
     case '^':
-      return newToken(lexer, CARET);
+      return newToken(lexer, SENEGAL_CARET);
 
     case ',':
-      return newToken(lexer, COMMA);
+      return newToken(lexer, SENEGAL_COMMA);
 
     case '.':
-      return newToken(lexer, DOT);
+      return newToken(lexer, SENEGAL_DOT);
 
     case '-':
       return newToken(lexer, match(lexer, '-') ?
-                             MINUS_MINUS : match(lexer, '=') ? MINUS_EQUAL : MINUS);
+                             SENEGAL_MINUS_MINUS : match(lexer, '=') ? SENEGAL_MINUS_EQUAL : SENEGAL_MINUS);
 
     case '+':
       return newToken(lexer, match(lexer, '+') ?
-                             PLUS_PLUS : match(lexer, '=') ? PLUS_EQUAL : PLUS);
+                             SENEGAL_PLUS_PLUS : match(lexer, '=') ? SENEGAL_PLUS_EQUAL : SENEGAL_PLUS);
 
     case '?':
-      return newToken(lexer, QUESTION);
+      return newToken(lexer, SENEGAL_QUESTION);
 
     case '/':
-      return newToken(lexer, match(lexer, '=') ? SLASH_EQUAL : SLASH);
+      return newToken(lexer, match(lexer, '=') ? SENEGAL_SLASH_EQUAL : SENEGAL_SLASH);
 
     case '*':
       return newToken(lexer, match(lexer, '*') ?
-                             STAR_STAR : match(lexer, '=') ? STAR_EQUAL : STAR);
+                             SENEGAL_STAR_STAR : match(lexer, '=') ? SENEGAL_STAR_EQUAL : SENEGAL_STAR);
 
     case '~':
-      return newToken(lexer, TILDE);
+      return newToken(lexer, SENEGAL_TILDE);
 
     case '&':
-      return newToken(lexer, match(lexer, '&') ? AMP_AMP : AMP);
+      return newToken(lexer, match(lexer, '&') ? SENEGAL_AMP_AMP : SENEGAL_AMP);
 
     case '!':
-      return newToken(lexer, match(lexer, '=') ? BANG_EQUAL : BANG);
+      return newToken(lexer, match(lexer, '=') ? SENEGAL_BANG_EQUAL : SENEGAL_BANG);
 
     case '=':
-      return newToken(lexer, match(lexer, '=') ? EQUAL_EQUAL : match(lexer, '>') ? EQUAL_GREATER : EQUAL);
+      return newToken(lexer, match(lexer, '=') ?
+                      SENEGAL_EQUAL_EQUAL : match(lexer, '>') ? SENEGAL_EQUAL_GREATER : SENEGAL_EQUAL);
 
     case '<':
-      return newToken(lexer, match(lexer, '=') ? LESSER_EQUAL : LESSER);
+      return newToken(lexer, match(lexer, '=') ? SENEGAL_LESSER_EQUAL : SENEGAL_LESSER);
 
     case '>':
-      return newToken(lexer, match(lexer, '=') ? GREATER_EQUAL : GREATER);
+      return newToken(lexer, match(lexer, '=') ? SENEGAL_GREATER_EQUAL : SENEGAL_GREATER);
 
     case '|':
-      return newToken(lexer, match(lexer, '|') ? PIPE_PIPE : PIPE);
+      return newToken(lexer, match(lexer, '|') ? SENEGAL_PIPE_PIPE : SENEGAL_PIPE);
 
     case '"':
     case '\'':

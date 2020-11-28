@@ -9,6 +9,7 @@
 #include "includes/stable_utils.h"
 #include "includes/smathlib.h"
 #include "includes/siolib.h"
+#include "includes/shttplib.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -90,6 +91,10 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:io", 6),
               GC_OBJ_CONST(newNative(vm, initIoLib)));
+
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:http", 8),
+              GC_OBJ_CONST(newNative(vm, initHttpLib)));
 
 }
 

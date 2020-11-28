@@ -12,7 +12,7 @@ GCFunction* compileImport(VM* vm, Compiler* compiler, char* source);
 void markCompilerRoots(VM* vm, Compiler* compiler);
 
 void advance(Parser* parser, Lexer* lexer);
-void consume(Parser* parser, Lexer* lexer, TokenType type, const char* message);
+void consume(Parser* parser, Lexer* lexer, SenegalTokenType type, const char* message);
 
 void error(Parser* parser, Token* token, const char* message);
 

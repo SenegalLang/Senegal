@@ -404,7 +404,7 @@ static InterpretationResult run(VM* vm) {
     run: \
       switch(READ_BYTE()) \
 
-#define CASE(code) case (code)
+#define SENEGAL_CASE(code) case (code)
 #define DISPATCH() goto run
 #endif
 
