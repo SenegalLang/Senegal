@@ -72,6 +72,7 @@ static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
 }
 
 void initVM(VM* vm) {
+  vm->fiber = NULL;
   vm->fiber = ALLOCATE_GC_OBJ(vm, GCFiber, GC_FIBER);
   initFiber(vm->fiber);
 
