@@ -9,7 +9,7 @@
 #include "includes/stable_utils.h"
 #include "includes/smathlib.h"
 #include "includes/siolib.h"
-#include "includes/sfiblib.h"
+#include "includes/scorolib.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -94,7 +94,7 @@ static void addPaths(VM* vm) {
 
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:fiblib", 10),
-              GC_OBJ_CONST(newNative(vm, initFibLib)));
+              GC_OBJ_CONST(newNative(vm, initCoroLib)));
 }
 
 int main(int argc, const char* argv[]) {

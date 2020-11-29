@@ -24,7 +24,7 @@ typedef enum {
     ROOT,
     RUNNING,
     OTHER
-} FiberState;
+} CoroutineState;
 
 typedef struct {
     GCObject gc;
@@ -122,7 +122,7 @@ typedef struct {
     Constant* constants;
 } CallFrame;
 
-typedef struct sFiber {
+typedef struct sCoroutine {
     GCObject gc;
 
     Constant stack[STACK_MAX];
@@ -133,18 +133,18 @@ typedef struct sFiber {
 
     GCUpvalue* openUpvalues;
 
-    struct sFiber* caller;
+    struct sCoroutine* caller;
 
     Constant* error;
 
-    FiberState state;
-} GCFiber;
+    CoroutineState state;
+} GCCoroutine;
 
-#define IS_FIBER(c) isGCType(c, GC_FIBER)
-#define AS_FIBER(c) ((GCFiber*)AS_GC_OBJ(c))
+#define IS_COROUTINE(c) isGCType(c, GC_COROUTINE)
+#define AS_COROUTINE(c) ((GCCoroutine*)AS_GC_OBJ(c))
 
 struct sVM {
-    GCFiber* fiber;
+    GCCoroutine* coroutine;
 
     size_t bytesAllocated;
     size_t nextGC;
@@ -167,7 +167,7 @@ struct sVM {
 
 
 void initVM(VM* vm);
-GCFiber* newFiber(VM* vm, FiberState state, GCClosure* closure);
+GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 

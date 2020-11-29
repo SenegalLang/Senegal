@@ -1,15 +1,29 @@
 import 'sgl:fiblib'
 
 function foo() {
-    println('in foo');
+    println('Before Yield');
+    yield("Yield Value");
+    println('After Yield');
+
+    transfer(coroutine2);
+    println('Transfer should not return to this');
 }
 
-println("should call"); // output should call
+function bar() {
+    println("Transferred to coroutine2");
+}
 
-var fiber = newFiber(foo);
+var coroutine = newCoroutine(foo);
+var coroutine2 = newCoroutine(bar);
 
-callFiber(fiber); // output in foo
+println("Before Call"); // output Before Call
 
-suspend();
+println(call(coroutine));
+// output Before Yield
+// output Yield Value
 
-println("shouldn't call");
+println("After Call"); // output After Call
+
+call(coroutine);
+// output After Yield
+// output Transferred to coroutine2

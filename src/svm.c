@@ -18,10 +18,10 @@
 #include "includes/sdebug.h"
 #endif
 
-static void resetStack(GCFiber* fiber) {
-  fiber->stackTop = fiber->stack;
-  fiber->frameCount = 0;
-  fiber->openUpvalues = NULL;
+static void resetStack(GCCoroutine* coroutine) {
+  coroutine->stackTop = coroutine->stack;
+  coroutine->frameCount = 0;
+  coroutine->openUpvalues = NULL;
 }
 
 static void throwRuntimeError(VM* vm, const char* format, ...) {
@@ -32,8 +32,8 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 
   fputs("\n", stderr);
 
-  for (int i = vm->fiber->frameCount - 1; i > 0; i--) {
-    CallFrame* frame = &vm->fiber->frames[i];
+  for (int i = vm->coroutine->frameCount - 1; i > 0; i--) {
+    CallFrame* frame = &vm->coroutine->frames[i];
     GCFunction* function = frame->closure->function;
 
     size_t instruction = frame->pc - function->instructions.bytes - 1;
@@ -47,18 +47,18 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
     }
   }
 
-  CallFrame* frame = &vm->fiber->frames[vm->fiber->frameCount - 1];
+  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
   size_t instruction = frame->pc - frame->closure->function->instructions.bytes - 1;
   int line = getLine(&frame->closure->function->instructions, instruction);
   fprintf(stderr, "<Line %d> Global Scope\n", line);
 
-  resetStack(vm->fiber);
+  resetStack(vm->coroutine);
 }
 
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->fiber->stack[0]), vm->fiber->stack[1]);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -66,14 +66,14 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newInstance(vm, class)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->fiber->stack[0]), vm->fiber->stack[1]);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
 
 void initVM(VM* vm) {
-  vm->fiber = NULL;
-  vm->fiber = newFiber(vm,  ROOT, NULL);
+  vm->coroutine = NULL;
+  vm->coroutine = newCoroutine(vm,  ROOT, NULL);
 
   vm->gcObjects = NULL;
   vm->bytesAllocated = 0;
@@ -95,38 +95,38 @@ void initVM(VM* vm) {
   initNumClass(vm);
   initStringClass(vm);
 
-  defineNativeInstance(vm, "bool", vm->boolClass);
-  defineNativeInstance(vm, "List", vm->listClass);
-  defineNativeInstance(vm, "Map", vm->mapClass);
-  defineNativeInstance(vm, "num", vm->numClass);
-  defineNativeInstance(vm, "String", vm->stringClass);
+  defineGlobal(vm, "bool", GC_OBJ_CONST(vm->boolClass));
+  defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
+  defineGlobal(vm, "Map", GC_OBJ_CONST(vm->mapClass));
+  defineGlobal(vm, "num", GC_OBJ_CONST(vm->numClass));
+  defineGlobal(vm, "String", GC_OBJ_CONST(vm->stringClass));
 }
 
-GCFiber* newFiber(VM* vm, FiberState state, GCClosure* closure) {
-  GCFiber* fiber = ALLOCATE(vm, NULL, GCFiber, 1);
-  fiber->state = state;
-  fiber->caller = NULL;
-  fiber->error = NULL;
-  resetStack(fiber);
+GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
+  GCCoroutine* coroutine = ALLOCATE(vm, NULL, GCCoroutine, 1);
+  coroutine->state = state;
+  coroutine->caller = NULL;
+  coroutine->error = NULL;
+  resetStack(coroutine);
 
   if (closure != NULL) {
-    if (vm->fiber->frameCount == FRAMES_MAX) {
+    if (vm->coroutine->frameCount == FRAMES_MAX) {
       throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
-      vm->fiber = NULL;
+      vm->coroutine = NULL;
       return NULL;
     }
 
-    CallFrame* frame = &fiber->frames[fiber->frameCount++];
+    CallFrame* frame = &coroutine->frames[coroutine->frameCount++];
     frame->closure = closure;
     frame->pc = closure->function->instructions.bytes;
     push(vm, GC_OBJ_CONST(closure));
   }
 
-  return fiber;
+  return coroutine;
 }
 
 static Constant peek(VM* vm, int topDelta) {
-  return vm->fiber->stackTop[- 1 - topDelta];
+  return vm->coroutine->stackTop[- 1 - topDelta];
 }
 
 bool call(VM* vm, GCClosure* closure, int arity) {
@@ -136,15 +136,15 @@ bool call(VM* vm, GCClosure* closure, int arity) {
     return false;
   }
 
-  if (vm->fiber->frameCount == FRAMES_MAX) {
+  if (vm->coroutine->frameCount == FRAMES_MAX) {
     throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
     return false;
   }
 
-  CallFrame* frame = &vm->fiber->frames[vm->fiber->frameCount++];
+  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount++];
   frame->closure = closure;
   frame->pc = closure->function->instructions.bytes;
-  frame->constants = vm->fiber->stackTop - arity - 1;
+  frame->constants = vm->coroutine->stackTop - arity - 1;
 
   return true;
 }
@@ -153,7 +153,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
         GCClass* class = AS_CLASS(callee);
-        vm->fiber->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
+        vm->coroutine->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
         if (tableGetEntry(&class->methods, class->id, &constructor)) {
@@ -171,17 +171,17 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
 
       case GC_INSTANCE_METHOD: {
         GCInstanceMethod* im = AS_INSTANCE_METHOD(callee);
-        vm->fiber->stackTop[-arity - 1] = im->receiver;
+        vm->coroutine->stackTop[-arity - 1] = im->receiver;
         return call(vm, im->method, arity);
       }
 
       case GC_NATIVE: {
-        Constant result = AS_NATIVE(callee)(vm, arity, vm->fiber->stackTop - arity);
+        Constant result = AS_NATIVE(callee)(vm, arity, vm->coroutine->stackTop - arity);
 
-        if (vm->fiber == NULL)
+        if (vm->coroutine == NULL)
           return true;
 
-        vm->fiber->stackTop -= arity + 1;
+        vm->coroutine->stackTop -= arity + 1;
         push(vm, result);
         return true;
       }
@@ -196,7 +196,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
 
 static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   GCUpvalue* previousUpvalue = NULL;
-  GCUpvalue* upvalue = vm->fiber->openUpvalues;
+  GCUpvalue* upvalue = vm->coroutine->openUpvalues;
 
   while (upvalue != NULL && upvalue->place > local) {
     previousUpvalue = upvalue;
@@ -211,7 +211,7 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   createdUpvalue->next = upvalue;
 
   if (previousUpvalue == NULL) {
-    vm->fiber->openUpvalues = createdUpvalue;
+    vm->coroutine->openUpvalues = createdUpvalue;
   } else {
     previousUpvalue->next = createdUpvalue;
   }
@@ -220,12 +220,12 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
 }
 
 static void closeUpvalues(VM* vm, const Constant* last) {
-  while (vm->fiber->openUpvalues != NULL &&
-         vm->fiber->openUpvalues->place >= last) {
-    GCUpvalue* upvalue = vm->fiber->openUpvalues;
+  while (vm->coroutine->openUpvalues != NULL &&
+         vm->coroutine->openUpvalues->place >= last) {
+    GCUpvalue* upvalue = vm->coroutine->openUpvalues;
     upvalue->closed = *upvalue->place;
     upvalue->place = &upvalue->closed;
-    vm->fiber->openUpvalues = upvalue->next;
+    vm->coroutine->openUpvalues = upvalue->next;
   }
 }
 
@@ -277,7 +277,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
-      vm->fiber->stackTop[-arity - 1] = receiver;
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -289,7 +289,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
-      vm->fiber->stackTop[-arity - 1] = receiver;
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -301,7 +301,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&listInstance->class->methods, id, &constant)) {
-      vm->fiber->stackTop[-arity - 1] = receiver;
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -313,7 +313,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&mapInstance->class->methods, id, &constant)) {
-      vm->fiber->stackTop[-arity - 1] = receiver;
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -325,11 +325,23 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&numInstance->class->methods, id, &constant)) {
-      vm->fiber->stackTop[-arity - 1] = receiver;
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
     return false;
+  }
+
+  if (IS_CLASS(receiver)) {
+    GCClass* class = AS_CLASS(receiver);
+
+    Constant constant;
+    if (tableGetEntry(&class->fields, id, &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = constant;
+      return callConstant(vm, constant, arity);
+    }
+
+    return invokeFromClass(vm, class, id, arity);
   }
 
   if (!IS_INSTANCE(receiver)) {
@@ -341,7 +353,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
   Constant constant;
   if (tableGetEntry(&instance->class->fields, id, &constant)) {
-    vm->fiber->stackTop[-arity - 1] = constant;
+    vm->coroutine->stackTop[-arity - 1] = constant;
     return callConstant(vm, constant, arity);
   }
 
@@ -349,16 +361,16 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 }
 
 static InterpretationResult run(VM* vm) {
-  register CallFrame* frame = &vm->fiber->frames[vm->fiber->frameCount - 1];
+  register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
-#define PEEK() (vm->fiber->stackTop[-1])
-#define PEEK2() (vm->fiber->stackTop[-2])
+#define PEEK() (vm->coroutine->stackTop[-1])
+#define PEEK2() (vm->coroutine->stackTop[-2])
 
-#define PUSH(constant) *vm->fiber->stackTop++ = constant
-#define POP() (*(--vm->fiber->stackTop))
-#define POPN(count) (*(vm->fiber->stackTop -= (count)))
+#define PUSH(constant) *vm->coroutine->stackTop++ = constant
+#define POP() (*(--vm->coroutine->stackTop))
+#define POPN(count) (*(vm->coroutine->stackTop -= (count)))
 
-#define UPDATE_FRAME() (frame = &vm->fiber->frames[vm->fiber->frameCount - 1])
+#define UPDATE_FRAME() (frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1])
 
 #define READ_BYTE() (*frame->pc++)
 #define READ_SHORT() (frame->pc += 2, (uint16_t)((frame->pc[-2] << 8) | frame->pc[-1]))
@@ -809,6 +821,27 @@ static InterpretationResult run(VM* vm) {
 
     Constant left = PEEK();
 
+    if (IS_CLASS(left)) {
+      GCClass *class = AS_CLASS(left);
+      GCString *id = READ_STRING();
+
+      // TODO(Calamity210): Change to only allow static methods and fields
+      Constant constant;
+      if (tableGetEntry(&class->fields, id, &constant)) {
+        POP();
+        PUSH(constant);
+        DISPATCH();
+      }
+
+      if (!bindMethod(vm, class, id)) {
+        return RUNTIME_ERROR;
+      }
+
+      PUSH(c);
+
+      DISPATCH();
+    }
+
     if (IS_BOOL(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "bool", 4) == 0)) {
       GCString *id = READ_STRING();
 
@@ -1059,7 +1092,7 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_CLOSEUPVAL): {
-    closeUpvalues(vm, vm->fiber->stackTop - 1);
+    closeUpvalues(vm, vm->coroutine->stackTop - 1);
     POP();
     DISPATCH();
   }
@@ -1116,7 +1149,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1128,7 +1161,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1140,7 +1173,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1152,7 +1185,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1164,7 +1197,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1176,7 +1209,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1188,7 +1221,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1200,7 +1233,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1212,7 +1245,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1224,7 +1257,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1239,7 +1272,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->fiber == NULL)
+    if (vm->coroutine == NULL)
       return OK;
 
     UPDATE_FRAME();
@@ -1255,22 +1288,22 @@ static InterpretationResult run(VM* vm) {
     CASE(OPCODE_RET): {
     Constant result = POP();
 
-    vm->fiber->frameCount--;
+    vm->coroutine->frameCount--;
     closeUpvalues(vm, frame->constants);
 
-    if (vm->fiber->frameCount == 0) {
-      if (vm->fiber->caller == NULL) {
+    if (vm->coroutine->frameCount == 0) {
+      if (vm->coroutine->caller == NULL) {
         PUSH(result);
         return OK;
       }
 
-      GCFiber* resuming = vm->fiber->caller;
-      vm->fiber->caller = NULL;
-      vm->fiber = resuming;
+      GCCoroutine* resuming = vm->coroutine->caller;
+      vm->coroutine->caller = NULL;
+      vm->coroutine = resuming;
 
-      vm->fiber->stackTop[-1] = result;
+      vm->coroutine->stackTop[-1] = result;
     } else {
-      vm->fiber->stackTop = frame->constants;
+      vm->coroutine->stackTop = frame->constants;
       PUSH(result);
     }
 
@@ -1325,11 +1358,11 @@ InterpretationResult interpretImport(VM *vm, char *source) {
 }
 
 void push(VM* vm, Constant constant) {
-  *vm->fiber->stackTop++ = constant;
+  *vm->coroutine->stackTop++ = constant;
 }
 
 Constant pop(VM* vm) {
-  return *(vm->fiber->stackTop--);
+  return *(vm->coroutine->stackTop--);
 }
 
 GCClass* newClass(VM *vm, GCString *id, bool isFinal) {

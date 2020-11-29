@@ -19,7 +19,7 @@
 void* reallocate(VM* vm, Compiler* compiler, void* pointer, size_t oldSize, size_t newSize) {
   vm->bytesAllocated += newSize - oldSize;
 
-  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC && vm->fiber != NULL) {
+  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC && vm->coroutine != NULL) {
     collectGarbage(vm, compiler);
   }
 
@@ -58,9 +58,9 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
       break;
     }
 
-    case GC_FIBER: {
-      GCFiber* fiber = (GCFiber*)gc;
-      FREE_ARRAY(vm, compiler, CallFrame*, fiber->frames, fiber->frameCount);
+    case GC_COROUTINE: {
+      GCCoroutine* coroutine = (GCCoroutine*)gc;
+      FREE_ARRAY(vm, compiler, CallFrame*, coroutine->frames, coroutine->frameCount);
 
       break;
     }
@@ -129,7 +129,7 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
-  markGCObject(vm, (GCObject*)vm->fiber);
+  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
@@ -171,21 +171,21 @@ void markConstant(VM* vm, Constant constant) {
 }
 
 static void markRoots(VM* vm, Compiler* compiler) {
-  for (Constant* constant = vm->fiber->stack; constant < vm->fiber->stackTop; constant++ ) {
+  for (Constant* constant = vm->coroutine->stack; constant < vm->coroutine->stackTop; constant++ ) {
     markConstant(vm, *constant);
   }
 
-  for (int i = 0; i < vm->fiber->frameCount; i++) {
-    markGCObject(vm, (GCObject*)vm->fiber->frames[i].closure);
+  for (int i = 0; i < vm->coroutine->frameCount; i++) {
+    markGCObject(vm, (GCObject*)vm->coroutine->frames[i].closure);
   }
 
-  for (GCUpvalue* upvalue = vm->fiber->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
+  for (GCUpvalue* upvalue = vm->coroutine->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
     markGCObject(vm, (GCObject*)upvalue);
   }
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
-  markGCObject(vm, (GCObject*)vm->fiber);
+  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);

@@ -5,5 +5,5 @@ set(CMAKE_C_STANDARD 99)
 
 file(GLOB src "*/*.h" "*/*.c")
 
-add_executable(Senegal ${src} src/includes/sfiblib.h src/sfiblib.c)
+add_executable(Senegal ${src} src/includes/scorolib.h src/scorolib.c)
 #target_link_libraries(Senegal ws2_32)
