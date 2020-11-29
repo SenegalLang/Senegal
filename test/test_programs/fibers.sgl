@@ -1,0 +1,15 @@
+import 'sgl:fiblib'
+
+function foo() {
+    println('in foo');
+}
+
+println("should call"); // output should call
+
+var fiber = newFiber(foo);
+
+callFiber(fiber); // output in foo
+
+suspend();
+
+println("shouldn't call");

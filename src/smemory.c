@@ -58,6 +58,13 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
       break;
     }
 
+    case GC_FIBER: {
+      GCFiber* fiber = (GCFiber*)gc;
+      FREE_ARRAY(vm, compiler, CallFrame*, fiber->frames, fiber->frameCount);
+
+      break;
+    }
+
     case GC_FUNCTION: {
       GCFunction* function = (GCFunction*)gc;
       freeInstructions(vm, &function->instructions);
@@ -178,6 +185,7 @@ static void markRoots(VM* vm, Compiler* compiler) {
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
+  markGCObject(vm, (GCObject*)vm->fiber);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);

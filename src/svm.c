@@ -73,8 +73,7 @@ static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
 
 void initVM(VM* vm) {
   vm->fiber = NULL;
-  vm->fiber = ALLOCATE_GC_OBJ(vm, GCFiber, GC_FIBER);
-  initFiber(vm->fiber);
+  vm->fiber = newFiber(vm,  ROOT, NULL);
 
   vm->gcObjects = NULL;
   vm->bytesAllocated = 0;
@@ -103,8 +102,27 @@ void initVM(VM* vm) {
   defineNativeInstance(vm, "String", vm->stringClass);
 }
 
-void initFiber(GCFiber* fiber) {
+GCFiber* newFiber(VM* vm, FiberState state, GCClosure* closure) {
+  GCFiber* fiber = ALLOCATE(vm, NULL, GCFiber, 1);
+  fiber->state = state;
+  fiber->caller = NULL;
+  fiber->error = NULL;
   resetStack(fiber);
+
+  if (closure != NULL) {
+    if (vm->fiber->frameCount == FRAMES_MAX) {
+      throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
+      vm->fiber = NULL;
+      return NULL;
+    }
+
+    CallFrame* frame = &fiber->frames[fiber->frameCount++];
+    frame->closure = closure;
+    frame->pc = closure->function->instructions.bytes;
+    push(vm, GC_OBJ_CONST(closure));
+  }
+
+  return fiber;
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -126,8 +144,8 @@ bool call(VM* vm, GCClosure* closure, int arity) {
   CallFrame* frame = &vm->fiber->frames[vm->fiber->frameCount++];
   frame->closure = closure;
   frame->pc = closure->function->instructions.bytes;
-
   frame->constants = vm->fiber->stackTop - arity - 1;
+
   return true;
 }
 
@@ -162,12 +180,12 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
         vm->fiber->stackTop -= arity + 1;
 
         push(vm, result);
-
         return true;
       }
       default:
         break;
     }
+
 
   throwRuntimeError(vm, "Senegal can only call functions and constructors");
   return false;
@@ -969,8 +987,7 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_GETLOC): {
-    Constant c = frame->constants[READ_BYTE()];
-    PUSH(c);
+    PUSH(frame->constants[READ_BYTE()]);
     DISPATCH();
   }
 
@@ -1096,6 +1113,9 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
+    if (vm->fiber == NULL)
+      return OK;
+
     UPDATE_FRAME();
     DISPATCH();
   }
@@ -1104,6 +1124,9 @@ static InterpretationResult run(VM* vm) {
     if (!callConstant(vm, peek(vm, 0), 0)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1114,6 +1137,9 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
+    if (vm->fiber == NULL)
+      return OK;
+
     UPDATE_FRAME();
     DISPATCH();
   }
@@ -1122,6 +1148,9 @@ static InterpretationResult run(VM* vm) {
     if (!callConstant(vm, peek(vm, 2), 2)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1132,6 +1161,9 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
+    if (vm->fiber == NULL)
+      return OK;
+
     UPDATE_FRAME();
     DISPATCH();
   }
@@ -1140,6 +1172,9 @@ static InterpretationResult run(VM* vm) {
     if (!callConstant(vm, peek(vm, 4), 4)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1150,6 +1185,9 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
+    if (vm->fiber == NULL)
+      return OK;
+
     UPDATE_FRAME();
     DISPATCH();
   }
@@ -1158,6 +1196,9 @@ static InterpretationResult run(VM* vm) {
     if (!callConstant(vm, peek(vm, 6), 6)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1168,6 +1209,9 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
+    if (vm->fiber == NULL)
+      return OK;
+
     UPDATE_FRAME();
     DISPATCH();
   }
@@ -1176,6 +1220,9 @@ static InterpretationResult run(VM* vm) {
     if (!callConstant(vm, peek(vm, 8), 8)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1188,6 +1235,9 @@ static InterpretationResult run(VM* vm) {
     if (!invoke(vm, method, arity)) {
       return RUNTIME_ERROR;
     }
+
+    if (vm->fiber == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1202,18 +1252,24 @@ static InterpretationResult run(VM* vm) {
     CASE(OPCODE_RET): {
     Constant result = POP();
 
+    vm->fiber->frameCount--;
     closeUpvalues(vm, frame->constants);
 
-    vm->fiber->frameCount--;
-
     if (vm->fiber->frameCount == 0) {
-      POP();
-      return OK;
-    }
+      if (vm->fiber->caller == NULL) {
+        PUSH(result);
+        return OK;
+      }
 
-    vm->fiber->stackTop = frame->constants;
-    Constant c = result;
-    PUSH(c);
+      GCFiber* resuming = vm->fiber->caller;
+      vm->fiber->caller = NULL;
+      vm->fiber = resuming;
+
+      vm->fiber->stackTop[-1] = result;
+    } else {
+      vm->fiber->stackTop = frame->constants;
+      PUSH(result);
+    }
 
     UPDATE_FRAME();
     DISPATCH();

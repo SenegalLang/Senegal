@@ -135,10 +135,13 @@ typedef struct sFiber {
 
     struct sFiber* caller;
 
-    Constant error;
+    Constant* error;
 
     FiberState state;
 } GCFiber;
+
+#define IS_FIBER(c) isGCType(c, GC_FIBER)
+#define AS_FIBER(c) ((GCFiber*)AS_GC_OBJ(c))
 
 struct sVM {
     GCFiber* fiber;
@@ -164,7 +167,7 @@ struct sVM {
 
 
 void initVM(VM* vm);
-void initFiber(GCFiber* fiber);
+GCFiber* newFiber(VM* vm, FiberState state, GCClosure* closure);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 
