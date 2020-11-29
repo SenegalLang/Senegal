@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
 
 #include "includes/sutils.h"
@@ -201,6 +200,9 @@ static SenegalTokenType idToken(Lexer* lexer) {
     case 's':
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
+          case 't':
+            return collectKeyword(lexer, 2, 4, "atic", SENEGAL_STATIC);
+
           case 'u':
             return collectKeyword(lexer, 2, 3, "per", SENEGAL_SUPER);
 

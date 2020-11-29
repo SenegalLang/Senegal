@@ -1,5 +1,4 @@
 #ifdef OPCODE
-// TODO(calamity210): add helper opcodes to reduce time spent in run()
 
 OPCODE(OPCODE_TRUE)
 OPCODE(OPCODE_FALSE)
