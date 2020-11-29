@@ -177,8 +177,11 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
 
       case GC_NATIVE: {
         Constant result = AS_NATIVE(callee)(vm, arity, vm->fiber->stackTop - arity);
-        vm->fiber->stackTop -= arity + 1;
 
+        if (vm->fiber == NULL)
+          return true;
+
+        vm->fiber->stackTop -= arity + 1;
         push(vm, result);
         return true;
       }
