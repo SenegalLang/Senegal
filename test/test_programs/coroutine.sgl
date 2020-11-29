@@ -1,4 +1,4 @@
-import 'sgl:fiblib'
+import 'sgl:corolib'
 
 function foo() {
     println('Before Yield');

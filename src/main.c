@@ -93,7 +93,7 @@ static void addPaths(VM* vm) {
               GC_OBJ_CONST(newNative(vm, initIoLib)));
 
   tableInsert(vm, &corePaths,
-              copyString(vm, NULL, "sgl:fiblib", 10),
+              copyString(vm, NULL, "sgl:corolib", 11),
               GC_OBJ_CONST(newNative(vm, initCoroLib)));
 }
 
