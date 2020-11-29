@@ -1,7 +1,7 @@
 final class FinalClass {
-    var field = 10;
+    static var field = 10;
 }
 
 FinalClass.field = 9;
-// error Tried setting fields of non-class instance objects
+// error Cannot mutate fields of a final class
 // error <Line 5> Global Scope

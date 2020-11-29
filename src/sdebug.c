@@ -263,10 +263,12 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_SETFIELD:
       return loadInstruction("OPCODE_SETFIELD", instructions, offset);
 
+    case OPCODE_NEWSTATICMETHOD:
     case OPCODE_NEWMETHOD:
       return loadInstruction("OPCODE_NEWMETHOD", instructions, offset);
 
     case OPCODE_NEWFIELD:
+    case OPCODE_NEWSTATICFIELD:
       return loadInstruction("OPCODE_NEWFIELD", instructions, offset);
 
     case OPCODE_NEWGLOB:

@@ -73,6 +73,8 @@ typedef struct {
 
     Table fields;
     Table methods;
+    Table staticFields;
+    Table staticMethods;
 } GCClass;
 
 typedef struct {

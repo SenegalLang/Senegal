@@ -243,10 +243,39 @@ static void defineField(VM* vm, GCString* id) {
   pop(vm);
 }
 
+static void defineStaticMethod(VM* vm, GCString* id) {
+  Constant method = peek(vm, 0);
+  GCClass* class = AS_CLASS(peek(vm, 1));
+  tableInsert(vm, &class->staticMethods, id, method);
+  pop(vm);
+}
+
+static void defineStaticField(VM* vm, GCString* id) {
+  Constant field = peek(vm, 0);
+  GCClass* class = AS_CLASS(peek(vm, 1));
+  tableInsert(vm, &class->staticFields, id, field);
+  pop(vm);
+}
+
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 
   Constant method;
-  if (!tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, id, &method) && !tableGetEntry(&class->methods, id, &method)) {
+    throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
+    return false;
+  }
+
+  GCInstanceMethod* im = newInstanceMethod(vm, peek(vm, 0), AS_CLOSURE(method));
+
+  pop(vm);
+  push(vm, GC_OBJ_CONST(im));
+  return true;
+}
+
+static bool bindStaticMethod(VM* vm, GCClass* class, GCString* id) {
+
+  Constant method;
+  if (!tableGetEntry(&class->staticMethods, id, &method)) {
     throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
     return false;
   }
@@ -261,7 +290,7 @@ static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 static bool invokeFromClass(VM* vm, GCClass* class, GCString* id, int arity) {
   Constant method;
 
-  if (!tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, id, &method) && !tableGetEntry(&class->methods, id, &method)) {
     throwRuntimeError(vm, "Unknown property `%s` for class `%s`", id->chars, class->id->chars);
     return false;
   }
@@ -336,7 +365,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCClass* class = AS_CLASS(receiver);
 
     Constant constant;
-    if (tableGetEntry(&class->fields, id, &constant)) {
+    if (tableGetEntry(&class->staticFields, id, &constant) || tableGetEntry(&class->fields, id, &constant)) {
       vm->coroutine->stackTop[-arity - 1] = constant;
       return callConstant(vm, constant, arity);
     }
@@ -768,15 +797,22 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_SETFIELD): {
 
-    if (IS_CLASS(PEEK())) {
+    if (IS_CLASS(PEEK2())) {
       GCClass *class = AS_CLASS(PEEK2());
+      GCString* key = READ_STRING();
 
       if (class->isFinal && frame->closure->function->id != class->id) {
         throwRuntimeError(vm, "Cannot mutate fields of a final class");
         return RUNTIME_ERROR;
       }
 
-      tableInsert(vm, &class->fields, READ_STRING(), PEEK());
+      Constant constant1;
+      if (!tableGetEntry(&class->staticFields, key, &constant1)) {
+        throwRuntimeError(vm, "Senegal cannot add fields to an instance", class->id->chars);
+        return RUNTIME_ERROR;
+      }
+
+      tableInsert(vm, &class->staticFields, key, PEEK());
 
       Constant c = POP();
 
@@ -825,15 +861,14 @@ static InterpretationResult run(VM* vm) {
       GCClass *class = AS_CLASS(left);
       GCString *id = READ_STRING();
 
-      // TODO(Calamity210): Change to only allow static methods and fields
       Constant constant;
-      if (tableGetEntry(&class->fields, id, &constant)) {
+      if (tableGetEntry(&class->staticFields, id, &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
       }
 
-      if (!bindMethod(vm, class, id)) {
+      if (!bindStaticMethod(vm, class, id)) {
         return RUNTIME_ERROR;
       }
 
@@ -934,16 +969,24 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_NEWMETHOD):
-      defineMethod(vm, READ_STRING());
-      DISPATCH();
+  CASE(OPCODE_NEWMETHOD):
+    defineMethod(vm, READ_STRING());
+    DISPATCH();
 
-    CASE(OPCODE_NEWFIELD):
-      defineField(vm, READ_STRING());
-      DISPATCH();
+  CASE(OPCODE_NEWSTATICMETHOD):
+  defineStaticMethod(vm, READ_STRING());
+  DISPATCH();
 
-    CASE(OPCODE_INHERIT): {
-    Constant super = PEEK2();
+  CASE(OPCODE_NEWFIELD):
+    defineField(vm, READ_STRING());
+    DISPATCH();
+
+  CASE(OPCODE_NEWSTATICFIELD):
+    defineStaticField(vm, READ_STRING());
+    DISPATCH();
+
+  CASE(OPCODE_INHERIT): {
+  Constant super = PEEK2();
 
     if (!IS_CLASS(super)) {
       throwRuntimeError(vm, "Senegal classes can only inherit from another class");
@@ -959,7 +1002,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_GETSUPER): {
+  CASE(OPCODE_GETSUPER): {
     GCString *id = READ_STRING();
     GCClass *super = AS_CLASS(POP());
 
@@ -970,7 +1013,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_SUPERINVOKE): {
+  CASE(OPCODE_SUPERINVOKE): {
     GCString *method = READ_STRING();
     int arity = READ_BYTE();
     GCClass *super = AS_CLASS(POP());
@@ -983,7 +1026,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_NEWGLOB): {
+  CASE(OPCODE_NEWGLOB): {
     GCString *id = READ_STRING();
     Constant constant;
 
@@ -997,7 +1040,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_GETGLOB): {
+  CASE(OPCODE_GETGLOB): {
     GCString *id = READ_STRING();
     Constant constant;
 
@@ -1010,7 +1053,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_SETGLOB): {
+  CASE(OPCODE_SETGLOB): {
     GCString *id = READ_STRING();
 
     if (tableInsert(vm, &vm->globals, id, PEEK())) {
@@ -1022,7 +1065,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_GETLOC): {
+  CASE(OPCODE_GETLOC): {
     PUSH(frame->constants[READ_BYTE()]);
     DISPATCH();
   }
@@ -1031,55 +1074,55 @@ static InterpretationResult run(VM* vm) {
       PUSH(frame->constants[0]);
       DISPATCH();
 
-    CASE(OPCODE_GETLOC1):
-      PUSH(frame->constants[1]);
-      DISPATCH();
+  CASE(OPCODE_GETLOC1):
+    PUSH(frame->constants[1]);
+    DISPATCH();
 
-    CASE(OPCODE_GETLOC2):
-      PUSH(frame->constants[2]);
-      DISPATCH();
+  CASE(OPCODE_GETLOC2):
+    PUSH(frame->constants[2]);
+    DISPATCH();
 
-    CASE(OPCODE_GETLOC3):
-      PUSH(frame->constants[3]);
-      DISPATCH();
+  CASE(OPCODE_GETLOC3):
+    PUSH(frame->constants[3]);
+    DISPATCH();
 
-    CASE(OPCODE_GETLOC4):
-      PUSH(frame->constants[4]);
-      DISPATCH();
+  CASE(OPCODE_GETLOC4):
+    PUSH(frame->constants[4]);
+    DISPATCH();
 
-    CASE(OPCODE_GETLOC5):
-      PUSH(frame->constants[5]);
-      DISPATCH();
+  CASE(OPCODE_GETLOC5):
+    PUSH(frame->constants[5]);
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC):
-      frame->constants[READ_BYTE()] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC):
+    frame->constants[READ_BYTE()] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC0):
-      frame->constants[0] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC0):
+    frame->constants[0] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC1):
-      frame->constants[1] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC1):
+    frame->constants[1] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC2):
-      frame->constants[2] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC2):
+    frame->constants[2] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC3):
-      frame->constants[3] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC3):
+    frame->constants[3] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC4):
-      frame->constants[4] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC4):
+    frame->constants[4] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_SETLOC5):
-      frame->constants[5] = PEEK();
-      DISPATCH();
+  CASE(OPCODE_SETLOC5):
+    frame->constants[5] = PEEK();
+    DISPATCH();
 
-    CASE(OPCODE_GETUPVAL): {
+  CASE(OPCODE_GETUPVAL): {
     Constant c = *frame->closure->upvalues[READ_BYTE()]->place;
     PUSH(c);
     DISPATCH();
@@ -1371,6 +1414,8 @@ GCClass* newClass(VM *vm, GCString *id, bool isFinal) {
   class->isFinal = isFinal;
   initTable(&class->methods);
   initTable(&class->fields);
+  initTable(&class->staticMethods);
+  initTable(&class->staticFields);
 
   return class;
 }

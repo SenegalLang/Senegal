@@ -212,6 +212,9 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       GCClass* class = (GCClass*)gc;
       markGCObject(vm, (GCObject*)class->id);
       markTable(vm, &class->methods);
+      markTable(vm, &class->fields);
+      markTable(vm, &class->staticMethods);
+      markTable(vm, &class->staticFields);
       break;
     }
 

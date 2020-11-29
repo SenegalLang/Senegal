@@ -190,7 +190,7 @@ static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler,
   defineVariable(vm, parser, compiler, i, global);
 }
 
-static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
   uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
 
   if (match(parser, lexer, SENEGAL_EQUAL))
@@ -199,7 +199,7 @@ static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, Cl
     writeByte(vm, parser, i, OPCODE_NULL);
 
   consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
-  writeShort(vm, parser, i, OPCODE_NEWFIELD, global);
+  writeShort(vm, parser, i, isStatic ? OPCODE_NEWSTATICFIELD : OPCODE_NEWFIELD, global);
 }
 
 // == Functions ==
@@ -562,7 +562,7 @@ static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler,
   defineVariable(vm, parser, compiler, i, global);
 }
 
-static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
   consume(parser, lexer, SENEGAL_ID, "Senegal expected a method name");
 
   uint8_t constant = idConstant(vm, parser, compiler, i, &parser->previous);
@@ -573,7 +573,7 @@ static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, C
     type = CONSTRUCTOR;
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
-  writeShort(vm, parser, i, OPCODE_NEWMETHOD, constant);
+  writeShort(vm, parser, i, isStatic ? OPCODE_NEWSTATICMETHOD : OPCODE_NEWMETHOD, constant);
 }
 
 static uint8_t argumentList(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
@@ -646,12 +646,16 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+    bool isStatic = false;
+    if (match(parser, lexer, SENEGAL_STATIC))
+      isStatic = true;
+
     if (match(parser, lexer, SENEGAL_FUNCTION)
     || (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0))
-      parseMethodDeclaration(vm, parser, compiler, cc, lexer, i);
+      parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))
-      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i);
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else {
       advance(parser, lexer);

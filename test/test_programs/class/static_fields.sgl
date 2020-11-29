@@ -1,0 +1,7 @@
+class ClassWithStaticField {
+    static var staticField;
+}
+
+ClassWithStaticField.staticField = "Static Field";
+
+println(ClassWithStaticField.staticField); // output Static Field
