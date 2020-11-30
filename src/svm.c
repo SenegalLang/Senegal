@@ -1488,6 +1488,7 @@ GCList* newList(VM *vm, int length) {
   list->elementC = 0;
 
   list->listCurrentCap = 0;
+  GROW_CAP(list->listCurrentCap);
 
   return list;
 }
