@@ -102,7 +102,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
 
     case GC_LIST: {
       GCList* list = (GCList*)gc;
-      FREE_ARRAY(vm, compiler, char, list, list->elementC);
+      FREE_ARRAY(vm, compiler, char, list->elements, list->elementC);
       FREE(vm, compiler, GCList, gc);
       break;
     }
