@@ -11,12 +11,8 @@ var filledList = List.filled(3, 1);
 
 println(filledList); // output [1,1,1]
 
-filledList.add(2);
-println(filledList); // output [1,1,1,2]
-
 filledList.insert(0, 3);
-println(filledList); // output [3,1,1,2]
+println(filledList); // output [3,1,1]
 
-filledList.removeAt(1);
-println(filledList); // output [3,1,2]
-
+filledList.clear();
+println(filledList); // output []
