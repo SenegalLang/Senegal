@@ -365,12 +365,12 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCClass* class = AS_CLASS(receiver);
 
     Constant constant;
-    if (tableGetEntry(&class->staticFields, id, &constant) || tableGetEntry(&class->fields, id, &constant)) {
+    if (tableGetEntry(&class->staticMethods, id, &constant)) {
       vm->coroutine->stackTop[-arity - 1] = constant;
       return callConstant(vm, constant, arity);
     }
 
-    return invokeFromClass(vm, class, id, arity);
+    return false;
   }
 
   if (!IS_INSTANCE(receiver)) {
@@ -955,6 +955,11 @@ static InterpretationResult run(VM* vm) {
     GCInstance *instance = AS_INSTANCE(left);
     GCString *id = READ_STRING();
 
+    if (!strcmp(id->chars, "type")) {
+      PUSH(GC_OBJ_CONST(instance->class->id));
+      DISPATCH();
+    }
+
     Constant constant;
     if (tableGetEntry(&instance->class->fields, id, &constant)) {
       POP();
@@ -1312,6 +1317,7 @@ static InterpretationResult run(VM* vm) {
     int arity = READ_BYTE();
 
     if (!invoke(vm, method, arity)) {
+      printf("%s method not found", method->chars);
       return RUNTIME_ERROR;
     }
 

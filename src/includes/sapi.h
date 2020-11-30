@@ -5,8 +5,12 @@
 #include "sconstant.h"
 #include "svm.h"
 
+void expect(int expected, int actual, char* name);
+
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class);
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class);
+void defineClassNativeStaticFunc(VM* vm, const char* id, NativeFunc function, GCClass* class);
+void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class);
 
 void defineGlobal(VM* vm, const char* id, Constant field);
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function);

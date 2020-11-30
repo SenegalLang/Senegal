@@ -4,6 +4,13 @@
 #include "includes/stable_utils.h"
 #include "includes/sparser.h"
 
+void expect(int expected, int actual, char *name) {
+  if (actual != expected) {
+    printf("%s expected %d args, but found %d", name, expected, actual);
+    exit(1);
+  }
+}
+
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
@@ -15,6 +22,20 @@ void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass*
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   tableInsert(vm, &class->fields, AS_STRING(vm->coroutine->stack[0]), field);
+  pop(vm);
+}
+
+void defineClassNativeStaticFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &class->staticMethods, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
+void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  tableInsert(vm, &class->staticFields, AS_STRING(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
