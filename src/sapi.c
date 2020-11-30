@@ -6,7 +6,7 @@
 
 void expect(int expected, int actual, char *name) {
   if (actual != expected) {
-    printf("%s expected %d args, but found %d", name, expected, actual);
+    fprintf(stderr, "%s expected %d args, but found %d\n", name, expected, actual);
     exit(1);
   }
 }
