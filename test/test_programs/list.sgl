@@ -20,5 +20,3 @@ println(filledList); // output [3,1,1,2]
 filledList.removeAt(1);
 println(filledList); // output [3,1,2]
 
-filledList.clear();
-println(filledList); // output []
