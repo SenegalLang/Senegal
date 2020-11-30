@@ -33,7 +33,9 @@ static Constant stringByteAt(VM* vm, int arity, Constant *args) {
     exit(1);
   }
 
-  return NUM_CONST((uint8_t)string->chars[index]);
+  char at[1] = {string->chars[index]};
+
+  return GC_OBJ_CONST(copyString(vm, NULL, at, 1));
 }
 
 static Constant stringContains(VM* vm, int arity, Constant *args) {
