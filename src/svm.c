@@ -156,9 +156,22 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
         vm->coroutine->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
+        if (tableGetEntry(&class->staticMethods, class->id, &constructor)) {
+          Constant result = AS_NATIVE(constructor)(vm, arity, vm->coroutine->stackTop - arity);
+
+          if (vm->coroutine == NULL)
+            return true;
+
+          vm->coroutine->stackTop -= arity + 1;
+          push(vm, result);
+          return true;
+        }
+
         if (tableGetEntry(&class->methods, class->id, &constructor)) {
           return call(vm, AS_CLOSURE(constructor), arity);
-        } else if (arity != 0) {
+        }
+
+        if (arity != 0) {
           throwRuntimeError(vm, "%s's constructor takes no arguments", class->id->chars);
           return false;
         }

@@ -651,7 +651,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
       isStatic = true;
 
     if (match(parser, lexer, SENEGAL_FUNCTION)
-    || (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0))
+    || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0)))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))

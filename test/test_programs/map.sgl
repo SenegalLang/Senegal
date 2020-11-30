@@ -1,9 +1,15 @@
-var senegal = { "age": 21 };
-
+var senegal = Map();
+senegal.add("age", 10);
 senegal["name"] = "Mel";
 
+println(senegal["age"]); // output 10
 println(senegal["name"]); // output Mel
-println(senegal["age"]); // output 21
-println(senegal.isEmpty()); // output false
-println(senegal.isNotEmpty()); // output true
-println(senegal.length()); // output 2
+
+println(senegal.contains("age")); // output true
+senegal.remove("age");
+println(senegal.contains("age")); // output false
+
+println(senegal.length()); // output 1
+
+senegal.clear();
+println(senegal.isEmpty()); // output true
