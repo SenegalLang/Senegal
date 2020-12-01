@@ -105,6 +105,10 @@ static Constant stringIsNotEmpty(VM* vm, int arity, Constant *args) {
   return BOOL_CONST(AS_STRING(args[0])->chars[0] != '\0');
 }
 
+static Constant stringToNum(VM* vm, int arity, Constant *args) {
+  return NUM_CONST(strtol(AS_CSTRING(args[-1]), (char**)NULL, 10));
+}
+
 void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
@@ -118,4 +122,7 @@ void initStringClass(VM *vm) {
   defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
   defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
   defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
+
+  defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
+
 }

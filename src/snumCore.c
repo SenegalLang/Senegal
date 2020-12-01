@@ -25,7 +25,7 @@ static Constant numToString(VM* vm, int arity, Constant* args) {
 
   char numString[3 + DBL_MANT_DIG - DBL_MIN_EXP];
 
-  sprintf(numString, "%lf", AS_NUMBER(args[-1]));
+  sprintf(numString, "%.16g", AS_NUMBER(args[-1]));
 
   return GC_OBJ_CONST(copyString(vm, NULL, numString, strlen(numString)));
 }

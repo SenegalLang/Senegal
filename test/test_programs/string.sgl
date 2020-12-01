@@ -26,6 +26,12 @@ println(string.startsWith("Thisis")); // output false
 
 println(string.indexOf("a", 0)); // output 8
 
+var a = "19";
+
+var b = a.toNum();
+
+println(b.type); // output num
+
 // NEED TO BE CORRECTED
 // println("Carriage\rreturn");
 // println("Vertical\vtab");
