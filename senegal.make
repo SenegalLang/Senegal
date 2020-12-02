@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS := -std=c99 -Wall -Wextra
+LIBS ::= -lm
 
 ifeq ($(SNIPPET),true)
 	CFLAGS += -Wno-unused-function
@@ -16,6 +17,10 @@ else
 	BUILD_DIR := build/release
 endif
 
+ifeq ($(OS),Windows_NT)
+    LIBS += -lws2_32
+endif
+
 HEADERS := $(wildcard */*.h)
 SOURCES := $(wildcard */*.c)
 OBJECTS := $(addprefix $(BUILD_DIR)/$(NAME)/, $(notdir $(SOURCES:.c=.o)))
@@ -23,7 +28,7 @@ OBJECTS := $(addprefix $(BUILD_DIR)/$(NAME)/, $(notdir $(SOURCES:.c=.o)))
 build/$(NAME): $(OBJECTS)
 	@ printf "%8s %-40s %s\n" $(CC) $@ "$(CFLAGS)"
 	@ mkdir -p build
-	@ $(CC) $(CFLAGS) $^ -o $@ -lm
+	@ $(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 $(BUILD_DIR)/$(NAME)/%.o: $(SOURCE_DIR)/%.c $(HEADERS)
 	@ printf "%8s %-40s %s\n" $(CC) $< "$(CFLAGS)"

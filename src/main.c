@@ -11,6 +11,10 @@
 #include "includes/siolib.h"
 #include "includes/scorolib.h"
 
+#ifdef _WIN32
+#include "includes/swsocket.h"
+#endif
+
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
   "Global options:\n" \
@@ -95,6 +99,12 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:corolib", 11),
               GC_OBJ_CONST(newNative(vm, initCoroLib)));
+
+#ifdef _WIN32
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:sock", 8),
+              GC_OBJ_CONST(newNative(vm, initSocketLib)));
+#endif
 }
 
 int main(int argc, const char* argv[]) {

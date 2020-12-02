@@ -433,7 +433,7 @@ Token getNextToken(Lexer *lexer) {
 
     case '=':
       return newToken(lexer, match(lexer, '=') ?
-                      SENEGAL_EQUAL_EQUAL : match(lexer, '>') ? SENEGAL_EQUAL_GREATER : SENEGAL_EQUAL);
+                             SENEGAL_EQUAL_EQUAL : match(lexer, '>') ? SENEGAL_EQUAL_GREATER : SENEGAL_EQUAL);
 
     case '<':
       return newToken(lexer, match(lexer, '=') ? SENEGAL_LESSER_EQUAL : SENEGAL_LESSER);

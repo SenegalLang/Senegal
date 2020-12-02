@@ -61,7 +61,7 @@ class ExpectationsParser {
       }
     });
     if (isRepeat) {
-      print("Warning: repeat directive didn't find a matching endrepeat.");
+      print("Warning: repeat directive didn't find a matching end repeat.");
     }
   }
 

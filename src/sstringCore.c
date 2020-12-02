@@ -98,11 +98,15 @@ static Constant stringStartsWith(VM* vm, int arity, Constant *args) {
 }
 
 static Constant stringIsEmpty(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(AS_STRING(args[0])->chars[0] == '\0');
+  return BOOL_CONST(AS_STRING(args[-1])->chars[0] == '\0');
 }
 
 static Constant stringIsNotEmpty(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(AS_STRING(args[0])->chars[0] != '\0');
+  return BOOL_CONST(AS_STRING(args[-1])->chars[0] != '\0');
+}
+
+static Constant stringLength(VM* vm, int arity, Constant *args) {
+  return NUM_CONST(AS_STRING(args[-1])->length);
 }
 
 static Constant stringToNum(VM* vm, int arity, Constant *args) {
@@ -122,6 +126,7 @@ void initStringClass(VM *vm) {
   defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
   defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
   defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
+  defineClassNativeFunc(vm, "length", stringLength, vm->stringClass);
 
   defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
 
