@@ -1,8 +1,3 @@
 import "sgl:io"
 
-// output Hello
-// output 0
-
-println(system("echo Hello")); // Print the exit code
-
 exit(0);
