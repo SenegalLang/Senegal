@@ -1,0 +1,17 @@
+class A {
+    function a() => println("a");
+}
+
+class B extends A {
+    function b() => println("b");
+}
+
+class C extends B {
+    function c() => println("c");
+}
+
+var c = C();
+
+c.a(); // output a
+c.b(); // output b
+c.c(); // output c

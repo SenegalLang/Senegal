@@ -1,0 +1,5 @@
+class Class {
+    static function printName() => println("Class");
+}
+
+Class.printName(); // output Class

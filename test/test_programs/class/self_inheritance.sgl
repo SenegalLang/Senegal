@@ -1,0 +1,1 @@
+class Foo extends Foo {} // error <Line 1 Error:Foo> `Senegal classes cannot inherit themselves.`

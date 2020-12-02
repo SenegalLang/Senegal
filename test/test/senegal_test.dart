@@ -85,8 +85,10 @@ class ExpectationsParser {
 void main() {
 
   test.group('All test programs run with expected results', () {
-    final Directory directory = Directory('./test_programs/');
-    directory.listSync().forEach((file) {
+    final files = Directory('./test_programs/').listSync(recursive: true)
+      ..removeWhere((e) => e is Directory);
+
+    files.forEach((file) {
       test.test(file.path, () async {
         await _testBirbScriptWithExpectations(file);
       });

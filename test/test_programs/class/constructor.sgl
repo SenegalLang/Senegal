@@ -1,0 +1,7 @@
+class Foo {
+    Foo() {
+        println("constructor"); // output constructor
+    }
+}
+
+Foo();

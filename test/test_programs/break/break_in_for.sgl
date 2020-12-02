@@ -1,0 +1,9 @@
+for (var i = 0; i < 10; i++) {
+    if (i == 2)
+        break;
+
+    println(i);
+}
+
+// output 0
+// output 1

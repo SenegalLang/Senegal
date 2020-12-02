@@ -20,6 +20,12 @@ typedef enum {
     PROGRAM
 } FunctionType;
 
+typedef enum {
+    ROOT,
+    RUNNING,
+    OTHER
+} CoroutineState;
+
 typedef struct {
     GCObject gc;
     int arity;
@@ -67,6 +73,8 @@ typedef struct {
 
     Table fields;
     Table methods;
+    Table staticFields;
+    Table staticMethods;
 } GCClass;
 
 typedef struct {
@@ -116,7 +124,29 @@ typedef struct {
     Constant* constants;
 } CallFrame;
 
+typedef struct sCoroutine {
+    GCObject gc;
+
+    Constant stack[STACK_MAX];
+    Constant* stackTop;
+
+    CallFrame frames[FRAMES_MAX];
+    int frameCount;
+
+    GCUpvalue* openUpvalues;
+
+    struct sCoroutine* caller;
+
+    Constant* error;
+
+    CoroutineState state;
+} GCCoroutine;
+
+#define IS_COROUTINE(c) isGCType(c, GC_COROUTINE)
+#define AS_COROUTINE(c) ((GCCoroutine*)AS_GC_OBJ(c))
+
 struct sVM {
+    GCCoroutine* coroutine;
 
     size_t bytesAllocated;
     size_t nextGC;
@@ -125,8 +155,6 @@ struct sVM {
 
     Table globals;
     Table strings;
-
-    GCUpvalue* openUpvalues;
 
     GCClass* boolClass;
     GCClass* listClass;
@@ -137,16 +165,11 @@ struct sVM {
     int grayCount;
     int grayCapacity;
     GCObject** grayStack;
-
-    int frameCount;
-    CallFrame frames[FRAMES_MAX];
-
-    Constant stack[STACK_MAX];
-    Constant* stackTop;
 };
 
 
 void initVM(VM* vm);
+GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 

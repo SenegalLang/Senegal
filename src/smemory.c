@@ -19,7 +19,7 @@
 void* reallocate(VM* vm, Compiler* compiler, void* pointer, size_t oldSize, size_t newSize) {
   vm->bytesAllocated += newSize - oldSize;
 
-  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC) {
+  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC && vm->coroutine != NULL) {
     collectGarbage(vm, compiler);
   }
 
@@ -55,6 +55,13 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
       GCClosure* closure = (GCClosure*)gc;
       FREE_ARRAY(vm, compiler, GCUpvalue*, closure->upvalues, closure->upvalueCount);
       FREE(vm, compiler, GCClosure, gc);
+      break;
+    }
+
+    case GC_COROUTINE: {
+      GCCoroutine* coroutine = (GCCoroutine*)gc;
+      FREE_ARRAY(vm, compiler, CallFrame*, coroutine->frames, coroutine->frameCount);
+
       break;
     }
 
@@ -95,7 +102,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
 
     case GC_LIST: {
       GCList* list = (GCList*)gc;
-      FREE_ARRAY(vm, compiler, char, list, list->elementC);
+      FREE_ARRAY(vm, compiler, char, list->elements, list->elementC);
       FREE(vm, compiler, GCList, gc);
       break;
     }
@@ -122,6 +129,7 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
+  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
@@ -163,20 +171,21 @@ void markConstant(VM* vm, Constant constant) {
 }
 
 static void markRoots(VM* vm, Compiler* compiler) {
-  for (Constant* constant = vm->stack; constant < vm->stackTop; constant++ ) {
+  for (Constant* constant = vm->coroutine->stack; constant < vm->coroutine->stackTop; constant++ ) {
     markConstant(vm, *constant);
   }
 
-  for (int i = 0; i < vm->frameCount; i++) {
-    markGCObject(vm, (GCObject*)vm->frames[i].closure);
+  for (int i = 0; i < vm->coroutine->frameCount; i++) {
+    markGCObject(vm, (GCObject*)vm->coroutine->frames[i].closure);
   }
 
-  for (GCUpvalue* upvalue = vm->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
+  for (GCUpvalue* upvalue = vm->coroutine->openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
     markGCObject(vm, (GCObject*)upvalue);
   }
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
+  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);
@@ -203,6 +212,9 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       GCClass* class = (GCClass*)gc;
       markGCObject(vm, (GCObject*)class->id);
       markTable(vm, &class->methods);
+      markTable(vm, &class->fields);
+      markTable(vm, &class->staticMethods);
+      markTable(vm, &class->staticFields);
       break;
     }
 

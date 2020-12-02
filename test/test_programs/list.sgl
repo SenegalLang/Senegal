@@ -1,16 +1,18 @@
-// var list = [1, 2, 3, 4, 5, 7];
+var list = [1, 2, 3, 4, 5, 7];
 
-// println(list); // output [1,2,3,4,5,7]
+println(list); // output [1,2,3,4,5,7]
 
-// list[5] = 6;
+list[5] = 6;
 
-// println(list[5]); // output 6
-// println(list.length()); // output 6
+println(list[5]); // output 6
+println(list.length()); // output 6
 
-// println("List forEach:");
+var filledList = List.filled(3, 1);
 
-// function addAndPrint(e) {
-//   println(e);
-// }
+println(filledList); // output [1,1,1]
 
-// list.forEach(addAndPrint);
+filledList.insert(0, 3);
+println(filledList); // output [3,1,1]
+
+filledList.clear();
+println(filledList); // output []

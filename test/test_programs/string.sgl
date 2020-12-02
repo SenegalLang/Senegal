@@ -11,6 +11,29 @@ println("Horizontal\ttab"); // ignore
 println("\\slash"); // output \slash
 println("Double quote in \" String"); // output Double quote in " String
 
+println(String.fromByte(74)); // output J
+
+println(string.at(0)); // output T
+
+println(string.contains("is")); // output true
+println(string.contains("isa")); // output false
+
+println(string.endsWith("test")); // output true
+println(string.endsWith("atest")); // output false
+
+println(string.startsWith("This")); // output true
+println(string.startsWith("Thisis")); // output false
+
+println(string.indexOf("a", 0)); // output 8
+
+var a = "19";
+
+var b = a.toNum();
+
+println(b.type); // output num
+
 // NEED TO BE CORRECTED
 // println("Carriage\rreturn");
 // println("Vertical\vtab");
+
+

@@ -1,0 +1,14 @@
+var i = 0;
+
+while (i < 4) {
+    if (i == 2) {
+        i++;
+        continue;
+    }
+
+    println(i++);
+}
+
+// output 0
+// output 1
+// output 3

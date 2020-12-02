@@ -1,0 +1,2 @@
+return 0;
+// error <Line 1 Error:return> `Senegal can't return from a global scope.`

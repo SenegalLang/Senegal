@@ -24,7 +24,7 @@ void error(Parser* parser, Token* token, const char* message) {
 
   if (token->type == SENEGAL_EOF) {
     fprintf(stderr, "EOF>");
-  } else if (token->type != ERROR) {
+  } else if (token->type != SENEGAL_ERROR) {
     fprintf(stderr, "%.*s>", token->length, token->start);
   }
 
@@ -39,7 +39,7 @@ void advance(Parser* parser, Lexer* lexer) {
   for (;;) {
     parser->current = getNextToken(lexer);
 
-    if (parser->current.type != ERROR)
+    if (parser->current.type != SENEGAL_ERROR)
       break;
 
     error(parser, &parser->current, parser->current.start);
@@ -48,11 +48,12 @@ void advance(Parser* parser, Lexer* lexer) {
 
 // Consumes the current token and advances to the next if the current tokens type matches the given type,
 // an error is shown if types dont match
-void consume(Parser* parser, Lexer* lexer, TokenType type, const char* message) {
+void consume(Parser* parser, Lexer* lexer, SenegalTokenType type, const char* message) {
   if (parser->current.type == type) {
     advance(parser, lexer);
     return;
   }
+
   error(parser, &parser->current, message);
 }
 
@@ -168,8 +169,8 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
 
   advance(&parser, &lexer);
 
-  while (match(&parser, &lexer, IMPORT)) {
-    consume(&parser, &lexer, STRING, "Senegal expected a path to import");
+  while (match(&parser, &lexer, SENEGAL_IMPORT)) {
+    consume(&parser, &lexer, SENEGAL_STRING, "Senegal expected a path to import");
     char* importSource = copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars;
 
     // Core library
@@ -180,8 +181,8 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
-      Constant result = AS_NATIVE(constant)(vm, 0, vm->stackTop);
-      vm->stackTop -= 1;
+      AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
+      vm->coroutine->stackTop -= 1;
 
     } else {
       interpretImport(vm, readFile(importSource));

@@ -4,30 +4,51 @@
 #include "includes/stable_utils.h"
 #include "includes/sparser.h"
 
+void expect(int expected, int actual, char *name) {
+  if (actual != expected) {
+    fprintf(stderr, "%s expected %d args, but found %d\n", name, expected, actual);
+    exit(1);
+  }
+}
+
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &class->methods, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->fields, AS_STRING(vm->stack[0]), field);
+  tableInsert(vm, &class->fields, AS_STRING(vm->coroutine->stack[0]), field);
+  pop(vm);
+}
+
+void defineClassNativeStaticFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  push(vm, GC_OBJ_CONST(newNative(vm, function)));
+  tableInsert(vm, &class->staticMethods, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  pop(vm);
+  pop(vm);
+}
+
+void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class) {
+  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+  tableInsert(vm, &class->staticFields, AS_STRING(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobal(VM* vm, const char* id, Constant field) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), field);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -55,15 +76,15 @@ Constant assertApi(VM* vm, int arity, Constant *args) {
 
     exit(1);
   }
-}
 
-Constant clockApi(VM* vm, int arity, Constant* args) {
-  return NUM_CONST((double)clock() / CLOCKS_PER_SEC);
+  return NULL_CONST;
 }
 
 Constant printApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
     printConstant(args[i]);
+
+  return NULL_CONST;
 }
 
 Constant printlnApi(VM* vm, int arity, Constant* args) {
@@ -72,4 +93,6 @@ Constant printlnApi(VM* vm, int arity, Constant* args) {
     printConstant(args[i]);
 
   printf("\n");
+
+  return NULL_CONST;
 }
