@@ -185,7 +185,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
       vm->coroutine->stackTop -= 1;
 
     } else {
-      interpretImport(vm, readFile(importSource));
+      interpretImport(vm, readFileWithPath(importSource));
     }
   }
 

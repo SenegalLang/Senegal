@@ -17,7 +17,8 @@
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
-char* readFile(const char* path);
+char* readFileWithPath(const char* path);
+char* readFile(FILE* file);
 
 int removeCharFromIndex(const char *src, char *dst, int index);
 

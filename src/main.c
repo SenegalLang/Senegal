@@ -13,6 +13,8 @@
 
 #ifdef _WIN32
 #include "includes/swsocket.h"
+#include "includes/sfilelib.h"
+
 #endif
 
 #define SENEGAL_HELP \
@@ -77,7 +79,7 @@ static void repl(VM* vm) {
 }
 
 static void runFile(VM* vm, const char* path) {
-  char* source = readFile(path);
+  char* source = readFileWithPath(path);
   InterpretationResult result = interpret(vm, source);
 
   if (result == COMPILE_TIME_ERROR)
@@ -99,6 +101,10 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:corolib", 11),
               GC_OBJ_CONST(newNative(vm, initCoroLib)));
+
+  tableInsert(vm, &corePaths,
+              copyString(vm, NULL, "sgl:file", 8),
+              GC_OBJ_CONST(newNative(vm, initFileLib)));
 
 #ifdef _WIN32
   tableInsert(vm, &corePaths,

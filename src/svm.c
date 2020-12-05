@@ -1465,11 +1465,11 @@ GCFunction* newFunction(VM* vm) {
 }
 
 GCInstance* newInstance(VM* vm, GCClass* class) {
-  GCInstance* instance = ALLOCATE_GC_OBJ(vm, GCInstance, GC_INSTANCE);
+    GCInstance* instance = ALLOCATE_GC_OBJ(vm, GCInstance, GC_INSTANCE);
 
-  instance->class = class;
+    instance->class = class;
 
-  return instance;
+    return instance;
 }
 
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method) {
