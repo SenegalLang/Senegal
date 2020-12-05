@@ -14,6 +14,7 @@
 #ifdef _WIN32
 #include "includes/swsocket.h"
 #include "includes/sfilelib.h"
+#include "includes/sapi.h"
 
 #endif
 
@@ -113,6 +114,17 @@ static void addPaths(VM* vm) {
 #endif
 }
 
+static void defineArgv(VM* vm, int argc, const char* argv[]) {
+  GCList* args = newList(vm, argc);
+
+  for (int i = 0; i < argc; i++)
+    args->elements[argc - 1 - i] = GC_OBJ_CONST(copyString(vm, NULL, argv[i], strlen(argv[i])));
+
+  args->elementC = argc;
+
+  defineGlobal(vm, "argv", GC_OBJ_CONST(args));
+}
+
 int main(int argc, const char* argv[]) {
   VM vm;
 
@@ -120,8 +132,9 @@ int main(int argc, const char* argv[]) {
   initVM(&vm);
 
   initTable(&corePaths);
-
   addPaths(&vm);
+
+  defineArgv(&vm, argc, argv);
 
   if (argc == 1) {
     repl(&vm);

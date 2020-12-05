@@ -1,0 +1,4 @@
+import 'sgl:file'
+import 'sgl:math'
+
+println(pi); // output 3.141592653589793

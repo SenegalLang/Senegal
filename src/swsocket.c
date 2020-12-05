@@ -151,10 +151,10 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < aliasesLen; i++) {
     GCList* aliasesElementList = newList(vm, 4);
 
-    aliasesElementList->elements[0] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][3]);
-    aliasesElementList->elements[1] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][2]);
-    aliasesElementList->elements[2] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][1]);
-    aliasesElementList->elements[3] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][0]);
+    aliasesElementList->elements[aliasesLen - 1] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][3]);
+    aliasesElementList->elements[aliasesLen - 2] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][2]);
+    aliasesElementList->elements[aliasesLen - 3] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][1]);
+    aliasesElementList->elements[aliasesLen - 4] = NUM_CONST((unsigned char)hostEnt->h_aliases[i][0]);
     aliasesElementList->elementC = 4;
 
     aliases->elements[i] = GC_OBJ_CONST(aliasesElementList);
@@ -176,10 +176,10 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < hAddrLen; i++) {
     GCList* hAddrElementList = newList(vm, 4);
 
-    hAddrElementList->elements[0] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][3]);
-    hAddrElementList->elements[1] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][2]);
-    hAddrElementList->elements[2] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][1]);
-    hAddrElementList->elements[3] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][0]);
+    hAddrElementList->elements[aliasesLen - 1] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][3]);
+    hAddrElementList->elements[aliasesLen - 2] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][2]);
+    hAddrElementList->elements[aliasesLen - 3] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][1]);
+    hAddrElementList->elements[aliasesLen - 4] = NUM_CONST((unsigned char)hostEnt->h_addr_list[i][0]);
 
     hAddrElementList->elementC = 4;
 
