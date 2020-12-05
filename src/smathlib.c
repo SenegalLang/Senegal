@@ -7,6 +7,45 @@
 
 #define PI 3.14159265358979323846
 
+// Random number generator, based on xoshiro256
+static unsigned long splitMix64(unsigned long state) {
+  state = state + 0x9E3779B97f4A7C15;
+  state = (state ^ (state >> 30) ) * 0xBF58476D1CE4E5B9;
+  state = (state ^ (state >> 27) ) * 0x94D049BB133111EB;
+  return state ^ (state >> 31);
+}
+
+static unsigned long* initRand(unsigned long seed) {
+  unsigned long* state = malloc(4 * sizeof(long));
+
+  state[0] = splitMix64(seed);
+  state[1] = splitMix64(state[0]);
+  state[2] = splitMix64(state[2]);
+  state[3] = splitMix64(state[3]);
+
+  return state;
+}
+
+static unsigned long rol64(unsigned long x, int k) {
+  return (x << k) | (x >> (64 - k));
+}
+
+static unsigned long random(unsigned long* state) {
+  unsigned long result = rol64(state[1] * 5, 7) * 9;
+  unsigned long t = state[1] << 17;
+
+  state[2] ^= state[0];
+  state[3] ^= state[1];
+  state[1] ^= state[2];
+  state[0] ^= state[3];
+
+  state[2] ^= t;
+  state[3] = rol64(state[3], 45);
+
+  return result;
+}
+
+
 static Constant sglMin(VM* vm, int arity, Constant* args) {
   int left = AS_NUMBER(args[0]);
   int right = AS_NUMBER(args[1]);
@@ -123,12 +162,15 @@ static Constant sglRound(VM* vm, int arity, Constant* args) {
 }
 
 static Constant sglRandom(VM* vm, int arity, Constant* args) {
-  srand(time(NULL));
-
   int minRng = AS_NUMBER(args[0]);
   int maxRng = AS_NUMBER(args[1]);
-  
-  return NUM_CONST((rand() % ( maxRng - minRng + 1 )) + minRng);
+
+
+  unsigned long seed = arity < 3 ? time(0) : AS_NUMBER(args[2]);
+
+  unsigned long* state = initRand(seed);
+
+  return NUM_CONST((random(state) % ( maxRng - minRng + 1 )) + minRng);
 }
 
 Constant initMathLib(VM* vm, int arity, Constant* args) {
