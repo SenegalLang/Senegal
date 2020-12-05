@@ -10,12 +10,11 @@
 #include "includes/smathlib.h"
 #include "includes/siolib.h"
 #include "includes/scorolib.h"
-
-#ifdef _WIN32
-#include "includes/swsocket.h"
 #include "includes/sfilelib.h"
 #include "includes/sapi.h"
 
+#ifdef _WIN32
+#include "includes/swsocket.h"
 #endif
 
 #define SENEGAL_HELP \
