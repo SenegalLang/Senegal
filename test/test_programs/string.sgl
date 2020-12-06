@@ -36,4 +36,6 @@ println(b.type); // output num
 // println("Carriage\rreturn");
 // println("Vertical\vtab");
 
+println(string.split(" ")); // output [This,is,a,test]
+
 

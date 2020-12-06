@@ -1,6 +1,7 @@
 #include "includes/sstringCore.h"
 #include "includes/sparser.h"
 #include "includes/sapi.h"
+#include "includes/smemory.h"
 
 static Constant stringFromByte(VM* vm, int arity, Constant *args) {
   expect(1, arity, "fromByte");
@@ -85,6 +86,31 @@ static Constant stringIndexOf(VM* vm, int arity, Constant *args) {
   return NUM_CONST(res - string->chars);
 }
 
+static Constant stringSplit(VM* vm, int arity, Constant *args) {
+  expect(1, arity, "split");
+
+  char* delim = AS_CSTRING(args[0]);
+  char* str = AS_CSTRING(args[-1]);
+
+  int count = 1;
+
+  strtok(str, delim);
+  while (strtok(NULL, delim) != NULL)
+    count++;
+
+  GCList* splitList = newList(vm, count);
+
+  splitList->elementC = count;
+
+  for (int i = 0; i < count; i++) {
+    int length = strlen(str);
+    splitList->elements[splitList->elementC - i - 1] = GC_OBJ_CONST(copyString(vm, NULL, str, length));
+    str += length + 1;
+  }
+
+  return GC_OBJ_CONST(splitList);
+}
+
 static Constant stringStartsWith(VM* vm, int arity, Constant *args) {
   expect(1, arity, "startsWith");
 
@@ -123,6 +149,7 @@ void initStringClass(VM *vm) {
   defineClassNativeFunc(vm, "contains", stringContains, vm->stringClass);
   defineClassNativeFunc(vm, "endsWith", stringEndsWith, vm->stringClass);
   defineClassNativeFunc(vm, "indexOf", stringIndexOf, vm->stringClass);
+  defineClassNativeFunc(vm, "split", stringSplit, vm->stringClass);
   defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
   defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
   defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
