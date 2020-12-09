@@ -1,7 +1,22 @@
-import "../test/test_programs/bool/bool.sgl"
-import "../test/test_programs/class/class.sgl"
+var bn = 'bn';
+var senegal = "senegal";
 
-var senegal = Senegal("Foo");
 
-println(senegal.name); // output Foo
-println(tBool); // output true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bn;
+
