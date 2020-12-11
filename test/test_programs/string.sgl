@@ -36,6 +36,13 @@ println(b.type); // output num
 // println("Carriage\rreturn");
 // println("Vertical\vtab");
 
-println(string.split(" ")); // output [This,is,a,test]
+println(string.replace("This", "That")); // output That is a test
 
+println(string.isDigit()); // output false
+
+println(string.substr(0, 7)); // output This i
+
+println(string.toUpper()); // output THIS IS A TEST
+
+println(string.split(" ")); // output [THIS,IS,A,TEST]
 
