@@ -1,4 +1,3 @@
-#ifdef _WIN32
 #include "includes/swsocket.h"
 #include "includes/sapi.h"
 #include "includes/sparser.h"
@@ -39,6 +38,8 @@ void defineSocketConstants(VM* vm) {
   defineGlobal(vm,"SOMAXCONN", NUM_CONST(SOMAXCONN));
 
   defineGlobal(vm,"SOL_SOCKET", NUM_CONST(SOL_SOCKET));
+
+  defineGlobal(vm,"IPPROTO_TCP", NUM_CONST(IPPROTO_TCP));
 
 }
 
@@ -97,6 +98,22 @@ Constant sglConnect(VM* vm, int arity, Constant* args) {
   return NUM_CONST(connect(sock, (const struct sockaddr*)&server, sizeof(server)));
 }
 
+Constant sglINetNtoa(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "inetNtoa");
+
+  GCList* address = AS_LIST(args[0]);
+
+  char addr[4] = {AS_NUMBER(address->elements[3]), AS_NUMBER(address->elements[2]),  AS_NUMBER(address->elements[1]), AS_NUMBER(address->elements[0])};
+
+  struct in_addr inAddr;
+  memset((char*)&inAddr, 0, sizeof(inAddr)); // Precaution
+  memcpy( (void*)&inAddr,addr, 4);
+
+  char* res = inet_ntoa(inAddr);
+
+  return GC_OBJ_CONST(copyString(vm, NULL, res, strlen(res)));
+}
+
 Constant sglSend(VM* vm, int arity, Constant* args) {
   expect(3, arity, "send");
 
@@ -126,9 +143,21 @@ Constant sglClose(VM* vm, int arity, Constant* args) {
 
   SOCKET sock = AS_NUMBER(args[0]);
 
-  return AS_NUMBER(closesocket(sock));
+#ifdef _WIN32
+  int ret = closesocket(sock);
+#else
+  int ret = close(sock);
+#endif
+
+  return AS_NUMBER(ret);
 }
 
+// HostEnt {
+//  var name;
+//  var aliases;
+//  var addrType;
+//  var length;
+//  var addresses;
 Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
   GCClass* hostEntClass = newClass(vm, copyString(vm, NULL, "HostEnt", 7), false);
 
@@ -194,9 +223,11 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
 }
 
 Constant initSocketLib(VM *vm, int arity, Constant *args) {
+#ifdef _WIN32
   WSADATA wsaData;
   WSAStartup(MAKEWORD(2,0), &wsaData);
   atexit((void(*)())WSACleanup);
+#endif
 
   defineSocketConstants(vm);
   defineSocketAddrClass(vm);
@@ -208,5 +239,6 @@ Constant initSocketLib(VM *vm, int arity, Constant *args) {
   defineGlobalFunc(vm, "receive", sglReceive);
   defineGlobalFunc(vm, "closeSocket", sglClose);
   defineGlobalFunc(vm, "getHostByName", sglGetHostByName);
+
+  defineGlobalFunc(vm, "inetNtoa", sglINetNtoa);
 }
-#endif

@@ -1,7 +1,7 @@
+#include <ctype.h>
 #include "includes/sstringCore.h"
 #include "includes/sparser.h"
 #include "includes/sapi.h"
-#include "includes/smemory.h"
 
 static Constant stringFromByte(VM* vm, int arity, Constant *args) {
   expect(1, arity, "fromByte");
@@ -139,6 +139,81 @@ static Constant stringToNum(VM* vm, int arity, Constant *args) {
   return NUM_CONST(strtol(AS_CSTRING(args[-1]), (char**)NULL, 10));
 }
 
+static Constant stringToLower(VM* vm, int arity, Constant *args) {
+  char* string = AS_CSTRING(args[-1]);
+
+  for ( ; *string; ++string) *string = tolower(*string);
+
+  return args[-1];
+}
+
+static Constant stringToUpper(VM* vm, int arity, Constant *args) {
+  char* string = AS_CSTRING(args[-1]);
+
+  for ( ; *string; ++string) *string = toupper(*string);
+
+  return args[-1];
+}
+
+static Constant stringIsAlpha(VM* vm, int arity, Constant *args) {
+  return BOOL_CONST(isalpha(AS_CSTRING(args[-1])[0]));
+}
+
+static Constant stringIsAlphaNum(VM* vm, int arity, Constant *args) {
+  return BOOL_CONST(isalnum(AS_CSTRING(args[-1])[0]));
+}
+
+static Constant stringIsDigit(VM* vm, int arity, Constant *args) {
+  return BOOL_CONST(isdigit(AS_CSTRING(args[-1])[0]));
+}
+
+static Constant stringIsHex(VM* vm, int arity, Constant *args) {
+  return BOOL_CONST(isxdigit(AS_CSTRING(args[-1])[0]));
+}
+
+static Constant stringReplace(VM* vm, int arity, Constant *args) {
+  char* string = AS_CSTRING(args[-1]);
+  char* search = AS_CSTRING(args[0]);
+  char* replace = AS_CSTRING(args[1]);
+
+  char  *p = NULL , *old = NULL , *newString = NULL ;
+  int c = 0 , searchLen;
+  searchLen = strlen(search);
+  for(p = strstr(string , search) ; p != NULL ; p = strstr(p + searchLen , search))
+  {
+    c++;
+  }
+  c = (strlen(replace) - searchLen ) * c + strlen(string);
+  newString = (char*)malloc(c );
+  strcpy(newString , "");
+  old = string;
+  for(p = strstr(string , search) ; p != NULL ; p = strstr(p + searchLen , search))
+  {
+    strncpy(newString + strlen(newString) , old , p - old);
+    strcpy(newString + strlen(newString) , replace);
+    old = p + searchLen;
+  }
+
+  strcpy(newString + strlen(newString) , old);
+
+  return GC_OBJ_CONST(copyString(vm, NULL, newString, strlen(newString)));
+}
+
+static Constant stringSubstr(VM* vm, int arity, Constant *args) {
+  char* string = AS_CSTRING(args[-1]);
+
+  double start = AS_NUMBER(args[0]);
+  double end = AS_NUMBER(args[1]);
+
+  int length = (int)(end - start);
+
+  char sub[length];
+  memcpy(sub, &string[(int)start], length);
+  sub[length - 1] = '\0';
+
+  return GC_OBJ_CONST(copyString(vm, NULL, sub, length));
+}
+
 void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
@@ -156,5 +231,15 @@ void initStringClass(VM *vm) {
   defineClassNativeFunc(vm, "length", stringLength, vm->stringClass);
 
   defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
+  defineClassNativeFunc(vm, "toLower", stringToLower, vm->stringClass);
+  defineClassNativeFunc(vm, "toUpper", stringToUpper, vm->stringClass);
+
+  defineClassNativeFunc(vm, "isAlpha", stringIsAlpha, vm->stringClass);
+  defineClassNativeFunc(vm, "isAlphaNum", stringIsAlphaNum, vm->stringClass);
+  defineClassNativeFunc(vm, "isDigit", stringIsDigit, vm->stringClass);
+  defineClassNativeFunc(vm, "isHex", stringIsHex, vm->stringClass);
+  defineClassNativeFunc(vm, "replace", stringReplace, vm->stringClass);
+
+  defineClassNativeFunc(vm, "substr", stringSubstr, vm->stringClass);
 
 }

@@ -13,9 +13,7 @@
 #include "includes/sfilelib.h"
 #include "includes/sapi.h"
 
-#ifdef _WIN32
 #include "includes/swsocket.h"
-#endif
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -106,11 +104,9 @@ static void addPaths(VM* vm) {
               copyString(vm, NULL, "sgl:file", 8),
               GC_OBJ_CONST(newNative(vm, initFileLib)));
 
-#ifdef _WIN32
   tableInsert(vm, &corePaths,
               copyString(vm, NULL, "sgl:sock", 8),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
-#endif
 }
 
 static void defineArgv(VM* vm, int argc, const char* argv[]) {
