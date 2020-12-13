@@ -13,7 +13,7 @@
 #include "includes/sfilelib.h"
 #include "includes/sapi.h"
 
-#include "includes/swsocket.h"
+#include "includes/ssocket.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \

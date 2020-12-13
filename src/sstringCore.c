@@ -205,11 +205,11 @@ static Constant stringSubstr(VM* vm, int arity, Constant *args) {
   double start = AS_NUMBER(args[0]);
   double end = AS_NUMBER(args[1]);
 
-  int length = (int)(end - start);
+  int length = (int)(end - start) - 1;
 
   char sub[length];
   memcpy(sub, &string[(int)start], length);
-  sub[length - 1] = '\0';
+  sub[length] = '\0';
 
   return GC_OBJ_CONST(copyString(vm, NULL, sub, length));
 }

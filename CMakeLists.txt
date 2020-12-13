@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.17)
-project(Senegal C)
+project(senegal C)
 
 set(CMAKE_C_STANDARD 99)
 
 file(GLOB src "*/*.h" "*/*.c")
 
-add_executable(Senegal ${src} src/includes/swsocket.h src/swsocket.c src/includes/sfilelib.h src/sfilelib.c src/includes/shttplib.h)
-target_link_libraries(Senegal ws2_32)
+add_executable(senegal ${src} src/includes/ssocket.h src/ssocket.c src/includes/sfilelib.h src/sfilelib.c)
+target_link_libraries(senegal ws2_32)

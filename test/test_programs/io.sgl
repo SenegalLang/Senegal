@@ -1,0 +1,5 @@
+import 'sgl:io'
+
+println(4); // output 4
+sleep(10);
+println(5); // output 5

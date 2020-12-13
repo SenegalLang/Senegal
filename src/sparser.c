@@ -904,8 +904,10 @@ void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc,
 
 void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
 
-  if (match(parser, lexer, SENEGAL_RBRACKET))
+  if (match(parser, lexer, SENEGAL_RBRACKET)) {
     writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newList(vm, 0)));
+    return;
+  }
 
   uint8_t entryCount = 0;
   do {

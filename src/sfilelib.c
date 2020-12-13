@@ -6,18 +6,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-typedef struct {
-    GCObject gc;
-
-    GCClass* class;
-    FILE* file;
-} GCFile;
-
-GCClass* fileClass;
-
-#define AS_FILE(c) ((GCFile*)AS_GC_OBJ(c))
-
-static GCFile* newFile(VM* vm, GCClass* class, FILE* file) {
+GCFile* newFile(VM* vm, GCClass* class, FILE* file) {
   GCFile* instance = ALLOCATE_GC_OBJ(vm, GCFile, GC_INSTANCE);
 
   instance->class = class;
