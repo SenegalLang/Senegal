@@ -30,7 +30,7 @@ static unsigned long rol64(unsigned long x, int k) {
   return (x << k) | (x >> (64 - k));
 }
 
-static unsigned long random(unsigned long* state) {
+static unsigned long sglRandomImpl(unsigned long* state) {
   unsigned long result = rol64(state[1] * 5, 7) * 9;
   unsigned long t = state[1] << 17;
 
@@ -170,7 +170,7 @@ static Constant sglRandom(VM* vm, int arity, Constant* args) {
 
   unsigned long* state = initRand(seed);
 
-  return NUM_CONST((random(state) % ( maxRng - minRng + 1 )) + minRng);
+  return NUM_CONST((sglRandomImpl(state) % (maxRng - minRng + 1 )) + minRng);
 }
 
 Constant initMathLib(VM* vm, int arity, Constant* args) {
