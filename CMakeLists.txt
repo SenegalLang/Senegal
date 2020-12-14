@@ -5,12 +5,13 @@ set(CMAKE_C_STANDARD 99)
 file(GLOB src "*/*.h" "*/*.c")
 
 add_executable(senegal ${src} src/includes/ssocket.h src/ssocket.c src/includes/sfilelib.h src/sfilelib.c)
-target_link_libraries(senegal ws2_32)
 
 if (WIN32)
-set(SENEGAL_EXEC senegal.exe)
+	set(SENEGAL_EXEC senegal.exe)
+	target_link_libraries(senegal ws2_32)
 else()
-set(SENEGAL_EXEC senegal)
+	set(SENEGAL_EXEC senegal)
+	target_link_libraries(senegal)
 endif()
 
 add_custom_command(TARGET senegal
