@@ -165,8 +165,10 @@ int main(int argc, const char* argv[]) {
   }
 
   if (senegalPath == NULL) {
-    fprintf(stderr, "Unable to find the senegal directory in the system PATH\n");
-    exit(1);
+    char cwd[260]; // PATH_MAX
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+      senegalPath = cwd;
+    }
   }
 
   if (argc == 1) {
