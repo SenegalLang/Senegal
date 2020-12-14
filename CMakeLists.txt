@@ -11,7 +11,7 @@ if (WIN32)
 	target_link_libraries(senegal ws2_32)
 else()
 	set(SENEGAL_EXEC senegal)
-	target_link_libraries(senegal)
+	target_link_libraries(senegal m)
 endif()
 
 add_custom_command(TARGET senegal
