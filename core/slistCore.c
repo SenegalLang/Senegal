@@ -1,7 +1,7 @@
 #include "includes/slistCore.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sapi.h"
-#include "includes/smemory.h"
+#include "../src/includes/smemory.h"
 
 static Constant listNew(VM* vm, int arity, Constant* args) {
   GCList* list = newList(vm, 0);

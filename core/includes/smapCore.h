@@ -1,7 +1,7 @@
 #ifndef SENEGAL_SMAPCORE_H
 #define SENEGAL_SMAPCORE_H
 
-#include "svm.h"
+#include "../../src/includes/svm.h"
 
 void initMapClass(VM* vm);
 

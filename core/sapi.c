@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "includes/sapi.h"
-#include "includes/stable_utils.h"
-#include "includes/sparser.h"
+#include "../src/includes/stable_utils.h"
+#include "../src/includes/sparser.h"
 
 void expect(int expected, int actual, char *name) {
   if (actual != expected) {

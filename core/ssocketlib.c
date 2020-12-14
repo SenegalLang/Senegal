@@ -1,7 +1,7 @@
-#include "includes/ssocket.h"
+#include "includes/ssocketlib.h"
 #include "includes/sapi.h"
-#include "includes/sparser.h"
-#include "includes/stable_utils.h"
+#include "../src/includes/sparser.h"
+#include "../src/includes/stable_utils.h"
 
 #include <unistd.h>
 

@@ -1,7 +1,7 @@
 #ifndef SENEGAL_SFILELIB_H
 #define SENEGAL_SFILELIB_H
 
-#include "svm.h"
+#include "../../src/includes/svm.h"
 
 typedef struct {
     GCObject gc;

@@ -1,5 +1,5 @@
 #include "includes/sboolCore.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 
 static Constant boolAsNum(VM* vm, int arity, Constant *args) {

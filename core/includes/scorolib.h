@@ -1,7 +1,7 @@
 #ifndef SENEGAL_SCOROLIB_H
 #define SENEGAL_SCOROLIB_H
 
-#include "svm.h"
+#include "../../src/includes/svm.h"
 
 Constant initCoroLib(VM* vm, int arity, Constant* args);
 

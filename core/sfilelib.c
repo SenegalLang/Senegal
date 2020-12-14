@@ -1,7 +1,7 @@
 #include "includes/sfilelib.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sapi.h"
-#include "includes/sgcobject_utils.h"
+#include "../src/includes/sgcobject_utils.h"
 
 #include <unistd.h>
 #include <wchar.h>

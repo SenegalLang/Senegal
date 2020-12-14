@@ -7,13 +7,13 @@
 #include "includes/svm.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
-#include "includes/smathlib.h"
-#include "includes/siolib.h"
-#include "includes/scorolib.h"
-#include "includes/sfilelib.h"
-#include "includes/sapi.h"
+#include "../core/includes/smathlib.h"
+#include "../core/includes/siolib.h"
+#include "../core/includes/scorolib.h"
+#include "../core/includes/sfilelib.h"
+#include "../core/includes/sapi.h"
 
-#include "includes/ssocket.h"
+#include "../core/includes/ssocketlib.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
@@ -108,10 +108,6 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:sock", 8),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
-
-  tableInsert(vm, &vm->corePaths,
-              copyString(vm, NULL, "sgl:test", 8),
-              NULL_CONST);
 }
 
 static void defineArgv(VM* vm, int argc, const char* argv[]) {

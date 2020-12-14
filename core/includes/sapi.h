@@ -2,8 +2,8 @@
 #define SENEGAL_SAPI_H
 
 #include <time.h>
-#include "sconstant.h"
-#include "svm.h"
+#include "../../src/includes/sconstant.h"
+#include "../../src/includes/svm.h"
 
 void expect(int expected, int actual, char* name);
 

@@ -1,4 +1,4 @@
-name: Senegal CI
+name: Senegal Tests Linux
 
 on:
   push:

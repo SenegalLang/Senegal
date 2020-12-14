@@ -1,7 +1,7 @@
-#ifndef SENEGAL_SSOCKET_H
-#define SENEGAL_SSOCKET_H
+#ifndef SENEGAL_SSOCKETLIB_H
+#define SENEGAL_SSOCKETLIB_H
 
-#include "svm.h"
+#include "../../src/includes/svm.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -30,4 +30,4 @@ typedef unsigned long	u_long;
 
 Constant initSocketLib(VM* vm, int arity, Constant* args);
 
-#endif //SENEGAL_SSOCKET_H
+#endif //SENEGAL_SSOCKETLIB_H

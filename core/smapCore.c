@@ -1,7 +1,7 @@
 #include "includes/smapCore.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sapi.h"
-#include "includes/stable_utils.h"
+#include "../src/includes/stable_utils.h"
 
 static Constant mapNew(VM* vm, int arity, Constant* args) {
   return GC_OBJ_CONST(newMap(vm));

@@ -4,15 +4,15 @@
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
 #include "includes/sgcobject_utils.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 
-#include "includes/sboolCore.h"
-#include "includes/sstringCore.h"
-#include "includes/snumCore.h"
-#include "includes/smapCore.h"
-#include "includes/slistCore.h"
+#include "../core/includes/sboolCore.h"
+#include "../core/includes/sstringCore.h"
+#include "../core/includes/snumCore.h"
+#include "../core/includes/smapCore.h"
+#include "../core/includes/slistCore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"

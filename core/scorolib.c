@@ -1,6 +1,6 @@
 #include "includes/scorolib.h"
 #include "includes/sapi.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 
 static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
   if (arity != 1 || !IS_CLOSURE(args[0])) {

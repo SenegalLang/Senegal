@@ -1,7 +1,7 @@
 #ifndef SENEGAL_SLISTCORE_H
 #define SENEGAL_SLISTCORE_H
 
-#include "svm.h"
+#include "../../src/includes/svm.h"
 
 void initListClass(VM* vm);
 

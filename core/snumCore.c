@@ -2,7 +2,7 @@
 #include <float.h>
 #include <math.h>
 #include "includes/snumCore.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 
 //#define NAN (0.0 / 0.0)

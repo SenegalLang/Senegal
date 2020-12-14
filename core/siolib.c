@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include "includes/siolib.h"
 #include "includes/sapi.h"
-#include "includes/sparser.h"
+#include "../src/includes/sparser.h"
 #include "includes/sfilelib.h"
-#include "includes/smemory.h"
+#include "../src/includes/smemory.h"
 
 #ifdef _WIN32
 size_t getline(char **lineptr, size_t *n, FILE *stream) {
