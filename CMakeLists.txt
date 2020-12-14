@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.17)
 project(senegal C)
-
+cmake_minimum_required(VERSION 3.17)
 set(CMAKE_C_STANDARD 99)
 
 file(GLOB src "*/*.h" "*/*.c")

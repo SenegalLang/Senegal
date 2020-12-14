@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <wchar.h>
 
+GCClass* fileClass;
+
 GCFile* newFile(VM* vm, GCClass* class, FILE* file) {
   GCFile* instance = ALLOCATE_GC_OBJ(vm, GCFile, GC_INSTANCE);
 

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
@@ -64,7 +63,7 @@ static void repl(VM* vm) {
 
         if (lBraceCount == rBraceCount)
           break;
-        
+
       }
 
       interpret(vm, block);
@@ -88,23 +87,23 @@ static void runFile(VM* vm, const char* path) {
 }
 
 static void addPaths(VM* vm) {
-  tableInsert(vm, &corePaths,
+  tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:math", 8),
               GC_OBJ_CONST(newNative(vm, initMathLib)));
 
-  tableInsert(vm, &corePaths,
+  tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:io", 6),
               GC_OBJ_CONST(newNative(vm, initIoLib)));
 
-  tableInsert(vm, &corePaths,
+  tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:corolib", 11),
               GC_OBJ_CONST(newNative(vm, initCoroLib)));
 
-  tableInsert(vm, &corePaths,
+  tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:file", 8),
               GC_OBJ_CONST(newNative(vm, initFileLib)));
 
-  tableInsert(vm, &corePaths,
+  tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:sock", 8),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
 }
@@ -126,15 +125,14 @@ int main(int argc, const char* argv[]) {
   // setbuf(stdout, 0);
   initVM(&vm);
 
-  initTable(&corePaths);
   addPaths(&vm);
 
   defineArgv(&vm, argc, argv);
 
   if (argc == 1) {
     repl(&vm);
-  } 
-  
+  }
+
   else if (argc == 2) {
     if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
       printf("%s", SENEGAL_HELP);
@@ -150,10 +148,10 @@ int main(int argc, const char* argv[]) {
 
     runFile(&vm, argv[1]);
   }
-  
+
   else {
     fprintf(stderr, "%s", SENEGAL_HELP);
-    
+
     return 64;
   }
 

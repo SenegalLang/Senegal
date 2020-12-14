@@ -155,6 +155,7 @@ struct sVM {
 
     Table globals;
     Table strings;
+    Table corePaths;
 
     GCClass* boolClass;
     GCClass* listClass;

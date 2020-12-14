@@ -10,8 +10,6 @@ typedef struct {
     FILE* file;
 } GCFile;
 
-GCClass* fileClass;
-
 #define AS_FILE(c) ((GCFile*)AS_GC_OBJ(c))
 
 Constant initFileLib(VM* vm, int arity, Constant* args);

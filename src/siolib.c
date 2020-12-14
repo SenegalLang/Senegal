@@ -5,6 +5,62 @@
 #include "includes/sfilelib.h"
 #include "includes/smemory.h"
 
+#ifdef _WIN32
+size_t getline(char **lineptr, size_t *n, FILE *stream) {
+  char *bufptr = NULL;
+  char *p = bufptr;
+  size_t size;
+  int c;
+
+  if (lineptr == NULL) {
+    return -1;
+  }
+  if (stream == NULL) {
+    return -1;
+  }
+  if (n == NULL) {
+    return -1;
+  }
+  bufptr = *lineptr;
+  size = *n;
+
+  c = fgetc(stream);
+  if (c == EOF) {
+    return -1;
+  }
+  if (bufptr == NULL) {
+    bufptr = malloc(128);
+    if (bufptr == NULL) {
+      return -1;
+    }
+    size = 128;
+  }
+  p = bufptr;
+  while(c != EOF) {
+    if ((p - bufptr) > (size - 1)) {
+      size = size + 128;
+      bufptr = realloc(bufptr, size);
+      if (bufptr == NULL) {
+        return -1;
+      }
+    }
+    *p++ = c;
+    if (c == '\n') {
+      break;
+    }
+    c = fgetc(stream);
+  }
+
+  *p++ = '\0';
+  *lineptr = bufptr;
+  *n = size;
+
+  return p - bufptr - 1;
+}
+#endif
+
+GCClass* ioFileClass;
+
 static Constant sglClock(VM* vm, int arity, Constant* args) {
   return NUM_CONST((double)clock());
 }
@@ -79,7 +135,7 @@ static Constant sglPOpen(VM* vm, int arity, Constant* args) {
   char* command = AS_CSTRING(args[0]);
   char* mode = AS_CSTRING(args[1]);
 
-  return GC_OBJ_CONST(newFile(vm, fileClass, popen(command, mode)));
+  return GC_OBJ_CONST(newFile(vm, ioFileClass, popen(command, mode)));
 }
 
 static Constant sglPClose(VM* vm, int arity, Constant* args) {
@@ -89,6 +145,8 @@ static Constant sglPClose(VM* vm, int arity, Constant* args) {
 }
 
 Constant initIoLib(VM* vm, int arity, Constant* args) {
+  ioFileClass = newClass(vm, copyString(vm, NULL, "File", 4), true);
+
   defineGlobal(vm, "CLOCKS_PER_SEC", NUM_CONST(CLOCKS_PER_SEC));
   defineGlobalFunc(vm, "clock", sglClock);
   defineGlobalFunc(vm, "readln", sglReadLine);

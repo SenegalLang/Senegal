@@ -84,6 +84,7 @@ void initVM(VM* vm) {
 
   initTable(&vm->globals);
   initTable(&vm->strings);
+  initTable(&vm->corePaths);
 
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "print", printApi);
