@@ -181,7 +181,7 @@ int main(int argc, const char* argv[]) {
     }
 
     else if (strcmp(argv[1], "--version") == 0) {
-      printf("%c", SENEGAL_VERSION);
+      printf("%s", SENEGAL_VERSION);
 
       return 0;
     }
