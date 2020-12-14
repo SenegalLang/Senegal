@@ -3,6 +3,8 @@
 #include "includes/sparser.h"
 #include "includes/stable_utils.h"
 
+#include <unistd.h>
+
 void defineSocketConstants(VM* vm) {
   // Address/protocol families
   defineGlobal(vm,"AF_UNIX", NUM_CONST(AF_UNIX));
