@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
@@ -22,7 +23,7 @@
 
 #define SENEGAL_VERSION "Senegal 0.0.1"
 
-static void repl(VM* vm) {
+static void repl(VM* vm, char* senegalPath) {
   char line[1024];
 
   for (;;) {
@@ -66,18 +67,19 @@ static void repl(VM* vm) {
 
       }
 
-      interpret(vm, block);
+      interpret(vm, block, senegalPath);
     } else if (strcmp(line, ".exit\n") == 0) {
       break;
     } else {
-      interpret(vm, line);
+      interpret(vm, line, senegalPath);
     }
   }
 }
 
-static void runFile(VM* vm, const char* path) {
+static void runFile(VM* vm, const char* path, char* senegalPath) {
   char* source = readFileWithPath(path);
-  InterpretationResult result = interpret(vm, source);
+
+  InterpretationResult result = interpret(vm, source, senegalPath);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);
@@ -106,6 +108,10 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               copyString(vm, NULL, "sgl:sock", 8),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
+
+  tableInsert(vm, &vm->corePaths,
+              copyString(vm, NULL, "sgl:test", 8),
+              NULL_CONST);
 }
 
 static void defineArgv(VM* vm, int argc, const char* argv[]) {
@@ -129,8 +135,42 @@ int main(int argc, const char* argv[]) {
 
   defineArgv(&vm, argc, argv);
 
+  // Get senegal directory from PATH
+  char* senegalPath = NULL;
+  char *sysPath = getenv("PATH");
+  char *dir;
+
+#ifdef _WIN32
+  char *delim = ";";
+  int execLen = 12;
+  char *exec = "\\senegal.exe";
+#else
+  char* delim = ":";
+    int execLen = 8;
+    char* exec = "/senegal";
+#endif
+
+  for (dir = strtok(sysPath, delim); dir; dir = strtok(NULL, delim)) {
+    int dirLen = strlen(dir);
+    char execPath[dirLen + execLen + 1];
+
+    memcpy(execPath, dir, dirLen);
+    memcpy(execPath + dirLen, exec, execLen);
+    execPath[dirLen + execLen] = '\0';
+
+    if (!access(execPath, F_OK)) {
+      senegalPath = dir;
+      break;
+    }
+  }
+
+  if (senegalPath == NULL) {
+    fprintf(stderr, "Unable to find the senegal directory in the system PATH\n");
+    exit(1);
+  }
+
   if (argc == 1) {
-    repl(&vm);
+    repl(&vm, senegalPath);
   }
 
   else if (argc == 2) {
@@ -146,7 +186,7 @@ int main(int argc, const char* argv[]) {
       return 0;
     }
 
-    runFile(&vm, argv[1]);
+    runFile(&vm, argv[1], senegalPath);
   }
 
   else {

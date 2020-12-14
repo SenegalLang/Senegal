@@ -4,11 +4,10 @@
 #include "sinstructions.h"
 #include "sparser.h"
 
-void initCompiler(VM* vm, Parser* parser, Compiler* old, Compiler* compiler, FunctionType type);
+void initCompiler(VM* vm, Parser* parser, Compiler* old, Compiler* compiler, FunctionType type, bool getPath);
 GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions);
 
-GCFunction* compile(VM* vm, Compiler* compiler, char* source);
-GCFunction* compileImport(VM* vm, Compiler* compiler, char* source);
+GCFunction* compile(VM* vm, Compiler* compiler, char* source, char* senegalPath);
 void markCompilerRoots(VM* vm, Compiler* compiler);
 
 void advance(Parser* parser, Lexer* lexer);

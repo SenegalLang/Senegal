@@ -239,7 +239,7 @@ static void parseBlock(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* pa
 
 static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, FunctionType type) {
   Compiler compiler;
-  initCompiler(vm, parser, oldCompiler, &compiler, type);
+  initCompiler(vm, parser, oldCompiler, &compiler, type, false);
   startScope(&compiler);
 
   consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected `(` after a function name.");

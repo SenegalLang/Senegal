@@ -9,6 +9,11 @@
   #include "includes/sdebug.h"
 #endif
 
+#ifdef _WIN32
+#define PATH_SEPARATOR "\\"
+#else
+#define PATH_SEPARATOR "/"
+#endif
 
 // Prints a parsing/syntax error
 //
@@ -114,13 +119,13 @@ void writeLoad(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, Cons
 }
 
 // Initializes a new compiler with default values
-void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, FunctionType type) {
+void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, FunctionType type, bool getPath) {
+
   compiler->parent = old;
   compiler->function = NULL;
   compiler->type = type;
   compiler->localCount = 0;
   compiler->depth = 0;
-
   compiler->function = newFunction(vm);
 
   if (type != PROGRAM) {
@@ -138,6 +143,7 @@ void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, Func
     local->id.start = "";
     local->id.length = 0;
   }
+
 }
 
 // Stops a compiler compiling some form of a function or instructions by writing an OPCODE_RET opcode,
@@ -156,7 +162,7 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
 }
 
 
-GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
+GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath) {
   Lexer lexer;
   initLexer(&lexer, source);
 
@@ -165,7 +171,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
 
   ClassCompiler* cc = NULL;
 
-  initCompiler(vm, &parser, NULL, compiler, PROGRAM);
+  initCompiler(vm, &parser, NULL, compiler, PROGRAM, true);
 
   advance(&parser, &lexer);
 
@@ -181,38 +187,40 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
+      if (IS_NULL(constant)) {
+        int senegalPathLen = strlen(senegalPath);
+
+        // Skip "sgl:"
+        importSource += 4;
+
+        int libLen = strlen(importSource);
+
+        // path\lib\lib.sgl
+        char path[senegalPathLen + (libLen * 2) + 17];
+
+        memcpy(path, senegalPath, senegalPathLen);
+        memcpy(path + senegalPathLen, PATH_SEPARATOR, 1);
+        memcpy(path + senegalPathLen + 1, "libs", 4);
+        memcpy(path + senegalPathLen + 5, PATH_SEPARATOR, 1);
+        memcpy(path + senegalPathLen + 6, importSource, libLen);
+        memcpy(path + senegalPathLen + libLen + 6, PATH_SEPARATOR, 1);
+        memcpy(path + senegalPathLen + libLen + 7, importSource, libLen);
+        memcpy(path + senegalPathLen + (libLen * 2) + 7, ".sgl", 4);
+
+        path[senegalPathLen + (libLen * 2) + 16] = '\0';
+
+        interpret(vm, readFileWithPath(path), senegalPath);
+      } else {
       AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
+      }
 
     } else {
-      interpretImport(vm, readFileWithPath(importSource));
+      interpret(vm, readFileWithPath(importSource), senegalPath);
     }
   }
 
   while (!match(&parser, &lexer, SENEGAL_EOF))
     parseDeclarationOrStatement(vm, compiler, cc, &parser, &lexer, &compiler->function->instructions);
-
-  consume(&parser, &lexer, SENEGAL_EOF, "Senegal expected end of expression");
-
-  GCFunction* function = endCompilation(vm, compiler, &parser, &compiler->function->instructions);
-
-  return parser.hasError ? NULL : function;
-}
-
-GCFunction* compileImport(VM* vm, Compiler* compiler, char *source) {
-  Lexer lexer;
-  initLexer(&lexer, source);
-
-  Parser parser;
-  initParser(&parser);
-
-  ClassCompiler* cc = NULL;
-
-  initCompiler(vm, &parser, NULL, compiler, PROGRAM);
-
-  advance(&parser, &lexer);
-
-  while (!match(&parser, &lexer, SENEGAL_EOF))
-    parseDeclaration(vm, compiler, cc, &parser, &lexer, &compiler->function->instructions);
 
   consume(&parser, &lexer, SENEGAL_EOF, "Senegal expected end of expression");
 

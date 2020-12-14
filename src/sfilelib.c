@@ -110,8 +110,7 @@ Constant initFileLib(VM* vm, int arity, Constant* args) {
   defineGlobalFunc(vm, "writeBytes", sglWriteBytesFile);
   defineGlobalFunc(vm, "writeString", sglWriteStringFile);
 
-
-
+  // Directory
   char cwd[260]; // PATH_MAX
   if (getcwd(cwd, sizeof(cwd)) != NULL) {
     defineClassNativeStaticField(vm, "current", GC_OBJ_CONST(copyString(vm, NULL, cwd, strlen(cwd))), directoryClass);

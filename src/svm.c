@@ -1383,28 +1383,9 @@ static InterpretationResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-InterpretationResult interpret(VM* vm, char* source) {
+InterpretationResult interpret(VM* vm, char* source, char* senegalPath) {
   Compiler compiler;
-  GCFunction* function = compile(vm, &compiler, source);
-
-  if (function == NULL)
-    return COMPILE_TIME_ERROR;
-
-  push(vm, GC_OBJ_CONST(function));
-
-  GCClosure* closure = newClosure(vm, function);
-  pop(vm);
-  push(vm, GC_OBJ_CONST(closure));
-
-  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
-
-  return run(vm);
-}
-
-InterpretationResult interpretImport(VM *vm, char *source) {
-
-  Compiler compiler;
-  GCFunction* function = compileImport(vm, &compiler, source);
+  GCFunction* function = compile(vm, &compiler, source, senegalPath);
 
   if (function == NULL)
     return COMPILE_TIME_ERROR;
