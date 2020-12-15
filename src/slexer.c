@@ -1,5 +1,6 @@
 #include <string.h>
 #include <ctype.h>
+#include <wchar.h>
 
 #include "includes/sutils.h"
 #include "includes/slexer.h"
