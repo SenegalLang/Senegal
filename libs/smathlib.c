@@ -1,5 +1,5 @@
 #include "includes/smathlib.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 
 #include <math.h>
 #include <stdlib.h>

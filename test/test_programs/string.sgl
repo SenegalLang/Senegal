@@ -38,7 +38,7 @@ println(b.type); // output num
 
 println(string.replace("This", "That")); // output That is a test
 
-println(string.isDigit()); // output false
+println(string.isNum()); // output false
 
 println(string.substr(0, 7)); // output This i
 

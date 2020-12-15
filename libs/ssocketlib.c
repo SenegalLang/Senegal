@@ -1,5 +1,5 @@
 #include "includes/ssocketlib.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "../src/includes/sparser.h"
 #include "../src/includes/stable_utils.h"
 

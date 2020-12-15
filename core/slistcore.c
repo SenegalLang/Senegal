@@ -42,7 +42,8 @@ static Constant listClear(VM* vm, int arity, Constant* args) {
   return NULL_CONST;
 }
 
-static Constant listInsert(VM* vm, int arity, Constant* args) {
+// TODO: Shift elements rather than replacing at index
+static Constant listInsertAt(VM* vm, int arity, Constant* args) {
   expect(2, arity, "insert");
 
   GCList* list = AS_LIST(args[-1]);
@@ -70,7 +71,6 @@ static Constant listRemoveAt(VM* vm, int arity, Constant* args) {
     exit(1);
   }
 
-
   Constant* elements = ALLOCATE(vm, NULL, Constant, list->elementC - 1);
 
   for (int i = 0; i < list->elementC; i++) {
@@ -88,6 +88,7 @@ static Constant listRemoveAt(VM* vm, int arity, Constant* args) {
 
 
 static Constant listLength(VM* vm, int arity, Constant* args) {
+  expect(0, arity, "length");
   return NUM_CONST(AS_LIST(args[-1])->elementC);
 }
 
@@ -111,13 +112,11 @@ void initListClass(VM *vm) {
   vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "List", 4)), vm->listClass);
 
-  defineClassNativeStaticFunc(vm, "List", listNew, vm->listClass);
-
   defineClassNativeStaticFunc(vm, "filled", listFilled, vm->listClass);
 
   defineClassNativeFunc(vm, "add", listAdd, vm->listClass);
   defineClassNativeFunc(vm, "clear", listClear, vm->listClass);
-  defineClassNativeFunc(vm, "insert", listInsert, vm->listClass);
-  defineClassNativeFunc(vm, "removeAt", listRemoveAt, vm->listClass);
+  defineClassNativeFunc(vm, "insertAt", listInsertAt, vm->listClass);
   defineClassNativeFunc(vm, "length", listLength, vm->listClass);
+  defineClassNativeFunc(vm, "removeAt", listRemoveAt, vm->listClass);
 }

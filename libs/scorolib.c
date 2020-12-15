@@ -1,5 +1,5 @@
 #include "includes/scorolib.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "../src/includes/sparser.h"
 
 static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {

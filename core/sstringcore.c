@@ -206,7 +206,7 @@ static Constant stringIsAlphaNum(VM* vm, int arity, Constant *args) {
   return BOOL_CONST(isAlphanum);
 }
 
-static Constant stringIsDigit(VM* vm, int arity, Constant *args) {
+static Constant stringIsNum(VM* vm, int arity, Constant *args) {
   GCString* string = AS_STRING(args[-1]);
   bool isDigit = true;
 
@@ -237,6 +237,8 @@ static Constant stringIsHex(VM* vm, int arity, Constant *args) {
 }
 
 static Constant stringReplace(VM* vm, int arity, Constant *args) {
+  expect(2, arity, "replace");
+
   char* string = AS_CSTRING(args[-1]);
   char* search = AS_CSTRING(args[0]);
   char* replace = AS_CSTRING(args[1]);
@@ -276,30 +278,30 @@ static Constant stringSubstr(VM* vm, int arity, Constant *args) {
 
 void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
+  // Fields
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
 
+  // Static methods
   defineClassNativeStaticFunc(vm, "fromByte", stringFromByte, vm->stringClass);
 
+  // Instance methods
   defineClassNativeFunc(vm, "at", stringByteAt, vm->stringClass);
   defineClassNativeFunc(vm, "contains", stringContains, vm->stringClass);
   defineClassNativeFunc(vm, "endsWith", stringEndsWith, vm->stringClass);
   defineClassNativeFunc(vm, "indexOf", stringIndexOf, vm->stringClass);
-  defineClassNativeFunc(vm, "split", stringSplit, vm->stringClass);
-  defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
-  defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
-  defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
-  defineClassNativeFunc(vm, "length", stringLength, vm->stringClass);
-
-  defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
-  defineClassNativeFunc(vm, "toLower", stringToLower, vm->stringClass);
-  defineClassNativeFunc(vm, "toUpper", stringToUpper, vm->stringClass);
-
   defineClassNativeFunc(vm, "isAlpha", stringIsAlpha, vm->stringClass);
   defineClassNativeFunc(vm, "isAlphaNum", stringIsAlphaNum, vm->stringClass);
-  defineClassNativeFunc(vm, "isDigit", stringIsDigit, vm->stringClass);
+  defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
   defineClassNativeFunc(vm, "isHex", stringIsHex, vm->stringClass);
+  defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
+  defineClassNativeFunc(vm, "isNum", stringIsNum, vm->stringClass);
+  defineClassNativeFunc(vm, "length", stringLength, vm->stringClass);
   defineClassNativeFunc(vm, "replace", stringReplace, vm->stringClass);
-
+  defineClassNativeFunc(vm, "split", stringSplit, vm->stringClass);
+  defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
   defineClassNativeFunc(vm, "substr", stringSubstr, vm->stringClass);
+  defineClassNativeFunc(vm, "toLower", stringToLower, vm->stringClass);
+  defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
+  defineClassNativeFunc(vm, "toUpper", stringToUpper, vm->stringClass);
 
 }

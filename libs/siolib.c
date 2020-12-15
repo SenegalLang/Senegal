@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include "includes/siolib.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "../src/includes/sparser.h"
 #include "includes/sfilelib.h"
 #include "../src/includes/smemory.h"

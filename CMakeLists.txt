@@ -4,7 +4,7 @@ set(CMAKE_C_STANDARD 99)
 
 file(GLOB src "*/*.h" "*/*.c")
 
-add_executable(senegal ${src} core/includes/ssocketlib.h core/ssocketlib.c core/includes/sfilelib.h core/sfilelib.c)
+add_executable(senegal ${src} libs/includes/ssocketlib.h libs/ssocketlib.c libs/includes/sfilelib.h libs/sfilelib.c)
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)

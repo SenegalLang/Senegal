@@ -47,6 +47,46 @@ Returns the index of the first match of `search` within `this` starting at the i
 
 `"foo".indexOf("o", 0) // 1`
 
+### isAlpha()
+Returns true is the string contains only alphabetical characters.
+
+`"foo".isAlpha() // true`
+
+### isAlphaNum()
+Returns true is the string contains only alphanumerical characters.
+
+`"foo123".isAlphaNum() // true`
+
+### isEmpty()
+Returns true if `this` is empty, otherwise false.
+
+`"".isEmpty() // true`
+
+### isHex()
+Returns true is the string contains only hex characters.
+
+`"123A".isHex() // true`
+
+### isNotEmpty()
+Returns true if `this` is not empty, otherwise false.
+
+`"foo".isNotEmpty() // true`
+
+### isNum()
+Returns true is the string contains only numeric characters.
+
+`"123".isNum() // true`
+
+### length()
+
+Returns the length of `this`.
+
+`"foo".length() // 3`
+
+### replace(from, to)
+
+`"boo".replace("b", "f") // foo`
+
 ### split(delim)
 Returns a list of tokens after splitting the `this` against `delim`.
 
@@ -57,24 +97,25 @@ Returns true if `this` starts with `other`, otherwise false.
 
 `"foo".startsWith("f") // true`
 
-### isEmpty()
-Returns true if `this` is empty, otherwise false.
+### substr(start, end)
+Returns the substring of `this` from `start` (inclusive) to end (exclusive).
 
-`"".isEmpty() // true`
+`"foo".substr(0, 2) // fo`
 
-### isNotEmpty()
-Returns true if `this` is not empty, otherwise false.
+### toLower()
 
-`"foo".isNotEmpty() // true`
+Converts all characters in `this` to lowercase.
 
-### length()
-
-Returns the length of `this`.
-
-`"foo".length() // 3`
+`"FoO".toLower() // foo`
 
 ### toNum()
 
 Returns `this` as a number type. It is a runtime error if `this` contains non-numerical characters.
 
 `"10".toNum() // 10` 
+
+### toUpper()
+
+Converts all characters in `this` to uppercase.
+
+`"fOo".toUpper() // FOO`

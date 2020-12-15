@@ -8,13 +8,13 @@
 #include "includes/svm.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
-#include "../core/includes/smathlib.h"
-#include "../core/includes/siolib.h"
-#include "../core/includes/scorolib.h"
-#include "../core/includes/sfilelib.h"
+#include "../libs/includes/smathlib.h"
+#include "../libs/includes/siolib.h"
+#include "../libs/includes/scorolib.h"
+#include "../libs/includes/sfilelib.h"
 #include "../core/includes/sapi.h"
 
-#include "../core/includes/ssocketlib.h"
+#include "../libs/includes/ssocketlib.h"
 
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \

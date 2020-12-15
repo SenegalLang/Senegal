@@ -5,7 +5,13 @@ module.exports = {
         label: 'Senegal Docs',
         items: [
         'tour',
-            'Core/string'
+            {
+                Core: [
+                    'Core/bool',
+                    'Core/list',
+                    'Core/string'
+                ]
+            },
         ],
       },
         {

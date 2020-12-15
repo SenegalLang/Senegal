@@ -1,6 +1,6 @@
 #include "includes/sfilelib.h"
 #include "../src/includes/sparser.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "../src/includes/sgcobject_utils.h"
 
 #include <unistd.h>
