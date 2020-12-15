@@ -334,6 +334,83 @@ static Token collectString(Lexer* lexer, char quotation) {
           removeNextCharFromSource(lexer, 1);
           break;
 
+          // "\xhh"
+        case 'x': {
+          char hexstr[2] = {lexer->current[2], lexer->current[3]};
+
+          lexer->current[0] = strtol(hexstr, NULL, 16);
+
+          // "x"
+          removeNextCharFromSource(lexer, 1);
+
+          // First digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Second digit
+          removeNextCharFromSource(lexer, 1);
+          break;
+        }
+
+        // "\uhhhh"
+        case 'u': {
+          char hexstr[4] = {lexer->current[2], lexer->current[3], lexer->current[4], lexer->current[5]};
+
+          lexer->current[0] = (wint_t)strtol(hexstr, NULL, 16);
+
+          // "u"
+          removeNextCharFromSource(lexer, 1);
+
+          // First digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Second digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Third digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Fourth digit
+          removeNextCharFromSource(lexer, 1);
+
+          break;
+        }
+
+          // "\Uhhhhhhhh"
+        case 'U': {
+          char hexstr[8] = {lexer->current[2], lexer->current[3], lexer->current[4], lexer->current[5],
+                            lexer->current[6], lexer->current[7], lexer->current[8], lexer->current[9]};
+
+          lexer->current[0] = (wint_t)strtol(hexstr, NULL, 16);
+
+          // "U"
+          removeNextCharFromSource(lexer, 1);
+
+          // First digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Second digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Third digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Fourth digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Fifth digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Sixth digit
+          removeNextCharFromSource(lexer, 1);
+
+          // Seventh digit
+          removeNextCharFromSource(lexer, 1);
+
+          // eighth digit
+          removeNextCharFromSource(lexer, 1);
+
+          break;
+        }
 
         default: {
           if (!isdigit(c)) {

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <locale.h>
 
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
@@ -122,6 +123,7 @@ static void defineArgv(VM* vm, int argc, const char* argv[]) {
 }
 
 int main(int argc, const char* argv[]) {
+  setlocale(LC_ALL, "");
   VM vm;
 
   // setbuf(stdout, 0);
