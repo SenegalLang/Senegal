@@ -1,7 +1,8 @@
 #include <ctype.h>
-#include "includes/sstringCore.h"
+#include "includes/sstringcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
+#include "includes/slistcore.h"
 
 static Constant stringFromByte(VM* vm, int arity, Constant *args) {
   expect(1, arity, "fromByte");
@@ -68,47 +69,67 @@ static Constant stringEndsWith(VM* vm, int arity, Constant *args) {
   return BOOL_CONST(!memcmp(string->chars + start, contain->chars, contain->length));
 }
 
+static int indexOf(char* string, char* contain, int start) {
+  int strLen = strlen(string);
+  int containLen = strlen(contain);
+
+  if (containLen > strLen)
+    return NUM_CONST(-1);
+
+  char* res = strstr(string + start, contain);
+
+  if (res == NULL)
+    return -1;
+
+  return res - string;
+}
+
+static char* substring(char* string, int start, int end) {
+  int length = (int)(end - start) - 1;
+
+  char *sub = malloc(length);
+  memcpy(sub, &string[(int)start], length);
+  sub[length] = '\0';
+
+  return sub;
+}
+
 static Constant stringIndexOf(VM* vm, int arity, Constant *args) {
   expect(2, arity, "indexOf");
 
-  GCString* string = AS_STRING(args[-1]);
-  GCString* contain = AS_STRING(args[0]);
+  char* string = AS_CSTRING(args[-1]);
+  char* contain = AS_CSTRING(args[0]);
   int start = (int)AS_NUMBER(args[1]);
 
-  if (contain->length > string->length)
-    return NUM_CONST(-1);
-
-  char* res = strstr(string->chars + start, contain->chars);
-
-  if (res == NULL)
-    return NUM_CONST(-1);
-
-  return NUM_CONST(res - string->chars);
+  return NUM_CONST(indexOf(string, contain, start));
 }
 
 static Constant stringSplit(VM* vm, int arity, Constant *args) {
   expect(1, arity, "split");
 
-  char* delim = AS_CSTRING(args[0]);
-  char* str = AS_CSTRING(args[-1]);
+  GCString* delimStr = AS_STRING(args[0]);
+  char* delim = delimStr->chars;
+  int delimLen = delimStr->length;
 
-  int count = 1;
+  GCString* string = AS_STRING(args[-1]);
+  char* str = string->chars;
+  int strLen = string->length;
 
-  strtok(str, delim);
-  while (strtok(NULL, delim) != NULL)
-    count++;
+  GCList* result = newList(vm, 0);
 
-  GCList* splitList = newList(vm, count);
+  int index = 0;
+  int last = 0;
 
-  splitList->elementC = count;
-
-  for (int i = 0; i < count; i++) {
-    int length = strlen(str);
-    splitList->elements[splitList->elementC - i - 1] = GC_OBJ_CONST(copyString(vm, NULL, str, length));
-    str += length + 1;
+  while (last < strLen && (index = indexOf(str, delim, last)) != -1) {
+    addToList(vm, &result, GC_OBJ_CONST(copyString(vm, NULL, substring(str, last, index + 1), index - last)));
+    last = index + delimLen;
   }
 
-  return GC_OBJ_CONST(splitList);
+  if (last < strLen) {
+    addToList(vm, &result, GC_OBJ_CONST(copyString(vm, NULL, substring(str, last, strLen + 1), strLen - last)));
+  }
+
+  return GC_OBJ_CONST(result);
 }
 
 static Constant stringStartsWith(VM* vm, int arity, Constant *args) {
@@ -156,19 +177,63 @@ static Constant stringToUpper(VM* vm, int arity, Constant *args) {
 }
 
 static Constant stringIsAlpha(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(isalpha(AS_CSTRING(args[-1])[0]));
+  GCString* string = AS_STRING(args[-1]);
+  bool isAlpha = true;
+
+  for (int i = 0; i < string->length; i++) {
+    if (!isAlpha)
+      break;
+
+    isAlpha = isalpha(string->chars[i]);
+  }
+
+
+  return BOOL_CONST(isAlpha);
 }
 
 static Constant stringIsAlphaNum(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(isalnum(AS_CSTRING(args[-1])[0]));
+  GCString* string = AS_STRING(args[-1]);
+  bool isAlphanum = true;
+
+  for (int i = 0; i < string->length; i++) {
+    if (!isAlphanum)
+      break;
+
+    isAlphanum = isalnum(string->chars[i]);
+  }
+
+
+  return BOOL_CONST(isAlphanum);
 }
 
 static Constant stringIsDigit(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(isdigit(AS_CSTRING(args[-1])[0]));
+  GCString* string = AS_STRING(args[-1]);
+  bool isDigit = true;
+
+  for (int i = 0; i < string->length; i++) {
+    if (!isDigit)
+      break;
+
+    isDigit = isdigit(string->chars[i]);
+  }
+
+
+  return BOOL_CONST(isDigit);
 }
 
 static Constant stringIsHex(VM* vm, int arity, Constant *args) {
-  return BOOL_CONST(isxdigit(AS_CSTRING(args[-1])[0]));
+  GCString* string = AS_STRING(args[-1]);
+  bool isHex = true;
+
+  for (int i = 0; i < string->length; i++) {
+    if (!isHex)
+      break;
+
+    isHex = isxdigit(string->chars[i]);
+  }
+
+
+  return BOOL_CONST(isHex);
 }
 
 static Constant stringReplace(VM* vm, int arity, Constant *args) {
@@ -179,16 +244,17 @@ static Constant stringReplace(VM* vm, int arity, Constant *args) {
   char  *p = NULL , *old = NULL , *newString = NULL ;
   int c = 0 , searchLen;
   searchLen = strlen(search);
-  for(p = strstr(string , search) ; p != NULL ; p = strstr(p + searchLen , search))
-  {
+
+  for(p = strstr(string , search); p != NULL; p = strstr(p + searchLen , search))
     c++;
-  }
+
   c = (strlen(replace) - searchLen ) * c + strlen(string);
+
   newString = (char*)malloc(c );
   strcpy(newString , "");
   old = string;
-  for(p = strstr(string , search) ; p != NULL ; p = strstr(p + searchLen , search))
-  {
+
+  for(p = strstr(string , search); p != NULL; p = strstr(p + searchLen , search)) {
     strncpy(newString + strlen(newString) , old , p - old);
     strcpy(newString + strlen(newString) , replace);
     old = p + searchLen;
@@ -205,13 +271,7 @@ static Constant stringSubstr(VM* vm, int arity, Constant *args) {
   double start = AS_NUMBER(args[0]);
   double end = AS_NUMBER(args[1]);
 
-  int length = (int)(end - start) - 1;
-
-  char sub[length];
-  memcpy(sub, &string[(int)start], length);
-  sub[length] = '\0';
-
-  return GC_OBJ_CONST(copyString(vm, NULL, sub, length));
+  return GC_OBJ_CONST(copyString(vm, NULL, substring(string , start, end), (end - start) - 1));
 }
 
 void initStringClass(VM *vm) {

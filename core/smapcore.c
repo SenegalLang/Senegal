@@ -1,4 +1,4 @@
-#include "includes/smapCore.h"
+#include "includes/smapcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 #include "../src/includes/stable_utils.h"

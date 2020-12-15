@@ -95,9 +95,9 @@ typedef struct {
 
 typedef struct {
     GCObject gc;
+    Constant* elements;
     int elementC;
     int listCurrentCap;
-    Constant* elements;
 } GCList;
 
 #define IS_CLASS(c) isGCType(c, GC_CLASS)

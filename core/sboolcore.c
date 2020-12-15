@@ -1,4 +1,4 @@
-#include "includes/sboolCore.h"
+#include "includes/sboolcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 

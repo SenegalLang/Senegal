@@ -1,4 +1,4 @@
-#include "includes/slistCore.h"
+#include "includes/slistcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 #include "../src/includes/smemory.h"
@@ -14,27 +14,24 @@ static Constant listNew(VM* vm, int arity, Constant* args) {
   return GC_OBJ_CONST(list);
 }
 
+void addToList(VM* vm, GCList** list, Constant element) {
+
+  Constant* elements = ALLOCATE(vm, NULL, Constant, (*list)->elementC + 1);
+  elements[0] = element;
+
+  for (int i = 1; i <= (*list)->elementC; i++) {
+    elements[i] = (*list)->elements[i - 1];
+  }
+
+  (*list)->elements = elements;
+  (*list)->elementC++;
+}
+
 static Constant listAdd(VM* vm, int arity, Constant* args) {
   expect(1, arity, "add");
 
   GCList* list = AS_LIST(args[-1]);
-
-  if (list->listCurrentCap > 0 && list->elementC == list->listCurrentCap) {
-    printf("List cannot grow beyond %d elements", list->elementC);
-    exit(1);
-  }
-
-  Constant element = args[0];
-
-  GCList* new = newList(vm, list->elementC + 1);
-  new->elements[0] = element;
-
-  for (int i = 1; i <= list->elementC; i++) {
-    new->elements[i] = list->elements[i - 1];
-  }
-
-  list->elements = new->elements;
-  list->elementC++;
+ addToList(vm, &list, args[0]);
 
   return NULL_CONST;
 }
@@ -73,16 +70,17 @@ static Constant listRemoveAt(VM* vm, int arity, Constant* args) {
     exit(1);
   }
 
-  GCList* new = newList(vm, list->elementC - 1);
+
+  Constant* elements = ALLOCATE(vm, NULL, Constant, list->elementC - 1);
 
   for (int i = 0; i < list->elementC; i++) {
     if (i == (int)index)
       continue;
 
-    new->elements[i > index ? i - 1 : i] = list->elements[i];
+    elements[i > index ? i - 1 : i] = list->elements[i];
   }
 
-  list->elements = new->elements;
+  list->elements = elements;
   list->elementC--;
 
   return NULL_CONST;

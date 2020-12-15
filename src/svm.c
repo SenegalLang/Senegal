@@ -8,11 +8,11 @@
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 
-#include "../core/includes/sboolCore.h"
-#include "../core/includes/sstringCore.h"
-#include "../core/includes/snumCore.h"
-#include "../core/includes/smapCore.h"
-#include "../core/includes/slistCore.h"
+#include "../core/includes/sboolcore.h"
+#include "../core/includes/sstringcore.h"
+#include "../core/includes/snumcore.h"
+#include "../core/includes/smapcore.h"
+#include "../core/includes/slistcore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"

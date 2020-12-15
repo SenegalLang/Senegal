@@ -44,5 +44,7 @@ println(string.substr(0, 7)); // output This i
 
 println(string.toUpper()); // output THIS IS A TEST
 
-println(string.split(" ")); // output [THIS,IS,A,TEST]
+println(string.split("IS")); // output [TH, , A TEST]
+
+println(string); // output THIS IS A TEST
 
