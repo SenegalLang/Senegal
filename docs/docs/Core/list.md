@@ -8,7 +8,6 @@ A collection of objects of any type;
 
 ```js
 [0, 1, 2, "3", false]
-// OR
 ``` 
 
 ## Fields

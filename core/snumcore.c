@@ -103,9 +103,9 @@ void initNumClass(VM *vm) {
   defineClassNativeFunc(vm, "floor", numFloor, vm->numClass);
   defineClassNativeFunc(vm, "remainder", numRemainder, vm->numClass);
 
-  defineClassNativeField(vm, "nan", NUM_CONST(NAN), vm->numClass);
-  defineClassNativeField(vm, "infinity", NUM_CONST(INF), vm->numClass);
-  defineClassNativeField(vm, "negInfinity", NUM_CONST(NEGATIVE_INF), vm->numClass);
-  defineClassNativeField(vm, "maxFinite", NUM_CONST(MAX_FINITE), vm->numClass);
-  defineClassNativeField(vm, "minPositive", NUM_CONST(MIN_POSITIVE), vm->numClass);
+  defineClassNativeStaticField(vm, "nan", NUM_CONST(NAN), vm->numClass);
+  defineClassNativeStaticField(vm, "infinity", NUM_CONST(INF), vm->numClass);
+  defineClassNativeStaticField(vm, "negInfinity", NUM_CONST(NEGATIVE_INF), vm->numClass);
+  defineClassNativeStaticField(vm, "maxFinite", NUM_CONST(MAX_FINITE), vm->numClass);
+  defineClassNativeStaticField(vm, "minPositive", NUM_CONST(MIN_POSITIVE), vm->numClass);
 }

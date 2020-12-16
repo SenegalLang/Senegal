@@ -55,8 +55,8 @@ void initMapClass(VM *vm) {
   defineClassNativeFunc(vm, "add", mapAdd, vm->mapClass);
   defineClassNativeFunc(vm, "clear", mapClear, vm->mapClass);
   defineClassNativeFunc(vm, "contains", mapContains, vm->mapClass);
-  defineClassNativeFunc(vm, "remove", mapRemove, vm->mapClass);
   defineClassNativeFunc(vm, "isEmpty", mapIsEmpty, vm->mapClass);
   defineClassNativeFunc(vm, "isNotEmpty", mapIsNotEmpty, vm->mapClass);
   defineClassNativeFunc(vm, "length", mapLength, vm->mapClass);
+  defineClassNativeFunc(vm, "remove", mapRemove, vm->mapClass);
 }

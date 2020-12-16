@@ -3,6 +3,10 @@ var neginfinity = -1/0;
 
 var remainder = 3.remainder(5);
 
+var newInfinity = num.infinity;
+
+println(infinity == newInfinity); // output true
+
 println(3.type); // output num
 println(infinity.isInfinite()); // output true
 println(neginfinity.isInfinite()); // output true
