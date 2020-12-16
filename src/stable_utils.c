@@ -14,7 +14,7 @@ static void adjustCap(VM* vm, Table* table, int cap) {
   Entry* entries = ALLOCATE(vm, NULL, Entry, cap + 1);
 
   for (int i = 0; i <= cap; i++) {
-    entries[i].key = NULL;
+    entries[i].key = NULL_CONST;
     entries[i].constant = NULL_CONST;
   }
 
@@ -23,7 +23,7 @@ static void adjustCap(VM* vm, Table* table, int cap) {
   for (int i = 0; i <= table->cap; i++) {
     Entry* entry = &table->entries[i];
 
-    if (entry->key == NULL)
+    if (IS_NULL(entry->key))
       continue;
 
     Entry* dest = findEntry(entries, cap, entry->key);
@@ -37,7 +37,7 @@ static void adjustCap(VM* vm, Table* table, int cap) {
   table->cap = cap;
 }
 
-bool tableInsert(VM* vm, Table* table, GCString* key, Constant c) {
+bool tableInsert(VM* vm, Table* table, Constant key, Constant c) {
   if (table->count >= (table->cap + 1) * MAX_TABLE_LOAD) {
     int cap = GROW_CAP(table->cap + 1) - 1;
     adjustCap(vm, table, cap);
@@ -45,7 +45,7 @@ bool tableInsert(VM* vm, Table* table, GCString* key, Constant c) {
 
   Entry* entry = findEntry(table->entries, table->cap, key);
 
-  bool isNew = entry->key == NULL;
+  bool isNew = IS_NULL(entry->key);
 
   if (isNew && IS_NULL(entry->constant))
     table->count++;
@@ -63,9 +63,8 @@ void tableInsertAll(VM* vm, Table* from, Table* to) {
   for (int i = 0; i <= from->cap; i++) {
     Entry* entry = &from->entries[i];
 
-    GCString* key = entry->key;
-    if (key != NULL)
-      tableInsert(vm, to, entry->key, entry->constant);
+    if (!IS_NULL(entry->key))
+      tableInsert(vm, to, GC_OBJ_CONST(entry->key), entry->constant);
   }
 
 }

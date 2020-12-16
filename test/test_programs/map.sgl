@@ -13,3 +13,8 @@ println(senegal.length()); // output 1
 
 senegal.clear();
 println(senegal.isEmpty()); // output true
+
+// Non string keys
+
+var nonStringKey = {12: "foo"};
+println(nonStringKey[12]); // output foo

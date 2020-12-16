@@ -1,4 +1,5 @@
 #include "includes/stable.h"
+#include "includes/sparser.h"
 
 void initTable(Table *table) {
   table->count = 0;
@@ -6,14 +7,14 @@ void initTable(Table *table) {
   table->entries = NULL;
 }
 
-Entry* findEntry(Entry* entries, int cap, GCString* key) {
-  uint32_t index = key->hash & cap; // hash % cap
+Entry* findEntry(Entry* entries, int cap, Constant key) {
+  uint32_t index = hashConstant(key) & cap; // hash % cap
   Entry* tombstone = NULL;
 
   for (;;) {
     Entry* entry = &entries[index];
 
-    if (entry->key == NULL) {
+    if (IS_NULL(entry->key)) {
       if (IS_NULL(entry->constant)) {
         return tombstone != NULL ? tombstone : entry;
       } else {
@@ -21,34 +22,34 @@ Entry* findEntry(Entry* entries, int cap, GCString* key) {
           tombstone = entry;
       }
     }
-    else if (entry->key == key)
+    else if (areEqual(key, entry->key))
       return entry;
 
     index = (index + 1) & cap; // (index + 1) % cap
   }
 }
 
-bool tableRemove(Table* table, GCString* key) {
+bool tableRemove(Table* table, Constant key) {
   if (table->count == 0)
     return false;
 
   Entry* entry = findEntry(table->entries, table->cap, key);
-  if (entry->key == NULL)
+  if (IS_NULL(entry->key))
     return false;
 
-  entry->key = NULL;
+  entry->key = NULL_CONST;
   entry->constant = BOOL_CONST(true);
 
   return true;
 }
 
-bool tableGetEntry(Table* table, GCString* key, Constant* c) {
+bool tableGetEntry(Table* table, Constant key, Constant* c) {
   if (table->count == 0)
     return false;
 
   Entry* entry = findEntry(table->entries, table->cap, key);
 
-  if (entry->key == NULL)
+  if (IS_NULL(entry->key))
     return false;
 
   *c = entry->constant;
@@ -64,12 +65,14 @@ GCString *tableFindString(Table *table, const char *chars, int length, uint32_t 
   for (;;) {
     Entry* entry = &table->entries[index];
 
-    if (entry->key == NULL) {
+    if (IS_NULL(entry->key)) {
       if (IS_NULL(entry->constant))
         return NULL;
-    } else if (entry->key->length == length && entry->key->hash == hash
-               && memcmp(entry->key->chars, chars, length) == 0)
-      return entry->key;
+    } else {
+      GCString* string = AS_STRING(entry->key);
+      if (string->length == length && string->hash == hash && memcmp(string->chars, chars, length) == 0)
+      return string;
+    }
 
     index = (index + 1) & table->cap; // (index + 1) % cap
   }
@@ -79,7 +82,7 @@ void tableRemoveWhite(Table *table) {
   for (int i = 0; i <= table->cap; i++) {
     Entry* entry = &table->entries[i];
 
-    if (entry->key != NULL && !entry->key->gc.isMarked) {
+    if (IS_NULL(entry->key) && !AS_GC_OBJ(entry->key)->isMarked) {
       tableRemove(table, entry->key);
     }
   }

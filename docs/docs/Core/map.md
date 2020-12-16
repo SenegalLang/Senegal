@@ -10,6 +10,11 @@ A collection of key/value pairs.
 {'key': 'value'}
 ``` 
 
+## Constructors
+
+## Map()
+Returns a new map.
+
 ## Fields
 
 ### type

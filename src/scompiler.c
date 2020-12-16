@@ -183,7 +183,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath)
     if (importSource[3] == ':') { // We make the assumption that a regular path would not contain :
       Constant constant;
 
-      if (!tableGetEntry(&vm->corePaths, copyString(vm, compiler, importSource, strlen(importSource)), &constant)) {
+      if (!tableGetEntry(&vm->corePaths, GC_OBJ_CONST(copyString(vm, compiler, importSource, strlen(importSource))), &constant)) {
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 

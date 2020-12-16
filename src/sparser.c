@@ -1282,7 +1282,7 @@ static GCString* allocateString(VM* vm, char* chars, int length, uint32_t hash) 
 
   push(vm, GC_OBJ_CONST(string));
 
-  tableInsert(vm, &vm->strings, string, NULL_CONST);
+  tableInsert(vm, &vm->strings, GC_OBJ_CONST(string), NULL_CONST);
 
   pop(vm);
 
@@ -1291,12 +1291,12 @@ static GCString* allocateString(VM* vm, char* chars, int length, uint32_t hash) 
 
 // TODO(calamity): use this when we allow keys of other types
 static uint32_t hashDouble(double constant) {
-  union BitCast {
+  union BC {
       double constant;
       uint32_t ints[2];
   };
 
-  union BitCast cast;
+  union BC cast;
   cast.constant = constant + 1.0;
   return cast.ints[0] + cast.ints[1];
 }
@@ -1306,7 +1306,7 @@ uint32_t hashConstant(Constant c) {
     return AS_BOOL(c) ? 3 : 5;
 
   if (IS_NULL(c))
-    return 7;
+    return 0;
 
   if (IS_NUMBER(c))
     return hashDouble(AS_NUMBER(c));

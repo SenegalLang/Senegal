@@ -10,6 +10,11 @@ A collection of objects of any type;
 [0, 1, 2, "3", false]
 ``` 
 
+## Constructors
+
+## List(capacity)
+Returns a list of with `capacity` number of elements allowed.
+
 ## Fields
 
 ### type

@@ -58,7 +58,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -66,7 +66,7 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newInstance(vm, class)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -157,7 +157,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
         vm->coroutine->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
-        if (tableGetEntry(&class->staticMethods, class->id, &constructor)) {
+        if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(class->id), &constructor)) {
           Constant result = AS_NATIVE(constructor)(vm, arity, vm->coroutine->stackTop - arity);
 
           if (vm->coroutine == NULL)
@@ -168,7 +168,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
           return true;
         }
 
-        if (tableGetEntry(&class->methods, class->id, &constructor)) {
+        if (tableGetEntry(&class->methods, GC_OBJ_CONST(class->id), &constructor)) {
           return call(vm, AS_CLOSURE(constructor), arity);
         }
 
@@ -246,35 +246,35 @@ static void closeUpvalues(VM* vm, const Constant* last) {
 static void defineMethod(VM* vm, GCString* id) {
   Constant method = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->methods, id, method);
+  tableInsert(vm, &class->methods, GC_OBJ_CONST(id), method);
   pop(vm);
 }
 
 static void defineField(VM* vm, GCString* id) {
   Constant field = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->fields, id, field);
+  tableInsert(vm, &class->fields, GC_OBJ_CONST(id), field);
   pop(vm);
 }
 
 static void defineStaticMethod(VM* vm, GCString* id) {
   Constant method = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->staticMethods, id, method);
+  tableInsert(vm, &class->staticMethods, GC_OBJ_CONST(id), method);
   pop(vm);
 }
 
 static void defineStaticField(VM* vm, GCString* id) {
   Constant field = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->staticFields, id, field);
+  tableInsert(vm, &class->staticFields, GC_OBJ_CONST(id), field);
   pop(vm);
 }
 
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 
   Constant method;
-  if (!tableGetEntry(&class->staticMethods, id, &method) && !tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method) && !tableGetEntry(&class->methods, GC_OBJ_CONST(id), &method)) {
     throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
     return false;
   }
@@ -289,7 +289,7 @@ static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 static bool bindStaticMethod(VM* vm, GCClass* class, GCString* id) {
 
   Constant method;
-  if (!tableGetEntry(&class->staticMethods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method)) {
     throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
     return false;
   }
@@ -304,7 +304,7 @@ static bool bindStaticMethod(VM* vm, GCClass* class, GCString* id) {
 static bool invokeFromClass(VM* vm, GCClass* class, GCString* id, int arity) {
   Constant method;
 
-  if (!tableGetEntry(&class->staticMethods, id, &method) && !tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method) && !tableGetEntry(&class->methods, GC_OBJ_CONST(id), &method)) {
     throwRuntimeError(vm, "Unknown property `%s` for class `%s`", id->chars, class->id->chars);
     return false;
   }
@@ -319,7 +319,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* boolInstance = newInstance(vm, vm->boolClass);
 
     Constant constant;
-    if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
+    if (tableGetEntry(&boolInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -331,7 +331,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* stringInstance = newInstance(vm, vm->stringClass);
 
     Constant constant;
-    if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
+    if (tableGetEntry(&stringInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -343,7 +343,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* listInstance = newInstance(vm, vm->listClass);
 
     Constant constant;
-    if (tableGetEntry(&listInstance->class->methods, id, &constant)) {
+    if (tableGetEntry(&listInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -355,7 +355,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* mapInstance = newInstance(vm, vm->mapClass);
 
     Constant constant;
-    if (tableGetEntry(&mapInstance->class->methods, id, &constant)) {
+    if (tableGetEntry(&mapInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -367,7 +367,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* numInstance = newInstance(vm, vm->numClass);
 
     Constant constant;
-    if (tableGetEntry(&numInstance->class->methods, id, &constant)) {
+    if (tableGetEntry(&numInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -379,7 +379,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCClass* class = AS_CLASS(receiver);
 
     Constant constant;
-    if (tableGetEntry(&class->staticMethods, id, &constant)) {
+    if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = constant;
       return callConstant(vm, constant, arity);
     }
@@ -395,7 +395,7 @@ static bool invoke(VM* vm, GCString* id, int arity) {
   GCInstance* instance = AS_INSTANCE(receiver);
 
   Constant constant;
-  if (tableGetEntry(&instance->class->fields, id, &constant)) {
+  if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
     vm->coroutine->stackTop[-arity - 1] = constant;
     return callConstant(vm, constant, arity);
   }
@@ -712,7 +712,7 @@ static InterpretationResult run(VM* vm) {
       GCMap* map = newMap(vm);
       for (int i = 0; i < arity; i++) {
         Constant value = POP();
-        GCString* key = AS_STRING(POP());
+        Constant key = POP();
 
         tableInsert(vm, &map->table, key, value);
       }
@@ -737,12 +737,13 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_ACCESS): {
       if (IS_MAP(PEEK2())) {
-        GCString* key = AS_STRING(POP());
+        Constant key = POP();
         GCMap* map = AS_MAP(POP());
 
         Constant c;
         if (!tableGetEntry(&map->table, key, &c)) {
-          throwRuntimeError(vm, "Map entry `%s` was not found", key->chars);
+          throwRuntimeError(vm, "Map entry was not found for key: ");
+          printConstant(key);
           return RUNTIME_ERROR;
         }
 
@@ -774,7 +775,7 @@ static InterpretationResult run(VM* vm) {
           return RUNTIME_ERROR;
         }
 
-        GCString* key = AS_STRING(POP());
+        Constant key = POP();
         GCMap* map = AS_MAP(POP());
 
         tableInsert(vm, &map->table, key, newValue);
@@ -813,7 +814,7 @@ static InterpretationResult run(VM* vm) {
 
     if (IS_CLASS(PEEK2())) {
       GCClass *class = AS_CLASS(PEEK2());
-      GCString* key = READ_STRING();
+      Constant key = READ_CONSTANT();
 
       if (class->isFinal && frame->closure->function->id != class->id) {
         throwRuntimeError(vm, "Cannot mutate fields of a final class");
@@ -848,7 +849,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    GCString *key = READ_STRING();
+    Constant key = READ_CONSTANT();
 
     Constant constant1;
     if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
@@ -876,7 +877,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&class->staticFields, id, &constant)) {
+      if (tableGetEntry(&class->staticFields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -895,7 +896,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->boolClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->boolClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -909,7 +910,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->stringClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -923,7 +924,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->listClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->listClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -937,7 +938,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->mapClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->mapClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -951,10 +952,9 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->numClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->numClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
-        Constant c = constant;
-        PUSH(c);
+        PUSH(constant);
         DISPATCH();
       }
 
@@ -975,7 +975,7 @@ static InterpretationResult run(VM* vm) {
     }
 
     Constant constant;
-    if (tableGetEntry(&instance->class->fields, id, &constant)) {
+    if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
       POP();
       PUSH(constant);
       DISPATCH();
@@ -1049,12 +1049,12 @@ static InterpretationResult run(VM* vm) {
     GCString *id = READ_STRING();
     Constant constant;
 
-    if (tableGetEntry(&vm->globals, id, &constant)) {
+    if (tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
       throwRuntimeError(vm, "Senegal attempted to define an existing global: %s", id);
       return RUNTIME_ERROR;
     }
 
-    tableInsert(vm, &vm->globals, id, PEEK());
+    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK());
     POP();
     DISPATCH();
   }
@@ -1063,7 +1063,7 @@ static InterpretationResult run(VM* vm) {
     GCString *id = READ_STRING();
     Constant constant;
 
-    if (!tableGetEntry(&vm->globals, id, &constant)) {
+    if (!tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
       throwRuntimeError(vm, "Senegal tried to get an undefined variable `%s`", id->chars);
       return RUNTIME_ERROR;
     }
@@ -1075,8 +1075,8 @@ static InterpretationResult run(VM* vm) {
   CASE(OPCODE_SETGLOB): {
     GCString *id = READ_STRING();
 
-    if (tableInsert(vm, &vm->globals, id, PEEK())) {
-      tableRemove(&vm->globals, id);
+    if (tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK())) {
+      tableRemove(&vm->globals, GC_OBJ_CONST(id));
       throwRuntimeError(vm, "Senegal attempted to reassign an undefined variable: %s", id->chars);
       return RUNTIME_ERROR;
     }

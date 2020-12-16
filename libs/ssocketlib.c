@@ -169,7 +169,7 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
   if (!hostEnt)
     return NULL_CONST;
 
-  tableInsert(vm, &hostEntClass->fields, copyString(vm, NULL, "name", 4),
+  tableInsert(vm, &hostEntClass->fields, GC_OBJ_CONST(copyString(vm, NULL, "name", 4)),
               GC_OBJ_CONST(copyString(vm, NULL, hostEnt->h_name, strlen(hostEnt->h_name))));
 
   int aliasesLen = 0;
@@ -193,9 +193,9 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
 
   aliases->elementC = aliasesLen;
 
-  tableInsert(vm, &hostEntClass->fields, copyString(vm, NULL, "aliases", 7),GC_OBJ_CONST(aliases));
-  tableInsert(vm, &hostEntClass->fields, copyString(vm, NULL, "addrType", 8), NUM_CONST(hostEnt->h_addrtype));
-  tableInsert(vm, &hostEntClass->fields, copyString(vm, NULL, "length", 6), NUM_CONST(hostEnt->h_length));
+  tableInsert(vm, &hostEntClass->fields, GC_OBJ_CONST(copyString(vm, NULL, "aliases", 7)),GC_OBJ_CONST(aliases));
+  tableInsert(vm, &hostEntClass->fields, GC_OBJ_CONST(copyString(vm, NULL, "addrType", 8)), NUM_CONST(hostEnt->h_addrtype));
+  tableInsert(vm, &hostEntClass->fields, GC_OBJ_CONST(copyString(vm, NULL, "length", 6)), NUM_CONST(hostEnt->h_length));
 
   int hAddrLen = 0;
 
@@ -219,7 +219,7 @@ Constant sglGetHostByName(VM* vm, int arity, Constant* args) {
 
   hAddrList->elementC = hAddrLen;
 
-  tableInsert(vm, &hostEntClass->fields, copyString(vm, NULL, "addresses", 9),GC_OBJ_CONST(hAddrList));
+  tableInsert(vm, &hostEntClass->fields, GC_OBJ_CONST(copyString(vm, NULL, "addresses", 9)),GC_OBJ_CONST(hAddrList));
 
   return GC_OBJ_CONST(newInstance(vm, hostEntClass));
 }

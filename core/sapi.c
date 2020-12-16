@@ -14,41 +14,41 @@ void expect(int expected, int actual, char *name) {
 void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &class->methods, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->fields, AS_STRING(vm->coroutine->stack[0]), field);
+  tableInsert(vm, &class->fields, GC_OBJ_CONST(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
 void defineClassNativeStaticFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->staticMethods, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &class->staticMethods, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->staticFields, AS_STRING(vm->coroutine->stack[0]), field);
+  tableInsert(vm, &class->staticFields, GC_OBJ_CONST(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobal(VM* vm, const char* id, Constant field) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), field);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), field);
   pop(vm);
 }
 
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }

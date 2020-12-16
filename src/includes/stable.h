@@ -4,7 +4,7 @@
 #include "sconstant.h"
 
 typedef struct {
-    GCString* key;
+    Constant key;
     Constant constant;
 } Entry;
 
@@ -16,12 +16,12 @@ typedef struct {
 
 void initTable(Table* table);
 
-Entry* findEntry(Entry* entries, int cap, GCString* key);
+Entry* findEntry(Entry* entries, int cap, Constant key);
 
-bool tableRemove(Table* table, GCString* key);
+bool tableRemove(Table* table, Constant key);
 void tableRemoveWhite(Table* table);
 
-bool tableGetEntry(Table* table, GCString* key, Constant* c);
+bool tableGetEntry(Table* table, Constant key, Constant* c);
 GCString* tableFindString(Table* table, const char* chars, int length, uint32_t hash);
 
 #endif //SENEGAL_STABLE_H

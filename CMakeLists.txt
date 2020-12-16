@@ -21,4 +21,3 @@ add_custom_command(TARGET senegal
 add_custom_command(TARGET senegal
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/test)
-

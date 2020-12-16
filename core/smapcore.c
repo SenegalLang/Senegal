@@ -4,13 +4,14 @@
 #include "../src/includes/stable_utils.h"
 
 static Constant mapNew(VM* vm, int arity, Constant* args) {
+  expect(0, arity, "Map constructor");
   return GC_OBJ_CONST(newMap(vm));
 }
 
 static Constant mapAdd(VM* vm, int arity, Constant* args) {
   expect(2, arity, "add");
 
-  tableInsert(vm, &AS_MAP(args[-1])->table, AS_STRING(args[0]), args[1]);
+  tableInsert(vm, &AS_MAP(args[-1])->table, GC_OBJ_CONST(args[0]), args[1]);
 
   return NULL_CONST;
 }
@@ -24,13 +25,13 @@ static Constant mapContains(VM* vm, int arity, Constant* args) {
   expect(1, arity, "contains");
 
   Constant constant;
-  return BOOL_CONST(tableGetEntry(&AS_MAP(args[-1])->table, AS_STRING(args[0]), &constant));
+  return BOOL_CONST(tableGetEntry(&AS_MAP(args[-1])->table, args[0], &constant));
 }
 
 static Constant mapRemove(VM* vm, int arity, Constant* args) {
   expect(1, arity, "remove");
 
-  tableRemove(&AS_MAP(args[-1])->table, AS_STRING(args[0]));
+  tableRemove(&AS_MAP(args[-1])->table, args[0]);
   AS_MAP(args[-1])->table.count--;
   return NULL_CONST;
 }

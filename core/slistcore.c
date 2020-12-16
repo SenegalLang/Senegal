@@ -4,8 +4,9 @@
 #include "../src/includes/smemory.h"
 
 static Constant listNew(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "List constructor");
   GCList* list = newList(vm, 0);
-  double cap = AS_NUMBER(args[0]);
+  int cap = AS_NUMBER(args[0]);
 
   if (cap > 0) {
     list->listCurrentCap = cap;
@@ -31,12 +32,19 @@ static Constant listAdd(VM* vm, int arity, Constant* args) {
   expect(1, arity, "add");
 
   GCList* list = AS_LIST(args[-1]);
+
+  if (list->listCurrentCap > 0 && list->elementC == list->listCurrentCap) {
+    printf("List cannot grow beyond %d elements", list->elementC);
+    exit(1);
+  }
+
  addToList(vm, &list, args[0]);
 
   return NULL_CONST;
 }
 
 static Constant listClear(VM* vm, int arity, Constant* args) {
+  expect(0, arity, "clear");
   AS_LIST(args[-1])->elementC = 0;
 
   return NULL_CONST;
@@ -112,6 +120,7 @@ void initListClass(VM *vm) {
   vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
   defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "List", 4)), vm->listClass);
 
+  defineClassNativeStaticFunc(vm, "List", listNew, vm->listClass);
   defineClassNativeStaticFunc(vm, "filled", listFilled, vm->listClass);
 
   defineClassNativeFunc(vm, "add", listAdd, vm->listClass);

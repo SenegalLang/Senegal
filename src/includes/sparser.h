@@ -62,6 +62,8 @@ void initParser(Parser* parser);
 
 bool match(Parser* parser, Lexer* lexer, SenegalTokenType type);
 
+uint32_t hashConstant(Constant c);
+
 void parseExpression(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i);
 void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i);
 void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i);
