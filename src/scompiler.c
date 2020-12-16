@@ -28,8 +28,6 @@ void error(Parser* parser, Token* token, const char* message) {
     fprintf(stderr, " ( %.*s )", token->length, token->start);
   }
 
-  fprintf(stderr, "\n\n  %d | %s\n", token->line, token->start);
-
   parser->hasError = true;
 }
 
