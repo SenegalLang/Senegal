@@ -1,12 +1,9 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include "includes/sparser.h"
 #include "includes/smemory.h"
 #include "includes/scompiler.h"
 #include "includes/sgcobject_utils.h"
 #include "includes/stable_utils.h"
-
-//#define MAX_CASES 256
 
 int deepestLoopStart = -1;
 int deepestLoopDepth = 0;
@@ -14,62 +11,9 @@ int deepestLoopDepth = 0;
 static void markInitialized(Compiler* compiler);
 
 ParseRule rules[] = {
-    [LPAREN] = {parseGroup, parseFunctionCall, CALL},
-    [RPAREN] = {NULL, NULL, NONE},
-    [LBRACE] = {NULL, NULL, NONE},
-    [RBRACE] = {NULL, NULL, NONE},
-    [COMMA] = {NULL, NULL, NONE},
-    [COLON] = {NULL, NULL, NONE},
-    [CASE] = {NULL, NULL, NONE},
-    [DEFAULT] = {NULL, NULL, NONE},
-    [SWITCH] = {NULL, NULL, NONE},
-    [DOT] = {NULL, parseDot, CALL},
-    [MINUS] = {parseUnary, parseBinary, TERM},
-    [MINUS_EQUAL] = {NULL, NULL, TERM},
-    [MINUS_MINUS] = {NULL, NULL, TERM},
-    [PLUS] = {NULL, parseBinary, TERM},
-    [PLUS_EQUAL] = {NULL, NULL, TERM},
-    [PLUS_PLUS] = {NULL, NULL, TERM},
-    [SEMI] = {NULL, NULL, NONE},
-    [SLASH] = {NULL, parseBinary, FACTOR},
-    [SLASH_EQUAL] = {NULL, NULL, FACTOR},
-    [STAR] = {NULL, parseBinary, FACTOR},
-    [STAR_EQUAL] = {NULL, NULL, FACTOR},
-    [STAR_STAR] = {NULL, NULL, FACTOR},
-    [BANG] = {parseUnary, NULL, NONE},
-    [BANG_EQUAL] = {NULL, parseBinary, EQUALITY},
-    [EQUAL] = {NULL, NULL, NONE},
-    [EQUAL_EQUAL] = {NULL, parseBinary, EQUALITY},
-    [GREATER] = {NULL, parseBinary, COMPARISON},
-    [GREATER_GREATER] = {NULL, parseBinary, BIT_SHIFT},
-    [GREATER_EQUAL] = {NULL, parseBinary, ASSIGNMENT},
-    [LESSER] = {NULL, parseBinary, COMPARISON},
-    [LESSER_LESSER] = {NULL, parseBinary, BIT_SHIFT},
-    [LESSER_EQUAL] = {NULL, parseBinary, ASSIGNMENT},
-    [ID] = {parseIdentifier, NULL, NONE},
-    [STRING] = {parseString, NULL, NONE},
-    [NUMBER] = {parseNumber, NULL, NONE},
-    [AMP] = {NULL, parseBinary, BIT_AND},
-    [AMP_AMP] = {NULL, parseAnd, PREC_AND},
-    [CLASS] = {NULL, NULL, NONE},
-    [CARET] = {NULL, parseBinary, BIT_XOR},
-    [ELSE] = {NULL, NULL, NONE},
-    [FALSE] = {parseLiteral, NULL, NONE},
-    [FOR] = {NULL, NULL, NONE},
-    [FUNCTION] = {NULL, NULL, NONE},
-    [IF] = {NULL, NULL, NONE},
-    [SENEGAL_NULL] = {parseLiteral, NULL, NONE},
-    [PIPE] = {NULL, parseBinary, BIT_OR},
-    [PIPE_PIPE] = {NULL, parseOr, PREC_OR},
-    [RETURN] = {NULL, NULL, NONE},
-    [SUPER] = {parseSuper, NULL, NONE},
-    [THIS] = {parseThis, NULL, NONE},
-    [TILDE] = {parseUnary, NULL, UNARY},
-    [TRUE] = {parseLiteral, NULL, NONE},
-    [VAR] = {NULL, NULL, NONE},
-    [WHILE] = {NULL, NULL, NONE},
-    [ERROR] = {NULL, NULL, NONE},
-    [SENEGAL_EOF] = {NULL, NULL, NONE},
+  #define RULE(index, prefix, infix, prec) [index] = {prefix, infix, prec},
+    #include "includes/srules.h"
+  #undef RULE
 };
 
 void initParser(Parser *parser) {
@@ -77,11 +21,11 @@ void initParser(Parser *parser) {
   parser->panic = false;
 }
 
-static bool check(Parser* parser, TokenType type) {
+static bool check(Parser* parser, SenegalTokenType type) {
   return parser->current.type == type;
 }
 
-bool match(Parser* parser, Lexer* lexer, TokenType type) {
+bool match(Parser* parser, Lexer* lexer, SenegalTokenType type) {
   if (!check(parser, type))
     return false;
 
@@ -89,7 +33,7 @@ bool match(Parser* parser, Lexer* lexer, TokenType type) {
   return true;
 }
 
-static ParseRule* getRule(TokenType type) {
+static ParseRule* getRule(SenegalTokenType type) {
   return &rules[type];
 }
 
@@ -112,14 +56,14 @@ void parsePrecedence(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* 
     infixRule(vm, parser, compiler, cc, lexer, i, canAssign);
   }
 
-  if (canAssign && match(parser, lexer, EQUAL)) {
+  if (canAssign && match(parser, lexer, SENEGAL_EQUAL)) {
     error(parser, &parser->previous, "Invalid assignment target.");
   }
 }
 
 static void parseExpressionStatement(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
   parseExpression(vm, parser, compiler, cc, lexer, i);
-  consume(parser, lexer, SEMI, "Senegal expected `;` after an expression");
+  consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after an expression");
   writeByte(vm, parser, i, OPCODE_POP);
 }
 
@@ -131,17 +75,17 @@ static void sync(Parser* parser, Lexer* lexer) {
   parser->panic = false;
 
   while (parser->current.type != SENEGAL_EOF) {
-    if (parser->previous.type == SEMI)
+    if (parser->previous.type == SENEGAL_SEMI)
       return;
 
     switch (parser->current.type) {
-      case CLASS:
-      case FUNCTION:
-      case IF:
-      case WHILE:
-      case FOR:
-      case VAR:
-      case RETURN:
+      case SENEGAL_CLASS:
+      case SENEGAL_FUNCTION:
+      case SENEGAL_IF:
+      case SENEGAL_WHILE:
+      case SENEGAL_FOR:
+      case SENEGAL_VAR:
+      case SENEGAL_RETURN:
         return;
 
       default:
@@ -215,12 +159,12 @@ static void declareVariable(Parser* parser, Compiler* compiler) {
 }
 
 static uint8_t parseVariable(VM* vm, Parser* parser, Compiler* compiler, Lexer* lexer, Instructions* i, const char* msg) {
-  consume(parser, lexer, ID, msg);
+  consume(parser, lexer, SENEGAL_ID, msg);
 
   declareVariable(parser, compiler);
 
-  if (compiler->depth > 0)
-    return 0;
+//  if (compiler->depth > 1)
+//    return 0;
 
   return idConstant(vm, parser, compiler, i, &parser->previous);
 }
@@ -231,19 +175,31 @@ static void defineVariable(VM* vm, Parser* parser, Compiler* compiler, Instructi
     return;
   }
 
-  writeTwoBytes(vm, parser, i, OPCODE_NEWGLOB, global);
+  writeShort(vm, parser, i, OPCODE_NEWGLOB, global);
 }
 
 static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
   uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
 
-  if (match(parser, lexer, EQUAL))
+  if (match(parser, lexer, SENEGAL_EQUAL))
     parseExpression(vm, parser, compiler, cc, lexer, i);
   else
     writeByte(vm, parser, i, OPCODE_NULL);
 
-  consume(parser, lexer, SEMI, "Senegal expected `;` after variable declaration.");
+  consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
   defineVariable(vm, parser, compiler, i, global);
+}
+
+static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
+  uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
+
+  if (match(parser, lexer, SENEGAL_EQUAL))
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+  else
+    writeByte(vm, parser, i, OPCODE_NULL);
+
+  consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
+  writeShort(vm, parser, i, isStatic ? OPCODE_NEWSTATICFIELD : OPCODE_NEWFIELD, global);
 }
 
 // == Functions ==
@@ -259,7 +215,7 @@ static void endScope(VM* vm, Parser* parser, Compiler* compiler, Instructions* i
   while (compiler->depth > 0 && compiler->locals[compiler->localCount - 1].depth > compiler->depth) {
 
     if (compiler->locals[compiler->localCount - 1].isCaptured) {
-      writeTwoBytes(vm, parser, i, OPCODE_POPN, popCount);
+      writeShort(vm, parser, i, OPCODE_POPN, popCount);
       popCount = 0;
       writeByte(vm, parser, i, OPCODE_CLOSEUPVAL);
     }
@@ -269,26 +225,26 @@ static void endScope(VM* vm, Parser* parser, Compiler* compiler, Instructions* i
     compiler->localCount--;
   }
 
-  writeTwoBytes(vm, parser, i, OPCODE_POPN, popCount);
+  writeShort(vm, parser, i, OPCODE_POPN, popCount);
 
 }
 
 static void parseBlock(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
-  while (!check(parser, RBRACE) && !check(parser, SENEGAL_EOF)) {
-    parseDeclaration(vm, compiler, cc, parser, lexer, i);
+  while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+    parseDeclarationOrStatement(vm, compiler, cc, parser, lexer, i);
   }
 
-  consume(parser, lexer, RBRACE, "Senegal expected block to be closed with `}`");
+  consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected block to be closed with `}`");
 }
 
 static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, FunctionType type) {
   Compiler compiler;
-  initCompiler(vm, parser, oldCompiler, &compiler, type);
+  initCompiler(vm, parser, oldCompiler, &compiler, type, false);
   startScope(&compiler);
 
-  consume(parser, lexer, LPAREN, "Senegal expected `(` after a function name.");
+  consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected `(` after a function name.");
 
-  if (!check(parser, RPAREN)) {
+  if (!check(parser, SENEGAL_RPAREN)) {
     do {
       compiler.function->arity++;
       if (compiler.function->arity > 255) {
@@ -297,12 +253,12 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
 
       uint8_t paramConstant = parseVariable(vm, parser, &compiler, lexer, &compiler.function->instructions, "Senegal expected a parameter name.");
       defineVariable(vm, parser, &compiler, &compiler.function->instructions, paramConstant);
-    } while (match(parser, lexer, COMMA));
+    } while (match(parser, lexer, SENEGAL_COMMA));
   }
 
-  consume(parser, lexer, RPAREN, "Senegal expected `)` after function arguments.");
+  consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected `)` after function arguments.");
 
-  if (check(parser, EQUAL_GREATER)) {
+  if (check(parser, SENEGAL_EQUAL_GREATER)) {
     advance(parser, lexer);
 
     // TODO(Calamity210): Move to a parseReturn function
@@ -310,7 +266,7 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
       error(parser, &parser->previous, "Senegal can't return from a global scope.");
     }
 
-    if (match(parser, lexer, SEMI)) {
+    if (match(parser, lexer, SENEGAL_SEMI)) {
       writeRetByte(vm, &compiler, parser, &compiler.function->instructions);
     } else {
       if (compiler.type == CONSTRUCTOR) {
@@ -318,19 +274,19 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
       }
 
       parseExpression(vm, parser, &compiler, cc, lexer, &compiler.function->instructions);
-      consume(parser, lexer, SEMI, "Senegal expected `;` after return statement.");
+      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
       writeByte(vm, parser, &compiler.function->instructions, OPCODE_RET);
     }
   } else {
-    consume(parser, lexer, LBRACE, "Senegal expected `{` before function body.");
+    consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` before function body.");
     parseBlock(vm, &compiler, cc, parser, lexer, &compiler.function->instructions);
   }
 
   GCFunction* function = endCompilation(vm, &compiler, parser, &compiler.function->instructions);
-  writeTwoBytes(vm, parser, i, OPCODE_CLOSURE, newConstant(vm, parser, &compiler, i, GC_OBJ_CONST(function)));
+  writeShort(vm, parser, i, OPCODE_CLOSURE, newConstant(vm, parser, &compiler, i, GC_OBJ_CONST(function)));
 
   for (int j = 0; j < function->upvalueCount; j++) {
-    writeTwoBytes(vm, parser, i, &compiler.upvalues[j].isLocal ? 1 : 0, compiler.upvalues[j].index);
+    writeShort(vm, parser, i, &compiler.upvalues[j].isLocal ? 1 : 0, compiler.upvalues[j].index);
   }
 }
 
@@ -381,7 +337,6 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
   int id = resolveLocal(parser, compiler, &name);
 
   if (id != -1) {
-
     switch (id) {
       case 0:
         getOP = OPCODE_GETLOC0;
@@ -415,31 +370,187 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
     }
 
     if (getOP != 0) {
-      if (canAssign && match(parser, lexer, EQUAL)) {
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, setOP);
-      } else
-        writeByte(vm, parser, i, getOP);
+      if (canAssign) {
+        switch (parser->current.type) {
+          case SENEGAL_EQUAL:
+            advance(parser, lexer);
 
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case SENEGAL_PLUS_PLUS:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            writeByte(vm, parser, i, OPCODE_DUP);
+            writeByte(vm, parser, i, OPCODE_INC);
+            writeByte(vm, parser, i, setOP);
+            writeByte(vm, parser, i, OPCODE_POP);
+            break;
+
+          case SENEGAL_MINUS_MINUS:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            writeByte(vm, parser, i, OPCODE_DUP);
+            writeByte(vm, parser, i, OPCODE_DEC);
+            writeByte(vm, parser, i, setOP);
+            writeByte(vm, parser, i, OPCODE_POP);
+            break;
+
+          case SENEGAL_STAR_STAR:
+            advance(parser, lexer);
+
+            if (!check(parser, SENEGAL_NUMBER))
+              error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_POW);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case SENEGAL_PLUS_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_ADD);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case SENEGAL_MINUS_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_SUB);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          case SENEGAL_STAR_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_MUL);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+
+          case SENEGAL_SLASH_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_DIV);
+            writeByte(vm, parser, i, setOP);
+            break;
+
+          default:
+            writeByte(vm, parser, i, getOP);
+            break;
+        }
+      } else {
+        writeByte(vm, parser, i, getOP);
+      }
       return;
     }
 
     getOP = OPCODE_GETLOC;
     setOP = OPCODE_SETLOC;
-  } else if ((id = resolveUpvalue(parser, compiler, &name)) != -1) {
-    getOP = OPCODE_GETUPVAL;
-    setOP = OPCODE_SETUPVAL;
   } else {
     id = idConstant(vm, parser, compiler, i, &name);
     getOP = OPCODE_GETGLOB;
     setOP = OPCODE_SETGLOB;
   }
 
-  if (canAssign && match(parser, lexer, EQUAL)) {
-    parseExpression(vm, parser, compiler, cc, lexer, i);
-    writeTwoBytes(vm, parser, i, setOP, (uint8_t)id);
-  } else
-    writeTwoBytes(vm, parser, i, getOP, (uint8_t)id);
+  if (canAssign) {
+    switch (parser->current.type) {
+      case SENEGAL_EQUAL:
+        advance(parser, lexer);
+
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case SENEGAL_PLUS_PLUS:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_INC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
+
+      case SENEGAL_MINUS_MINUS:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_DUP);
+        writeByte(vm, parser, i, OPCODE_DEC);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        writeByte(vm, parser, i, OPCODE_POP);
+        break;
+
+      case SENEGAL_STAR_STAR:
+        advance(parser, lexer);
+
+        if (!check(parser, SENEGAL_NUMBER))
+          error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_POW);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case SENEGAL_PLUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_ADD);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case SENEGAL_MINUS_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_SUB);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      case SENEGAL_STAR_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_MUL);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+
+      case SENEGAL_SLASH_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_DIV);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
+
+      default:
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        break;
+    }
+  } else {
+    writeShort(vm, parser, i, getOP, (uint8_t) id);
+  }
 }
 
 static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
@@ -451,23 +562,23 @@ static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler,
   defineVariable(vm, parser, compiler, i, global);
 }
 
-static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
-  consume(parser, lexer, ID, "Senegal expected a method name");
+static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected a method name");
 
   uint8_t constant = idConstant(vm, parser, compiler, i, &parser->previous);
 
   FunctionType type = METHOD;
 
-  if (parser->previous.length == 9 && memcmp(parser->previous.start, "construct", 9) == 0)
+  if (strncmp(parser->previous.start, cc->id.start, cc->id.length) == 0)
     type = CONSTRUCTOR;
 
   parseFunction(vm, parser, compiler, cc, lexer, i, type);
-  writeTwoBytes(vm, parser, i, OPCODE_METHOD, constant);
+  writeShort(vm, parser, i, isStatic ? OPCODE_NEWSTATICMETHOD : OPCODE_NEWMETHOD, constant);
 }
 
 static uint8_t argumentList(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
   uint8_t argCount = 0;
-  if (!check(parser, RPAREN)) {
+  if (!check(parser, SENEGAL_RPAREN)) {
     do {
       parseExpression(vm, parser, compiler, cc, lexer, i);
 
@@ -476,10 +587,10 @@ static uint8_t argumentList(VM* vm, Parser* parser, Compiler* compiler, ClassCom
       }
 
       argCount++;
-    } while (match(parser, lexer, COMMA));
+    } while (match(parser, lexer, SENEGAL_COMMA));
   }
 
-  consume(parser, lexer, RPAREN, "Senegal expected `)` after function call arguments.");
+  consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected `)` after function call arguments.");
   return argCount;
 }
 
@@ -492,8 +603,8 @@ static Token syntheticToken(const char* text) {
   return token;
 }
 
-static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal, bool isStrict) {
-  consume(parser, lexer, ID, "Senegal expected an identifier after `class` keyword");
+static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal) {
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `class` keyword");
 
   Token classId = parser->previous;
   uint8_t idConst = idConstant(vm, parser, compiler, i, &parser->previous);
@@ -501,11 +612,9 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   declareVariable(parser, compiler);
 
   if (isFinal)
-    writeTwoBytes(vm, parser, i, OPCODE_NEWFINALCLASS, idConst);
-  else if (isStrict)
-    writeTwoBytes(vm, parser, i, OPCODE_NEWSTRICTCLASS, idConst);
+    writeShort(vm, parser, i, OPCODE_NEWFINALCLASS, idConst);
   else
-    writeTwoBytes(vm, parser, i, OPCODE_NEWCLASS, idConst);
+    writeShort(vm, parser, i, OPCODE_NEWCLASS, idConst);
 
   defineVariable(vm, parser, compiler, i, idConst);
 
@@ -515,8 +624,8 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   newCC.parent = cc;
   cc = &newCC;
 
-  if (match(parser, lexer, EXTENDS)) {
-    consume(parser, lexer, ID, "Senegal expected a superclass after `extends`");
+  if (match(parser, lexer, SENEGAL_EXTENDS)) {
+    consume(parser, lexer, SENEGAL_ID, "Senegal expected a superclass after `extends`");
     parseVariableAccess(vm, parser, compiler, cc, lexer, i, parser->previous, false);
 
     if (idsEqual(&classId, &parser->previous)) {
@@ -534,14 +643,27 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
   parseVariableAccess(vm, parser, compiler, cc, lexer, i, classId, false);
 
-  consume(parser, lexer, LBRACE, "Senegal expected `{` after class identifier");
+  consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
 
-  while (!check(parser, RBRACE) && !check(parser, SENEGAL_EOF)) {
-    if (match(parser, lexer, FUNCTION))
-      parseMethodDeclaration(vm, parser, compiler, cc, lexer, i);
+  while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+    bool isStatic = false;
+    if (match(parser, lexer, SENEGAL_STATIC))
+      isStatic = true;
+
+    if (match(parser, lexer, SENEGAL_FUNCTION)
+    || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0)))
+      parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+
+    else if (match(parser, lexer, SENEGAL_VAR))
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+
+    else {
+      advance(parser, lexer);
+      error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body");
+    }
   }
 
-  consume(parser, lexer, RBRACE, "Senegal expected `}` after class body");
+  consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected `}` after class body");
   writeByte(vm, parser, i, OPCODE_POP);
 
   if (cc->hasSuper) {
@@ -553,17 +675,30 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
 void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
-  bool isFinal = match(parser, lexer, FINAL);
-  bool isStrict = false;
+  bool isFinal = match(parser, lexer, SENEGAL_FINAL);
 
-  if (!isFinal)
-    isStrict = match(parser, lexer, STRICT);
-
-  if (match(parser, lexer, CLASS))
-    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal, isStrict);
-  else if (match(parser, lexer, FUNCTION))
+  if (match(parser, lexer, SENEGAL_CLASS))
+    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
+  else if (match(parser, lexer, SENEGAL_FUNCTION))
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
-  else if (match(parser, lexer, VAR))
+  else if (match(parser, lexer, SENEGAL_VAR))
+    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+  else
+    advance(parser, lexer);
+
+  if (parser->panic)
+    sync(parser, lexer);
+}
+
+void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
+
+  bool isFinal = match(parser, lexer, SENEGAL_FINAL);
+
+  if (match(parser, lexer, SENEGAL_CLASS))
+    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
+  else if (match(parser, lexer, SENEGAL_FUNCTION))
+    parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
+  else if (match(parser, lexer, SENEGAL_VAR))
     parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
   else
     parseStatement(vm, compiler, cc, parser, lexer, i);
@@ -574,7 +709,7 @@ void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* par
 
 static int writeJMP(VM* vm, Parser* parser, Instructions* i, uint8_t opcode) {
   writeByte(vm, parser,i, opcode);
-  writeTwoBytes(vm, parser, i, 0xff, 0xff);
+  writeShort(vm, parser, i, 0xff, 0xff);
 
   return i->bytesCount - 2;
 }
@@ -592,6 +727,19 @@ static void patchJMP(Parser* parser, Instructions* i, int offset) {
 }
 
 // == Tokens ==
+void parseAccess(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+  consume(parser, lexer, SENEGAL_RBRACKET, "Senegal expected access to be closed by `]`");
+
+  if (match(parser, lexer, SENEGAL_EQUAL)) {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    writeByte(vm, parser, i, OPCODE_SETACCESS);
+    return;
+  }
+
+  writeByte(vm, parser, i, OPCODE_ACCESS);
+}
+
 void parseAnd(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   int endJMP = writeJMP(vm, parser, i, OPCODE_JF);
 
@@ -602,69 +750,73 @@ void parseAnd(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lex
 }
 
 void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
-  TokenType op = parser->previous.type;
+  SenegalTokenType op = parser->previous.type;
   ParseRule* rule = getRule(op);
   parsePrecedence(vm, parser, compiler, cc, lexer, (Precedence)(rule->precedence + 1), i);
 
   switch (op) {
-
-    case AMP:
+    case SENEGAL_AMP:
       writeByte(vm, parser, i, OPCODE_AND);
       break;
 
-    case PIPE:
+    case SENEGAL_PIPE:
       writeByte(vm, parser, i, OPCODE_OR);
       break;
 
-    case CARET:
+    case SENEGAL_CARET:
       writeByte(vm, parser, i, OPCODE_XOR);
       break;
 
-    case LESSER_LESSER:
+    case SENEGAL_LESSER_LESSER:
       writeByte(vm, parser, i, OPCODE_LSHIFT);
       break;
 
-    case GREATER_GREATER:
+    case SENEGAL_GREATER_GREATER:
       writeByte(vm, parser, i, OPCODE_RSHIFT);
       break;
 
-    case PLUS:
+    case SENEGAL_PLUS:
       writeByte(vm, parser, i, OPCODE_ADD);
       break;
 
-    case MINUS:
+    case SENEGAL_MINUS:
       writeByte(vm, parser, i, OPCODE_SUB);
       break;
 
-    case STAR:
+    case SENEGAL_STAR:
+      if (AS_NUMBER(vm->coroutine->stackTop[0]) == 1) {
+        pop(vm);
+        break;
+      }
+
       writeByte(vm, parser, i, OPCODE_MUL);
       break;
 
-    case SLASH:
+    case SENEGAL_SLASH:
       writeByte(vm, parser, i, OPCODE_DIV);
       break;
 
-    case BANG_EQUAL:
+    case SENEGAL_BANG_EQUAL:
       writeByte(vm, parser, i, OPCODE_NOTEQ);
       break;
 
-    case EQUAL_EQUAL:
+    case SENEGAL_EQUAL_EQUAL:
       writeByte(vm, parser, i, OPCODE_EQUAL);
       break;
 
-    case GREATER:
+    case SENEGAL_GREATER:
       writeByte(vm, parser, i, OPCODE_GREATER);
       break;
 
-    case LESSER:
+    case SENEGAL_LESSER:
       writeByte(vm, parser, i, OPCODE_LESSER);
       break;
 
-    case GREATER_EQUAL:
+    case SENEGAL_GREATER_EQUAL:
       writeByte(vm, parser, i, OPCODE_GE);
       break;
 
-    case LESSER_EQUAL:
+    case SENEGAL_LESSER_EQUAL:
       writeByte(vm, parser, i, OPCODE_LE);
       break;
 
@@ -674,22 +826,22 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
 }
 
 void parseDot(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
-  consume(parser, lexer, ID, "Senegal expected a property or method after `.`");
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected a property or method after `.`");
   uint8_t id = idConstant(vm, parser, compiler, i, &parser->previous);
 
-  if (canAssign && match(parser, lexer, EQUAL)) {
+  if (canAssign && match(parser, lexer, SENEGAL_EQUAL)) {
 
     parseExpression(vm, parser, compiler, cc, lexer, i);
-    writeTwoBytes(vm, parser, i, OPCODE_SETFIELD, id);
+    writeShort(vm, parser, i, OPCODE_SETFIELD, id);
 
-  } else if (match(parser, lexer, LPAREN)) {
+  } else if (match(parser, lexer, SENEGAL_LPAREN)) {
 
     uint8_t arity = argumentList(vm, parser, compiler, cc, lexer, i);
-    writeTwoBytes(vm, parser, i, OPCODE_INVOKE, id);
+    writeShort(vm, parser, i, OPCODE_INVOKE, id);
     writeByte(vm, parser, i, arity);
 
   } else {
-    writeTwoBytes(vm, parser, i, OPCODE_GETFIELD, id);
+    writeShort(vm, parser, i, OPCODE_GETFIELD, id);
   }
 }
 
@@ -715,12 +867,16 @@ void parseFunctionCall(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler
   else if (arity == 8)
     writeByte(vm, parser, i, OPCODE_CALL8);
   else
-    writeTwoBytes(vm, parser, i, OPCODE_CALL, arity);
+    writeShort(vm, parser, i, OPCODE_CALL, arity);
 }
 
 void parseGroup(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   parseExpression(vm, parser, compiler, cc, lexer, i);
-  consume(parser, lexer, RPAREN, "Senegal expected `)` after a grouped expression");
+  consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected `)` after a grouped expression");
+}
+
+void parseHex(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  writeLoad(vm, parser, compiler, i, NUM_CONST(strtol(parser->previous.start, NULL, 16)));
 }
 
 void parseIdentifier(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
@@ -729,11 +885,11 @@ void parseIdentifier(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* 
 
 void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer *lexer, Instructions *i, bool canAssign) {
   switch (parser->previous.type) {
-    case TRUE:
+    case SENEGAL_TRUE:
       writeByte(vm, parser, i, OPCODE_TRUE);
       break;
 
-    case FALSE:
+    case SENEGAL_FALSE:
       writeByte(vm, parser, i, OPCODE_FALSE);
       break;
 
@@ -744,6 +900,44 @@ void parseLiteral(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc,
     default:
       return;
   }
+}
+
+void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+
+  if (match(parser, lexer, SENEGAL_RBRACKET)) {
+    writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newList(vm, 0)));
+    return;
+  }
+
+  uint8_t entryCount = 0;
+  do {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    entryCount++;
+  } while (match(parser, lexer, SENEGAL_COMMA));
+
+  consume(parser, lexer, SENEGAL_RBRACKET, "Senegal expected list to be closed with `]`");
+
+  writeShort(vm, parser, i, OPCODE_NEWLIST, entryCount);
+}
+
+void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+
+  if (match(parser, lexer, SENEGAL_LBRACE))
+    writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newMap(vm)));
+
+  uint8_t entryCount = 0;
+  do {
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+    if (!match(parser, lexer, SENEGAL_COLON))
+      error(parser, &parser->previous, "Senegal expected `:` after map key");
+    parseExpression(vm, parser, compiler, cc, lexer, i);
+
+    entryCount++;
+  } while (match(parser, lexer, SENEGAL_COMMA));
+
+  consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected map to be closed with `}`");
+
+  writeShort(vm, parser, i, OPCODE_NEWMAP, entryCount);
 }
 
 void parseNumber(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
@@ -774,22 +968,40 @@ void parseSuper(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, L
     error(parser, &parser->previous, "Senegal cannot access `super` without a superclass");
   }
 
-  consume(parser, lexer, DOT, "Senegal expected `.` after `super`");
-  consume(parser, lexer, ID, "A superclass field identifier");
+  consume(parser, lexer, SENEGAL_DOT, "Senegal expected `.` after `super`");
+  consume(parser, lexer, SENEGAL_ID, "A superclass field identifier");
 
   uint8_t id = idConstant(vm, parser, compiler, i, &parser->previous);
 
   parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
 
-  if (match(parser, lexer, LPAREN)) {
+  if (match(parser, lexer, SENEGAL_LPAREN)) {
     uint8_t arity = argumentList(vm, parser,compiler, cc, lexer, i);
     parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("super"), false);
-    writeTwoBytes(vm, parser, i, OPCODE_SUPERINVOKE, id);
+    writeShort(vm, parser, i, OPCODE_SUPERINVOKE, id);
     writeByte(vm, parser, i, arity);
   } else {
     parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("super"), false);
-    writeTwoBytes(vm, parser, i, OPCODE_GETSUPER, id);
+    writeShort(vm, parser, i, OPCODE_GETSUPER, id);
   }
+}
+
+void parseTernary(VM *vm, Parser *parser, Compiler *compiler, ClassCompiler *cc, Lexer *lexer, Instructions *i, bool canAssign) {
+
+  int thenJmp = writeJMP(vm, parser, i, OPCODE_JF);
+  writeByte(vm, parser, i, OPCODE_POP);
+
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+
+  int elseJMP = writeJMP(vm, parser, i, OPCODE_JMP);
+
+  patchJMP(parser, i, thenJmp);
+  writeByte(vm, parser, i, OPCODE_POP);
+
+  consume(parser, lexer, SENEGAL_COLON, "Senegal expected `:` after the first ternary statement");
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+
+  patchJMP(parser, i, elseJMP);
 }
 
 void parseThis(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
@@ -802,20 +1014,20 @@ void parseThis(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Le
 }
 
 void parseUnary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
-  TokenType op = parser->previous.type;
+  SenegalTokenType op = parser->previous.type;
 
   parsePrecedence(vm, parser, compiler, cc, lexer, UNARY, i);
 
   switch (op) {
-    case BANG:
+    case SENEGAL_BANG:
       writeByte(vm, parser, i, OPCODE_NOT);
       break;
 
-    case MINUS:
+    case SENEGAL_MINUS:
       writeByte(vm, parser, i, OPCODE_NEG);
       break;
 
-    case TILDE:
+    case SENEGAL_TILDE:
       writeByte(vm, parser, i, OPCODE_BITNOT);
       break;
 
@@ -840,14 +1052,14 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
   switch (parser->current.type) {
 
-    case BREAK: {
+    case SENEGAL_BREAK: {
       advance(parser, lexer);
 
       if (deepestLoopStart == -1) {
         error(parser, &parser->previous, "Senegal is unable to `break` outside loops.");
       }
 
-      consume(parser, lexer, SEMI, "Senegal expected `;` after continue");
+      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after continue");
 
       for (int j = compiler->localCount - 1; j >= 0 && compiler->locals[j].depth > deepestLoopDepth; j--)
         writeByte(vm, parser, i, OPCODE_POP);
@@ -858,14 +1070,14 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       break;
     }
 
-    case CONTINUE: {
+    case SENEGAL_CONTINUE: {
       advance(parser, lexer);
 
       if (deepestLoopStart == -1) {
         error(parser, &parser->previous, "Senegal is unable to `continue` outside loops.");
       }
 
-      consume(parser, lexer, SEMI, "Senegal expected `;` after continue");
+      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after continue");
 
       for (int j = compiler->localCount - 1; j >= 0 && compiler->locals[j].depth > deepestLoopDepth; j--)
         writeByte(vm, parser, i, OPCODE_POP);
@@ -874,18 +1086,18 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       break;
     }
 
-    case LBRACE:
+    case SENEGAL_LBRACE:
       advance(parser, lexer);
       startScope(compiler);
       parseBlock(vm, compiler, cc, parser, lexer, i);
       endScope(vm, parser, compiler, i);
       break;
 
-    case IF: {
+    case SENEGAL_IF: {
       advance(parser, lexer);
-      consume(parser, lexer, LPAREN, "Senegal expected if condition to be enclosed in parenthesis.");
+      consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected if condition to be enclosed in parenthesis.");
       parseExpression(vm, parser, compiler, cc, lexer, i);
-      consume(parser, lexer, RPAREN, "Senegal expected if condition to be followed by a closing parenthesis.");
+      consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected if condition to be followed by a closing parenthesis.");
 
       int thenJmp = writeJMP(vm, parser, i, OPCODE_JF);
       writeByte(vm, parser, i, OPCODE_POP);
@@ -897,14 +1109,14 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       patchJMP(parser, i, thenJmp);
       writeByte(vm, parser, i, OPCODE_POP);
 
-      if (match(parser, lexer, ELSE))
+      if (match(parser, lexer, SENEGAL_ELSE))
         parseStatement(vm, compiler, cc, parser, lexer, i);
 
       patchJMP(parser, i, elseJMP);
       break;
     }
 
-    case RETURN: {
+    case SENEGAL_RETURN: {
       // TODO(Calamity210): Move to a parseReturn function
       advance(parser, lexer);
 
@@ -912,7 +1124,7 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
         error(parser, &parser->previous, "Senegal can't return from a global scope.");
       }
 
-      if (match(parser, lexer, SEMI)) {
+      if (match(parser, lexer, SENEGAL_SEMI)) {
         writeRetByte(vm, compiler, parser, i);
       } else {
         if (compiler->type == CONSTRUCTOR) {
@@ -920,20 +1132,20 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
         }
 
         parseExpression(vm, parser, compiler, cc, lexer, i);
-        consume(parser, lexer, SEMI, "Senegal expected `;` after return statement.");
+        consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
         writeByte(vm, parser, i, OPCODE_RET);
       }
 
       break;
     }
 
-    case SWITCH: {
+    case SENEGAL_SWITCH: {
       // TODO(Calamity210): Implement switch using a jump table
 
       break;
     }
 
-    case WHILE: {
+    case SENEGAL_WHILE: {
       advance(parser, lexer);
 
       int enclosingLoopStart = deepestLoopStart;
@@ -941,9 +1153,9 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       deepestLoopStart = i->bytesCount;
       deepestLoopDepth = compiler->depth;
 
-      consume(parser, lexer, LPAREN, "Senegal expected while condition to be enclosed in parenthesis.");
+      consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected while condition to be enclosed in parenthesis.");
       parseExpression(vm, parser, compiler, cc, lexer, i);
-      consume(parser, lexer, RPAREN, "Senegal expected while condition to be followed by a closing parenthesis.");
+      consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected while condition to be followed by a closing parenthesis.");
 
       int breakJMP = writeJMP(vm, parser, i, OPCODE_JF);
 
@@ -973,18 +1185,17 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       break;
     }
 
-    case FOR: {
+    case SENEGAL_FOR: {
       advance(parser, lexer);
 
       startScope(compiler);
 
-      consume(parser, lexer, LPAREN, "Senegal expected for statement to be enclosed in parenthesis.");
+      consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected for statement to be enclosed in parenthesis.");
 
-      if (match(parser, lexer, VAR)) {
+      // Initializer
+      if (match(parser, lexer, SENEGAL_VAR)) {
         parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-      } else if (match(parser, lexer, SEMI)) {
-
-      } else {
+      } else if (!match(parser, lexer, SENEGAL_SEMI)) {
         parseExpressionStatement(vm, parser, compiler, cc, lexer, i);
       }
 
@@ -995,23 +1206,25 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
       int exitJMP = -1;
 
-      if (!match(parser, lexer, SEMI)) {
+      // Condition
+      if (!match(parser, lexer, SENEGAL_SEMI)) {
         parseExpression(vm, parser, compiler, cc, lexer, i);
-        consume(parser, lexer, SEMI, "Senegal expected a semi colon after a for loops condition statement.");
+        consume(parser, lexer, SENEGAL_SEMI, "Senegal expected a semi colon after a for loops condition statement.");
 
-
+        // If condition is not matched
         exitJMP = writeJMP(vm, parser, i, OPCODE_JF);
         writeByte(vm, parser, i, OPCODE_POP);
       }
 
-      if (!match(parser, lexer, RPAREN)) {
+      // Increment
+      if (!match(parser, lexer, SENEGAL_RPAREN)) {
         int bodyJMP = writeJMP(vm, parser, i, OPCODE_JMP);
 
         int incStart = i->bytesCount;
         parseExpression(vm, parser, compiler, cc, lexer, i);
         writeByte(vm, parser, i, OPCODE_POP);
 
-        consume(parser, lexer, RPAREN, "Senegal expected for statement to be followed by a closing parenthesis.");
+        consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected for statement to be followed by a closing parenthesis.");
 
         writeLoop(vm, parser, i, deepestLoopStart);
         deepestLoopStart = incStart;
@@ -1069,21 +1282,21 @@ static GCString* allocateString(VM* vm, char* chars, int length, uint32_t hash) 
 
   push(vm, GC_OBJ_CONST(string));
 
-  tableInsert(vm, &vm->strings, string, NULL_CONST);
+  tableInsert(vm, &vm->strings, GC_OBJ_CONST(string), NULL_CONST);
 
   pop(vm);
 
   return string;
 }
 
-// TODO(calamity): allow keys of other types
+// TODO(calamity): use this when we allow keys of other types
 static uint32_t hashDouble(double constant) {
-  union BitCast {
+  union BC {
       double constant;
       uint32_t ints[2];
   };
 
-  union BitCast cast;
+  union BC cast;
   cast.constant = constant + 1.0;
   return cast.ints[0] + cast.ints[1];
 }
@@ -1093,7 +1306,7 @@ uint32_t hashConstant(Constant c) {
     return AS_BOOL(c) ? 3 : 5;
 
   if (IS_NULL(c))
-    return 7;
+    return 0;
 
   if (IS_NUMBER(c))
     return hashDouble(AS_NUMBER(c));

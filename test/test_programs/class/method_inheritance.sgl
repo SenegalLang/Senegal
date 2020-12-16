@@ -1,0 +1,12 @@
+class Foo {
+    function printFoo() => println("printFoo");
+}
+
+class Other extends Foo {
+    function printOther() => println("printOther");
+}
+
+var other = Other();
+
+other.printFoo(); // output printFoo
+other.printOther(); // output printOther

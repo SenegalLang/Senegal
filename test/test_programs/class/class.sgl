@@ -1,0 +1,20 @@
+class Senegal {
+    var name;
+
+    Senegal(name) {
+        this.name = name;
+    }
+
+    function foo() {}
+
+    function toString() {
+        return this.name;
+    }
+}
+
+var bird = Senegal("Mel");
+
+assert(bird.name, "Mel");
+
+println(bird.toString()); // output Mel
+println(bird.foo()); // output null

@@ -1,0 +1,3 @@
+var globalVariable = 0;
+
+(globalVariable) = 10; // error <Line 3 Error:=> `Invalid assignment target.`

@@ -1,0 +1,47 @@
+name: Senegal Tests Linux
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'test/senegal'
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Dependencies
+        run: sudo apt-get install apt-transport-https &&
+          sudo sh -c 'wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -' &&
+          sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list' &&
+          sudo apt-get update &&
+          sudo apt-get install dart &&
+          sudo apt-get install gcc
+
+      - uses: actions/checkout@v2
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/cmake-build-release
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/cmake-build-release
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/cmake-build-release
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Run Tests
+        run: mv ./senegal test/ &&
+          chmod +x test/senegal &&
+          cd test/ &&
+          dart pub get &&
+          dart pub run test

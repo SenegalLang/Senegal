@@ -5,7 +5,7 @@
 
 void freeTable(VM* vm, Table* table);
 
-bool tableInsert(VM* vm, Table* table, GCString* key, Constant c);
+bool tableInsert(VM* vm, Table* table, Constant key, Constant c);
 void tableInsertAll(VM* vm, Table* from, Table* to);
 void markTable(VM* vm, Table* table);
 

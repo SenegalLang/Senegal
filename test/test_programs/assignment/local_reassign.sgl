@@ -1,0 +1,12 @@
+function foo() {
+    var localVariable = 0;
+    println(localVariable); // output 0
+
+    localVariable = false;
+    println(localVariable); // output false
+
+    localVariable = "foo";
+    println(localVariable); // output foo
+}
+
+foo();

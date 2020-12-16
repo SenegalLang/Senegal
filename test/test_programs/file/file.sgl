@@ -1,0 +1,7 @@
+import 'sgl:file'
+
+var file = open(Directory.current + '/test_programs/file/file_read_test.sgl', 'rb');
+
+var content = read(file);
+
+println(content); // output var string = "foo";

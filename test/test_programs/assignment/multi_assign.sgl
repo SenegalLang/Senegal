@@ -1,0 +1,6 @@
+var first = 5;
+var second = 10;
+
+first = second = 20;
+
+println(first); // output 20

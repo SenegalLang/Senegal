@@ -4,7 +4,15 @@ module.exports = {
         type: 'category',
         label: 'Senegal Docs',
         items: [
-        // 'tour'
+        'tour',
+            {
+                Core: [
+                    'Core/bool',
+                    'Core/list',
+                    'Core/map',
+                    'Core/string'
+                ]
+            },
         ],
       },
         {

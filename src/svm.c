@@ -4,25 +4,24 @@
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
 #include "includes/sgcobject_utils.h"
-#include "includes/sapi.h"
+#include "../core/includes/sapi.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
-#include "core/sboolCore.h"
-#include "core/sstringCore.h"
-#include "core/snumCore.h"
+
+#include "../core/includes/sboolcore.h"
+#include "../core/includes/sstringcore.h"
+#include "../core/includes/snumcore.h"
+#include "../core/includes/smapcore.h"
+#include "../core/includes/slistcore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
-#include "includes/svm.h"
-#include "includes/stable_utils.h"
-#include "includes/sinstruction_utils.h"
-
 #endif
 
-static void resetStack(VM* vm) {
-  vm->stackTop = vm->stack;
-  vm->frameCount = 0;
-  vm->openUpvalues = NULL;
+static void resetStack(GCCoroutine* coroutine) {
+  coroutine->stackTop = coroutine->stack;
+  coroutine->frameCount = 0;
+  coroutine->openUpvalues = NULL;
 }
 
 static void throwRuntimeError(VM* vm, const char* format, ...) {
@@ -33,14 +32,14 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 
   fputs("\n", stderr);
 
-  for (int i = vm->frameCount - 1; i >= 0; i--) {
-    CallFrame* frame = &vm->frames[i];
+  for (int i = vm->coroutine->frameCount - 1; i > 0; i--) {
+    CallFrame* frame = &vm->coroutine->frames[i];
     GCFunction* function = frame->closure->function;
 
     size_t instruction = frame->pc - function->instructions.bytes - 1;
 
-    fprintf(stderr, "<line %d> ",
-            function->instructions.lines[instruction]);
+    fprintf(stderr, "<Line %d> ",
+            function->instructions.lines[instruction].line);
     if (function->id == NULL) {
       fprintf(stderr, "Global Scope\n");
     } else {
@@ -48,18 +47,18 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
     }
   }
 
-  CallFrame* frame = &vm->frames[vm->frameCount - 1];
+  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
   size_t instruction = frame->pc - frame->closure->function->instructions.bytes - 1;
   int line = getLine(&frame->closure->function->instructions, instruction);
   fprintf(stderr, "<Line %d> Global Scope\n", line);
 
-  resetStack(vm);
+  resetStack(vm->coroutine);
 }
 
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -67,14 +66,14 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newInstance(vm, class)));
-  tableInsert(vm, &vm->globals, AS_STRING(vm->stack[0]), vm->stack[1]);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
 
-
 void initVM(VM* vm) {
-  resetStack(vm);
+  vm->coroutine = NULL;
+  vm->coroutine = newCoroutine(vm,  ROOT, NULL);
 
   vm->gcObjects = NULL;
   vm->bytesAllocated = 0;
@@ -85,75 +84,95 @@ void initVM(VM* vm) {
 
   initTable(&vm->globals);
   initTable(&vm->strings);
-
-  vm->constructString = NULL;
-  vm->constructString = copyString(vm, NULL, "construct", 9);
+  initTable(&vm->corePaths);
 
   defineNativeFunc(vm, "assert", assertApi);
-  defineNativeFunc(vm, "clock", clockApi);
   defineNativeFunc(vm, "print", printApi);
   defineNativeFunc(vm, "println", printlnApi);
 
   initBoolClass(vm);
-  initStringClass(vm);
+  initListClass(vm);
+  initMapClass(vm);
   initNumClass(vm);
+  initStringClass(vm);
 
-  defineNativeInstance(vm, "num", vm->numClass);
+  defineGlobal(vm, "bool", GC_OBJ_CONST(vm->boolClass));
+  defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
+  defineGlobal(vm, "Map", GC_OBJ_CONST(vm->mapClass));
+  defineGlobal(vm, "num", GC_OBJ_CONST(vm->numClass));
+  defineGlobal(vm, "String", GC_OBJ_CONST(vm->stringClass));
+}
+
+GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
+  GCCoroutine* coroutine = ALLOCATE(vm, NULL, GCCoroutine, 1);
+  coroutine->state = state;
+  coroutine->caller = NULL;
+  coroutine->error = NULL;
+  resetStack(coroutine);
+
+  if (closure != NULL) {
+    if (vm->coroutine->frameCount == FRAMES_MAX) {
+      throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
+      vm->coroutine = NULL;
+      return NULL;
+    }
+
+    CallFrame* frame = &coroutine->frames[coroutine->frameCount++];
+    frame->closure = closure;
+    frame->pc = closure->function->instructions.bytes;
+    push(vm, GC_OBJ_CONST(closure));
+  }
+
+  return coroutine;
 }
 
 static Constant peek(VM* vm, int topDelta) {
-  return vm->stackTop[- 1 - topDelta];
+  return vm->coroutine->stackTop[- 1 - topDelta];
 }
 
-static void concatenateStrings(VM* vm) {
-  GCString* b = AS_STRING(peek(vm, 0));
-  GCString* a = AS_STRING(peek(vm, 1));
-
-  int length = a->length + b->length;
-  char* chars = ALLOCATE(vm, NULL, char, length + 1);
-
-  memcpy(chars, a->chars, a->length);
-  memcpy(chars + a->length, b->chars, b->length);
-
-  chars[length] = '\0';
-
-  GCString* newString = getString(vm, chars, length);
-  pop(vm);
-  pop(vm);
-  push(vm,GC_OBJ_CONST(newString));
-}
-
-static bool call(VM* vm, GCClosure* closure, int arity) {
+bool call(VM* vm, GCClosure* closure, int arity) {
 
   if (arity != closure->function->arity) {
     throwRuntimeError(vm, "Function %s expected %d arguments but found %d", closure->function->id->chars, closure->function->arity, arity);
     return false;
   }
 
-  if (vm->frameCount == FRAMES_MAX) {
+  if (vm->coroutine->frameCount == FRAMES_MAX) {
     throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
     return false;
   }
 
-  CallFrame* frame = &vm->frames[vm->frameCount++];
+  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount++];
   frame->closure = closure;
   frame->pc = closure->function->instructions.bytes;
+  frame->constants = vm->coroutine->stackTop - arity - 1;
 
-  frame->constants = vm->stackTop - arity - 1;
   return true;
 }
 
-static bool callConstant(VM* vm,Constant callee, int arity) {
-  if (IS_GC_OBJ(callee)) {
+static bool callConstant(VM* vm, Constant callee, int arity) {
     switch (GC_OBJ_TYPE(callee)) {
       case GC_CLASS: {
         GCClass* class = AS_CLASS(callee);
-        vm->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
+        vm->coroutine->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
         Constant constructor;
-        if (tableGetEntry(&class->methods, vm->constructString, &constructor)) {
+        if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(class->id), &constructor)) {
+          Constant result = AS_NATIVE(constructor)(vm, arity, vm->coroutine->stackTop - arity);
+
+          if (vm->coroutine == NULL)
+            return true;
+
+          vm->coroutine->stackTop -= arity + 1;
+          push(vm, result);
+          return true;
+        }
+
+        if (tableGetEntry(&class->methods, GC_OBJ_CONST(class->id), &constructor)) {
           return call(vm, AS_CLOSURE(constructor), arity);
-        } else if (arity != 0) {
+        }
+
+        if (arity != 0) {
           throwRuntimeError(vm, "%s's constructor takes no arguments", class->id->chars);
           return false;
         }
@@ -166,23 +185,24 @@ static bool callConstant(VM* vm,Constant callee, int arity) {
 
       case GC_INSTANCE_METHOD: {
         GCInstanceMethod* im = AS_INSTANCE_METHOD(callee);
-        vm->stackTop[-arity - 1] = im->receiver;
+        vm->coroutine->stackTop[-arity - 1] = im->receiver;
         return call(vm, im->method, arity);
       }
 
       case GC_NATIVE: {
-        NativeFunc nativeFunc = AS_NATIVE(callee);
-        Constant result = nativeFunc(vm, arity, vm->stackTop - arity);
+        Constant result = AS_NATIVE(callee)(vm, arity, vm->coroutine->stackTop - arity);
 
-        vm->stackTop -= arity + 1;
+        if (vm->coroutine == NULL)
+          return true;
+
+        vm->coroutine->stackTop -= arity + 1;
         push(vm, result);
-
         return true;
       }
       default:
         break;
     }
-  }
+
 
   throwRuntimeError(vm, "Senegal can only call functions and constructors");
   return false;
@@ -190,7 +210,7 @@ static bool callConstant(VM* vm,Constant callee, int arity) {
 
 static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   GCUpvalue* previousUpvalue = NULL;
-  GCUpvalue* upvalue = vm->openUpvalues;
+  GCUpvalue* upvalue = vm->coroutine->openUpvalues;
 
   while (upvalue != NULL && upvalue->place > local) {
     previousUpvalue = upvalue;
@@ -205,7 +225,7 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   createdUpvalue->next = upvalue;
 
   if (previousUpvalue == NULL) {
-    vm->openUpvalues = createdUpvalue;
+    vm->coroutine->openUpvalues = createdUpvalue;
   } else {
     previousUpvalue->next = createdUpvalue;
   }
@@ -213,27 +233,63 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   return createdUpvalue;
 }
 
-static void closeUpvalues(VM* vm, Constant* last) {
-  while (vm->openUpvalues != NULL &&
-         vm->openUpvalues->place >= last) {
-    GCUpvalue* upvalue = vm->openUpvalues;
+static void closeUpvalues(VM* vm, const Constant* last) {
+  while (vm->coroutine->openUpvalues != NULL &&
+         vm->coroutine->openUpvalues->place >= last) {
+    GCUpvalue* upvalue = vm->coroutine->openUpvalues;
     upvalue->closed = *upvalue->place;
     upvalue->place = &upvalue->closed;
-    vm->openUpvalues = upvalue->next;
+    vm->coroutine->openUpvalues = upvalue->next;
   }
 }
 
 static void defineMethod(VM* vm, GCString* id) {
   Constant method = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->methods, id, method);
+  tableInsert(vm, &class->methods, GC_OBJ_CONST(id), method);
+  pop(vm);
+}
+
+static void defineField(VM* vm, GCString* id) {
+  Constant field = peek(vm, 0);
+  GCClass* class = AS_CLASS(peek(vm, 1));
+  tableInsert(vm, &class->fields, GC_OBJ_CONST(id), field);
+  pop(vm);
+}
+
+static void defineStaticMethod(VM* vm, GCString* id) {
+  Constant method = peek(vm, 0);
+  GCClass* class = AS_CLASS(peek(vm, 1));
+  tableInsert(vm, &class->staticMethods, GC_OBJ_CONST(id), method);
+  pop(vm);
+}
+
+static void defineStaticField(VM* vm, GCString* id) {
+  Constant field = peek(vm, 0);
+  GCClass* class = AS_CLASS(peek(vm, 1));
+  tableInsert(vm, &class->staticFields, GC_OBJ_CONST(id), field);
   pop(vm);
 }
 
 static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 
   Constant method;
-  if (!tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method) && !tableGetEntry(&class->methods, GC_OBJ_CONST(id), &method)) {
+    throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
+    return false;
+  }
+
+  GCInstanceMethod* im = newInstanceMethod(vm, peek(vm, 0), AS_CLOSURE(method));
+
+  pop(vm);
+  push(vm, GC_OBJ_CONST(im));
+  return true;
+}
+
+static bool bindStaticMethod(VM* vm, GCClass* class, GCString* id) {
+
+  Constant method;
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method)) {
     throwRuntimeError(vm, "Undefined class method: `%s`", id->chars);
     return false;
   }
@@ -248,7 +304,7 @@ static bool bindMethod(VM* vm, GCClass* class, GCString* id) {
 static bool invokeFromClass(VM* vm, GCClass* class, GCString* id, int arity) {
   Constant method;
 
-  if (!tableGetEntry(&class->methods, id, &method)) {
+  if (!tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &method) && !tableGetEntry(&class->methods, GC_OBJ_CONST(id), &method)) {
     throwRuntimeError(vm, "Unknown property `%s` for class `%s`", id->chars, class->id->chars);
     return false;
   }
@@ -263,11 +319,8 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* boolInstance = newInstance(vm, vm->boolClass);
 
     Constant constant;
-    if (tableGetEntry(&boolInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
-
-      // Possibly not a good idea, cant confirm under my current brainfog, recheck if any errors occur
-      vm->stackTop[-arity] = receiver;
+    if (tableGetEntry(&boolInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -278,10 +331,32 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* stringInstance = newInstance(vm, vm->stringClass);
 
     Constant constant;
-    if (tableGetEntry(&stringInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
+    if (tableGetEntry(&stringInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
 
-      vm->stackTop[-arity] = receiver;
+    return false;
+  }
+
+  if (IS_LIST(receiver)) {
+    GCInstance* listInstance = newInstance(vm, vm->listClass);
+
+    Constant constant;
+    if (tableGetEntry(&listInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_MAP(receiver)) {
+    GCInstance* mapInstance = newInstance(vm, vm->mapClass);
+
+    Constant constant;
+    if (tableGetEntry(&mapInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
 
@@ -292,10 +367,20 @@ static bool invoke(VM* vm, GCString* id, int arity) {
     GCInstance* numInstance = newInstance(vm, vm->numClass);
 
     Constant constant;
-    if (tableGetEntry(&numInstance->class->methods, id, &constant)) {
-      vm->stackTop[-arity - 1] = constant;
+    if (tableGetEntry(&numInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
 
-      vm->stackTop[-arity] = receiver;
+    return false;
+  }
+
+  if (IS_CLASS(receiver)) {
+    GCClass* class = AS_CLASS(receiver);
+
+    Constant constant;
+    if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = constant;
       return callConstant(vm, constant, arity);
     }
 
@@ -310,8 +395,8 @@ static bool invoke(VM* vm, GCString* id, int arity) {
   GCInstance* instance = AS_INSTANCE(receiver);
 
   Constant constant;
-  if (tableGetEntry(&instance->fields, id, &constant)) {
-    vm->stackTop[-arity - 1] = constant;
+  if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
+    vm->coroutine->stackTop[-arity - 1] = constant;
     return callConstant(vm, constant, arity);
   }
 
@@ -319,16 +404,16 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 }
 
 static InterpretationResult run(VM* vm) {
-  register CallFrame* frame = &vm->frames[vm->frameCount - 1];
+  register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
-#define PEEK() (vm->stackTop[-1])
-#define PEEK2() (vm->stackTop[-2])
+#define PEEK() (vm->coroutine->stackTop[-1])
+#define PEEK2() (vm->coroutine->stackTop[-2])
 
-#define PUSH(constant) *vm->stackTop++ = constant
-#define POP() (*(--vm->stackTop))
-#define POPN(count) (*(vm->stackTop -= (count)))
+#define PUSH(constant) *vm->coroutine->stackTop++ = constant
+#define POP() (*(--vm->coroutine->stackTop))
+#define POPN(count) (*(vm->coroutine->stackTop -= (count)))
 
-#define UPDATE_FRAME() (frame = &vm->frames[vm->frameCount - 1])
+#define UPDATE_FRAME() (frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1])
 
 #define READ_BYTE() (*frame->pc++)
 #define READ_SHORT() (frame->pc += 2, (uint16_t)((frame->pc[-2] << 8) | frame->pc[-1]))
@@ -336,7 +421,7 @@ static InterpretationResult run(VM* vm) {
 #define READ_CONSTANT_FROM_INDEX(i) (frame->closure->function->instructions.constants.constants[i])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 
-#define BINARY_OP(vm, pc, constantType, op) \
+#define BINARY_OP(vm, constantType, op) \
   do {                    \
     if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) { \
       throwRuntimeError(vm, "Senegal binary operations require numerical operands."); \
@@ -348,7 +433,26 @@ static InterpretationResult run(VM* vm) {
     PUSH(c); \
   } while(false)
 
-#define BITWISE_OP(vm, pc, constantType, op) \
+  #define CONCAT_STRINGS() \
+  do {                     \
+    GCString* b = AS_STRING(peek(vm, 0)); \
+    GCString* a = AS_STRING(peek(vm, 1));            \
+                           \
+    int length = a->length + b->length; \
+    char* chars = ALLOCATE(vm, NULL, char, length + 1); \
+    \
+    memcpy(chars, a->chars, a->length); \
+    memcpy(chars + a->length, b->chars, b->length); \
+    \
+    chars[length] = '\0'; \
+    \
+    GCString* newString = getString(vm, chars, length); \
+    pop(vm); \
+    pop(vm); \
+    push(vm,GC_OBJ_CONST(newString)); \
+  } while(false)
+
+#define BITWISE_OP(vm, constantType, op) \
   do {                    \
     if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) { \
       throwRuntimeError(vm, "Senegal binary operations require numerical operands."); \
@@ -382,49 +486,45 @@ static InterpretationResult run(VM* vm) {
     run: \
       switch(READ_BYTE()) \
 
-#define CASE(code) case (code)
+#define SENEGAL_CASE(code) case (code)
 #define DISPATCH() goto run
 #endif
 
   // === Labels ===
-  RUN
-  {
-    CASE(OPCODE_TRUE):
-    {
+  RUN {
+    CASE(OPCODE_TRUE): {
       Constant c = BOOL_CONST(true);
       PUSH(c);
       DISPATCH();
     }
 
-    CASE(OPCODE_FALSE):
-    {
+    CASE(OPCODE_FALSE): {
       Constant c = BOOL_CONST(false);
       PUSH(c);
       DISPATCH();
     }
 
     CASE(OPCODE_AND):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, &);
+    BITWISE_OP(vm, NUM_CONST, &);
     DISPATCH();
 
     CASE(OPCODE_OR):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, |);
+    BITWISE_OP(vm, NUM_CONST, |);
     DISPATCH();
 
     CASE(OPCODE_XOR):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, ^);
+    BITWISE_OP(vm, NUM_CONST, ^);
     DISPATCH();
 
     CASE(OPCODE_LSHIFT):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, <<);
+    BITWISE_OP(vm, NUM_CONST, <<);
     DISPATCH();
 
     CASE(OPCODE_RSHIFT):
-    BITWISE_OP(vm, frame->pc, NUM_CONST, >>);
+    BITWISE_OP(vm, NUM_CONST, >>);
     DISPATCH();
 
-    CASE(OPCODE_BITNOT):
-    if (!IS_NUMBER(PEEK())) {
+    CASE(OPCODE_BITNOT): {
       throwRuntimeError(vm, "Senegal encountered a non-number as an operand for OPCODE_NEG.");
       return RUNTIME_ERROR;
     }
@@ -433,50 +533,87 @@ static InterpretationResult run(VM* vm) {
     PUSH(c);
     DISPATCH();
 
-    CASE(OPCODE_ADD):
-    if (IS_STRING(PEEK()) && IS_STRING(PEEK2())) {
-      concatenateStrings(vm);
-    } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, frame->pc, NUM_CONST, +);
-    } else {
-      throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_ADD.");
+    CASE(OPCODE_INC): {
+    if (!IS_NUMBER(PEEK())) {
+      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
       return RUNTIME_ERROR;
     }
+
+    double num = AS_NUMBER(POP());
+
+    Constant c = NUM_CONST( num + 1);
+    PUSH(c);
     DISPATCH();
+  }
+
+    CASE(OPCODE_DEC): {
+    if (!IS_NUMBER(PEEK())) {
+      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+      return RUNTIME_ERROR;
+    }
+
+    double num = AS_NUMBER(POP());
+
+    Constant c = NUM_CONST(num - 1);
+    PUSH(c);
+    DISPATCH();
+  }
+
+    CASE(OPCODE_POW): {
+      if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+        return RUNTIME_ERROR;
+      }
+
+      double powerNum = AS_NUMBER(POP());
+      double num = AS_NUMBER(POP());
+
+      Constant c = NUM_CONST(power(num, powerNum));
+      PUSH(c);
+      DISPATCH();
+    }
+
+    CASE(OPCODE_ADD):
+      if (IS_STRING(PEEK()) || IS_STRING(PEEK2()))
+        CONCAT_STRINGS();
+      else
+        BINARY_OP(vm, NUM_CONST, +);
+
+      DISPATCH();
 
     CASE(OPCODE_SUB):
-    BINARY_OP(vm, frame->pc, NUM_CONST, -);
-    DISPATCH();
+      BINARY_OP(vm, NUM_CONST, -);
+      DISPATCH();
 
     CASE(OPCODE_MUL):
-    if (IS_STRING(PEEK2()) && IS_NUMBER(PEEK())) {
+      if (IS_NUMBER(PEEK2()) && IS_NUMBER(PEEK())) {
+        BINARY_OP(vm, NUM_CONST, *);
+      } else if (IS_STRING(PEEK2()) && IS_NUMBER(PEEK())) {
 
-      int multiplier = (int) AS_NUMBER(POP());
-      GCString *string = AS_STRING(POP());
+        int multiplier = (int) AS_NUMBER(POP());
+        GCString *string = AS_STRING(POP());
 
-      int length = string->length * multiplier;
-      char *chars = ALLOCATE(vm, NULL, char, length + 1);
+        int length = string->length * multiplier;
+        char *chars = ALLOCATE(vm, NULL, char, length + 1);
 
-      for (int i = 0; i < multiplier; i++)
-        memcpy(chars + i * string->length, string->chars, string->length);
+        for (int i = 0; i < multiplier; i++)
+          memcpy(chars + i * string->length, string->chars, string->length);
 
-      chars[length] = '\0';
+        chars[length] = '\0';
 
-      GCString *newString = getString(vm, chars, length);
+        GCString *newString = getString(vm, chars, length);
 
-      Constant c = GC_OBJ_CONST(newString);
-      PUSH(c);
-    } else if (IS_NUMBER(PEEK()) && IS_NUMBER(PEEK2())) {
-      BINARY_OP(vm, frame->pc, NUM_CONST, *);
-    } else {
-      throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_MUL.");
-      return RUNTIME_ERROR;
-    }
-    DISPATCH();
+        Constant c = GC_OBJ_CONST(newString);
+        PUSH(c);
+      } else {
+        throwRuntimeError(vm, "Senegal encountered an unexpected type while executing OPCODE_MUL.");
+        return RUNTIME_ERROR;
+      }
+      DISPATCH();
 
     CASE(OPCODE_DIV):
-    BINARY_OP(vm, frame->pc, NUM_CONST, /);
-    DISPATCH();
+      BINARY_OP(vm, NUM_CONST, /);
+      DISPATCH();
 
     CASE(OPCODE_EQUAL): {
     Constant b = POP();
@@ -494,23 +631,22 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_GREATER):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, >);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, >);
+      DISPATCH();
 
     CASE(OPCODE_LESSER):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, <);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, <);
+      DISPATCH();
 
     CASE(OPCODE_GE):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, >=);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, >=);
+      DISPATCH();
 
     CASE(OPCODE_LE):
-    BINARY_OP(vm, frame->pc, BOOL_CONST, <=);
-    DISPATCH();
+      BINARY_OP(vm, BOOL_CONST, <=);
+      DISPATCH();
 
-    CASE(OPCODE_NEG):
-    {
+    CASE(OPCODE_NEG): {
       if (!IS_NUMBER(PEEK())) {
         throwRuntimeError(vm, "Senegal encountered a non-number as an operand for OPCODE_NEG.");
         return RUNTIME_ERROR;
@@ -523,112 +659,179 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_NOT): {
     Constant constant = POP();
-    Constant c = BOOL_CONST(IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)));
+    Constant c = BOOL_CONST(IS_BOOL(constant) && !AS_BOOL(constant));
     PUSH(c);
     DISPATCH();
   }
 
     CASE(OPCODE_DUP):
-    {
-      Constant c = PEEK();
-      PUSH(c);
-
+      PUSH(PEEK());
       DISPATCH();
-    }
 
     CASE(OPCODE_POP):
-    POP();
-    DISPATCH();
+      POP();
+      DISPATCH();
 
     CASE(OPCODE_POPN):
-    {
-      uint8_t count = READ_BYTE();
-      POPN(count);
+      POPN(READ_BYTE());
       DISPATCH();
-    }
 
     CASE(OPCODE_LOAD):
-    {
-      Constant c = READ_CONSTANT();
-      PUSH(c);
+      PUSH(READ_CONSTANT());
       DISPATCH();
-    }
 
-    CASE(OPCODE_LLOAD):
-    {
+    CASE(OPCODE_LLOAD): {
       int index = READ_BYTE() | (READ_BYTE() << 8) | (READ_BYTE() << 16);
-      Constant c = READ_CONSTANT_FROM_INDEX(index);
-      PUSH(c);
+      PUSH(READ_CONSTANT_FROM_INDEX(index));
       DISPATCH();
     }
 
     CASE(OPCODE_LOADN1):
-    {
-      Constant c = frame->closure->function->instructions.constants.constants[-1];
-      PUSH(c);
+      PUSH(frame->closure->function->instructions.constants.constants[-1]);
       DISPATCH();
-    }
 
     CASE(OPCODE_LOAD0):
-    {
-      Constant c = frame->closure->function->instructions.constants.constants[0];
-      PUSH(c);
+      PUSH(frame->closure->function->instructions.constants.constants[0]);
       DISPATCH();
-    }
 
     CASE(OPCODE_LOAD1):
-    {
-      Constant c = frame->closure->function->instructions.constants.constants[1];
-      PUSH(c);
+      PUSH(frame->closure->function->instructions.constants.constants[1]);
       DISPATCH();
-    }
 
     CASE(OPCODE_LOAD2):
-    {
-      Constant c = frame->closure->function->instructions.constants.constants[2];
-      PUSH(c);
+      PUSH(frame->closure->function->instructions.constants.constants[2]);
+      DISPATCH();
+
+    CASE(OPCODE_LOAD3):
+      PUSH(frame->closure->function->instructions.constants.constants[3]);
+      DISPATCH();
+
+    CASE(OPCODE_NEWMAP): {
+      int arity = READ_BYTE();
+
+      GCMap* map = newMap(vm);
+      for (int i = 0; i < arity; i++) {
+        Constant value = POP();
+        Constant key = POP();
+
+        tableInsert(vm, &map->table, key, value);
+      }
+
+      PUSH(GC_OBJ_CONST(map));
       DISPATCH();
     }
 
-    CASE(OPCODE_LOAD3):
-    {
-      Constant c = frame->closure->function->instructions.constants.constants[3];
-      PUSH(c);
+    CASE(OPCODE_NEWLIST): {
+      int arity = READ_BYTE();
+
+      GCList* list = newList(vm, arity);
+      for (int i = 0; i < arity; i++) {
+        Constant value = POP();
+
+        list->elements[list->elementC++] = value;
+      }
+
+      PUSH(GC_OBJ_CONST(list));
+      DISPATCH();
+    }
+
+    CASE(OPCODE_ACCESS): {
+      if (IS_MAP(PEEK2())) {
+        Constant key = POP();
+        GCMap* map = AS_MAP(POP());
+
+        Constant c;
+        if (!tableGetEntry(&map->table, key, &c)) {
+          throwRuntimeError(vm, "Map entry was not found for key: ");
+          printConstant(key);
+          return RUNTIME_ERROR;
+        }
+
+        PUSH(c);
+      } else if (IS_LIST(PEEK2())) {
+        int index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        push(vm, list->elements[(list->elementC - 1) - (int)index]);
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
+      }
+
+      DISPATCH();
+    }
+
+    CASE(OPCODE_SETACCESS): {
+      Constant newValue = POP();
+
+      if (IS_MAP(PEEK2())) {
+        if (!IS_STRING(PEEK())) {
+          throwRuntimeError(vm, "Senegal maps only support String keys");
+          return RUNTIME_ERROR;
+        }
+
+        Constant key = POP();
+        GCMap* map = AS_MAP(POP());
+
+        tableInsert(vm, &map->table, key, newValue);
+      } else if (IS_LIST(PEEK2())) {
+        if (!IS_NUMBER(PEEK())) {
+          throwRuntimeError(vm, "Index must be a numerical value");
+          return RUNTIME_ERROR;
+        }
+
+        double index = AS_NUMBER(POP());
+        GCList* list = AS_LIST(POP());
+
+        if (index >= list->elementC) {
+          throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+          return RUNTIME_ERROR;
+        }
+
+        list->elements[(list->elementC - 1) - (int)index] = newValue;
+      } else {
+        throwRuntimeError(vm, "Tried accessing an invalid type.");
+        return RUNTIME_ERROR;
+      }
+
       DISPATCH();
     }
 
     CASE(OPCODE_NEWCLASS):
-    {
-      Constant c = GC_OBJ_CONST(newClass(vm, READ_STRING(), false, false));
-      PUSH(c);
+      PUSH(GC_OBJ_CONST(newClass(vm, READ_STRING(), false)));
       DISPATCH();
-    }
 
     CASE(OPCODE_NEWFINALCLASS):
-    {
-      Constant c = GC_OBJ_CONST(newClass(vm, READ_STRING(), true, false));
-      PUSH(c);
+      PUSH(GC_OBJ_CONST(newClass(vm, READ_STRING(), true)));
       DISPATCH();
-    }
-
-    CASE(OPCODE_NEWSTRICTCLASS):
-    {
-      Constant c = GC_OBJ_CONST(newClass(vm, READ_STRING(), false, true));
-      PUSH(c);
-      DISPATCH();
-    }
 
     CASE(OPCODE_SETFIELD): {
 
-    if (IS_CLASS(PEEK())) {
+    if (IS_CLASS(PEEK2())) {
       GCClass *class = AS_CLASS(PEEK2());
+      Constant key = READ_CONSTANT();
 
-      tableInsert(vm, &class->fields, READ_STRING(), PEEK());
+      if (class->isFinal && frame->closure->function->id != class->id) {
+        throwRuntimeError(vm, "Cannot mutate fields of a final class");
+        return RUNTIME_ERROR;
+      }
 
-      Constant constant = POP();
+      Constant constant1;
+      if (!tableGetEntry(&class->staticFields, key, &constant1)) {
+        throwRuntimeError(vm, "Senegal cannot add fields to an instance", class->id->chars);
+        return RUNTIME_ERROR;
+      }
+
+      tableInsert(vm, &class->staticFields, key, PEEK());
+
+      Constant c = POP();
 
       POP();
-      Constant c = constant;
       PUSH(c);
 
       DISPATCH();
@@ -641,20 +844,20 @@ static InterpretationResult run(VM* vm) {
 
     GCInstance *instance = AS_INSTANCE(PEEK2());
 
-    if (instance->class->isFinal) {
+    if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
       throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
 
-    GCString *key = READ_STRING();
+    Constant key = READ_CONSTANT();
 
     Constant constant1;
-    if (instance->class->isStrict && !tableGetEntry(&instance->fields, key, &constant1) && frame->closure->function->id != vm->constructString) {
-      throwRuntimeError(vm, "Senegal cannot insert fields in a strict class: %s", instance->class->id->chars);
+    if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
+      throwRuntimeError(vm, "Senegal cannot add fields to an instance", instance->class->id->chars);
       return RUNTIME_ERROR;
     }
 
-    tableInsert(vm, &instance->fields, key, PEEK());
+    tableInsert(vm, &instance->class->fields, key, PEEK());
 
     Constant constant = POP();
 
@@ -667,13 +870,33 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_GETFIELD): {
 
-    register Constant left = PEEK();
+    Constant left = PEEK();
 
-    if (IS_BOOL(left)) {
+    if (IS_CLASS(left)) {
+      GCClass *class = AS_CLASS(left);
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->boolClass->fields, id, &constant)) {
+      if (tableGetEntry(&class->staticFields, GC_OBJ_CONST(id), &constant)) {
+        POP();
+        PUSH(constant);
+        DISPATCH();
+      }
+
+      if (!bindStaticMethod(vm, class, id)) {
+        return RUNTIME_ERROR;
+      }
+
+      PUSH(c);
+
+      DISPATCH();
+    }
+
+    if (IS_BOOL(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "bool", 4) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->boolClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -683,11 +906,39 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_STRING(left)) {
+    if (IS_STRING(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "String", 6) == 0)) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->stringClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->stringClass->fields, GC_OBJ_CONST(id), &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_LIST(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "List", 4) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->listClass->fields, GC_OBJ_CONST(id), &constant)) {
+        POP();
+        Constant c = constant;
+        PUSH(c);
+        DISPATCH();
+      }
+
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_MAP(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "Map", 3) == 0)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->mapClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         Constant c = constant;
         PUSH(c);
@@ -701,10 +952,9 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->numClass->fields, id, &constant)) {
+      if (tableGetEntry(&vm->numClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
-        Constant c = constant;
-        PUSH(c);
+        PUSH(constant);
         DISPATCH();
       }
 
@@ -712,18 +962,22 @@ static InterpretationResult run(VM* vm) {
     }
 
     if (!IS_INSTANCE(left)) {
-      throwRuntimeError(vm, "Tried accessing fields of non-class instance objects");
+      throwRuntimeError(vm, "Tried accessing fields of non-class or instance objects");
       return RUNTIME_ERROR;
     }
 
     GCInstance *instance = AS_INSTANCE(left);
     GCString *id = READ_STRING();
 
+    if (!strcmp(id->chars, "type")) {
+      PUSH(GC_OBJ_CONST(instance->class->id));
+      DISPATCH();
+    }
+
     Constant constant;
-    if (tableGetEntry(&instance->fields, id, &constant)) {
+    if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
       POP();
-      Constant c = constant;
-      PUSH(c);
+      PUSH(constant);
       DISPATCH();
     }
 
@@ -734,26 +988,40 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_METHOD):
+  CASE(OPCODE_NEWMETHOD):
     defineMethod(vm, READ_STRING());
     DISPATCH();
 
-    CASE(OPCODE_INHERIT): {
-    Constant super = PEEK2();
+  CASE(OPCODE_NEWSTATICMETHOD):
+  defineStaticMethod(vm, READ_STRING());
+  DISPATCH();
+
+  CASE(OPCODE_NEWFIELD):
+    defineField(vm, READ_STRING());
+    DISPATCH();
+
+  CASE(OPCODE_NEWSTATICFIELD):
+    defineStaticField(vm, READ_STRING());
+    DISPATCH();
+
+  CASE(OPCODE_INHERIT): {
+  Constant super = PEEK2();
 
     if (!IS_CLASS(super)) {
       throwRuntimeError(vm, "Senegal classes can only inherit from another class");
       return RUNTIME_ERROR;
     }
 
-    GCClass *sub = AS_CLASS(PEEK());
+    GCClass* sub = AS_CLASS(PEEK());
+
+    tableInsertAll(vm, &AS_CLASS(super)->fields, &sub->fields);
     tableInsertAll(vm, &AS_CLASS(super)->methods, &sub->methods);
 
     POP();
     DISPATCH();
   }
 
-    CASE(OPCODE_GETSUPER): {
+  CASE(OPCODE_GETSUPER): {
     GCString *id = READ_STRING();
     GCClass *super = AS_CLASS(POP());
 
@@ -764,7 +1032,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_SUPERINVOKE): {
+  CASE(OPCODE_SUPERINVOKE): {
     GCString *method = READ_STRING();
     int arity = READ_BYTE();
     GCClass *super = AS_CLASS(POP());
@@ -777,127 +1045,104 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_NEWGLOB): {
+  CASE(OPCODE_NEWGLOB): {
     GCString *id = READ_STRING();
     Constant constant;
 
-    if (tableGetEntry(&vm->globals, id, &constant)) {
+    if (tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
       throwRuntimeError(vm, "Senegal attempted to define an existing global: %s", id);
       return RUNTIME_ERROR;
     }
 
-    tableInsert(vm, &vm->globals, id, PEEK());
+    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK());
     POP();
     DISPATCH();
   }
 
-    CASE(OPCODE_GETGLOB): {
+  CASE(OPCODE_GETGLOB): {
     GCString *id = READ_STRING();
     Constant constant;
 
-    if (!tableGetEntry(&vm->globals, id, &constant)) {
+    if (!tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
       throwRuntimeError(vm, "Senegal tried to get an undefined variable `%s`", id->chars);
       return RUNTIME_ERROR;
     }
 
-    Constant c = constant;
-    PUSH(c);
+    PUSH(constant);
     DISPATCH();
   }
 
-    CASE(OPCODE_SETGLOB): {
+  CASE(OPCODE_SETGLOB): {
     GCString *id = READ_STRING();
 
-    if (tableInsert(vm, &vm->globals, id, PEEK())) {
-      tableRemove(&vm->globals, id);
+    if (tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK())) {
+      tableRemove(&vm->globals, GC_OBJ_CONST(id));
       throwRuntimeError(vm, "Senegal attempted to reassign an undefined variable: %s", id->chars);
       return RUNTIME_ERROR;
     }
+
     DISPATCH();
   }
 
-    CASE(OPCODE_GETLOC): {
-    uint8_t slot = READ_BYTE();
-    Constant c = frame->constants[slot];
-    PUSH(c);
+  CASE(OPCODE_GETLOC): {
+    PUSH(frame->constants[READ_BYTE()]);
     DISPATCH();
   }
 
-    CASE(OPCODE_GETLOC0): {
-    Constant c = frame->constants[0];
-    PUSH(c);
-    DISPATCH();
-  }
+    CASE(OPCODE_GETLOC0):
+      PUSH(frame->constants[0]);
+      DISPATCH();
 
-    CASE(OPCODE_GETLOC1): {
-    Constant c = frame->constants[1];
-    PUSH(c);
+  CASE(OPCODE_GETLOC1):
+    PUSH(frame->constants[1]);
     DISPATCH();
-  }
 
-    CASE(OPCODE_GETLOC2): {
-    Constant c = frame->constants[2];
-    PUSH(c);
+  CASE(OPCODE_GETLOC2):
+    PUSH(frame->constants[2]);
     DISPATCH();
-  }
 
-    CASE(OPCODE_GETLOC3): {
-    Constant c = frame->constants[3];
-    PUSH(c);
+  CASE(OPCODE_GETLOC3):
+    PUSH(frame->constants[3]);
     DISPATCH();
-  }
 
-    CASE(OPCODE_GETLOC4): {
-    Constant c = frame->constants[4];
-    PUSH(c);
+  CASE(OPCODE_GETLOC4):
+    PUSH(frame->constants[4]);
     DISPATCH();
-  }
 
-    CASE(OPCODE_GETLOC5): {
-    Constant c = frame->constants[5];
-    PUSH(c);
+  CASE(OPCODE_GETLOC5):
+    PUSH(frame->constants[5]);
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC): {
-    uint8_t slot = READ_BYTE();
-    frame->constants[slot] = PEEK();
+  CASE(OPCODE_SETLOC):
+    frame->constants[READ_BYTE()] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC0): {
+  CASE(OPCODE_SETLOC0):
     frame->constants[0] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC1): {
+  CASE(OPCODE_SETLOC1):
     frame->constants[1] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC2): {
+  CASE(OPCODE_SETLOC2):
     frame->constants[2] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC3): {
+  CASE(OPCODE_SETLOC3):
     frame->constants[3] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC4): {
+  CASE(OPCODE_SETLOC4):
     frame->constants[4] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_SETLOC5): {
+  CASE(OPCODE_SETLOC5):
     frame->constants[5] = PEEK();
     DISPATCH();
-  }
 
-    CASE(OPCODE_GETUPVAL): {
-    uint8_t slot = READ_BYTE();
-    Constant c = *frame->closure->upvalues[slot]->place;
+  CASE(OPCODE_GETUPVAL): {
+    Constant c = *frame->closure->upvalues[READ_BYTE()]->place;
     PUSH(c);
     DISPATCH();
   }
@@ -909,7 +1154,7 @@ static InterpretationResult run(VM* vm) {
   }
 
     CASE(OPCODE_CLOSEUPVAL): {
-    closeUpvalues(vm, vm->stackTop - 1);
+    closeUpvalues(vm, vm->coroutine->stackTop - 1);
     POP();
     DISPATCH();
   }
@@ -936,8 +1181,7 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_BREAK):
-    {
+    CASE(OPCODE_BREAK): {
       throwRuntimeError(vm, "Senegal encountered a badly parsed `break`");
       DISPATCH();
     }
@@ -967,8 +1211,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -977,8 +1223,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -987,8 +1235,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -997,8 +1247,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1007,8 +1259,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1017,8 +1271,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1027,8 +1283,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1037,8 +1295,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1047,8 +1307,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1057,8 +1319,10 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    UPDATE_FRAME();
+    if (vm->coroutine == NULL)
+      return OK;
 
+    UPDATE_FRAME();
     DISPATCH();
   }
 
@@ -1067,15 +1331,18 @@ static InterpretationResult run(VM* vm) {
     int arity = READ_BYTE();
 
     if (!invoke(vm, method, arity)) {
+      printf("%s method not found", method->chars);
       return RUNTIME_ERROR;
     }
+
+    if (vm->coroutine == NULL)
+      return OK;
 
     UPDATE_FRAME();
     DISPATCH();
   }
 
-    CASE(OPCODE_NULL):
-    {
+    CASE(OPCODE_NULL): {
       Constant c = NULL_CONST;
       PUSH(c);
       DISPATCH();
@@ -1084,18 +1351,24 @@ static InterpretationResult run(VM* vm) {
     CASE(OPCODE_RET): {
     Constant result = POP();
 
+    vm->coroutine->frameCount--;
     closeUpvalues(vm, frame->constants);
 
-    vm->frameCount--;
+    if (vm->coroutine->frameCount == 0) {
+      if (vm->coroutine->caller == NULL) {
+        PUSH(result);
+        return OK;
+      }
 
-    if (vm->frameCount == 0) {
-      POP();
-      return OK;
+      GCCoroutine* resuming = vm->coroutine->caller;
+      vm->coroutine->caller = NULL;
+      vm->coroutine = resuming;
+
+      vm->coroutine->stackTop[-1] = result;
+    } else {
+      vm->coroutine->stackTop = frame->constants;
+      PUSH(result);
     }
-
-    vm->stackTop = frame->constants;
-    Constant c = result;
-    PUSH(c);
 
     UPDATE_FRAME();
     DISPATCH();
@@ -1110,11 +1383,9 @@ static InterpretationResult run(VM* vm) {
 #undef BINARY_OP
 }
 
-
-InterpretationResult interpret(VM* vm, const char* source) {
-
+InterpretationResult interpret(VM* vm, char* source, char* senegalPath) {
   Compiler compiler;
-  GCFunction* function = compile(vm, &compiler, source);
+  GCFunction* function = compile(vm, &compiler, source, senegalPath);
 
   if (function == NULL)
     return COMPILE_TIME_ERROR;
@@ -1125,26 +1396,27 @@ InterpretationResult interpret(VM* vm, const char* source) {
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  callConstant(vm, GC_OBJ_CONST(closure), 0);
+  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
 
   return run(vm);
 }
 
 void push(VM* vm, Constant constant) {
-  *vm->stackTop++ = constant;
+  *vm->coroutine->stackTop++ = constant;
 }
 
 Constant pop(VM* vm) {
-  return *(vm->stackTop--);
+  return *(vm->coroutine->stackTop--);
 }
 
-GCClass* newClass(VM *vm, GCString *id, bool isFinal, bool isStrict) {
+GCClass* newClass(VM *vm, GCString *id, bool isFinal) {
   GCClass* class = ALLOCATE_GC_OBJ(vm, GCClass, GC_CLASS);
   class->id = id;
   class->isFinal = isFinal;
-  class->isStrict = isStrict;
   initTable(&class->methods);
   initTable(&class->fields);
+  initTable(&class->staticMethods);
+  initTable(&class->staticFields);
 
   return class;
 }
@@ -1175,12 +1447,11 @@ GCFunction* newFunction(VM* vm) {
 }
 
 GCInstance* newInstance(VM* vm, GCClass* class) {
-  GCInstance* instance = ALLOCATE_GC_OBJ(vm, GCInstance, GC_INSTANCE);
+    GCInstance* instance = ALLOCATE_GC_OBJ(vm, GCInstance, GC_INSTANCE);
 
-  instance->class = class;
-  initTable(&instance->fields);
+    instance->class = class;
 
-  return instance;
+    return instance;
 }
 
 GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method) {
@@ -1203,4 +1474,23 @@ GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
   upvalue->next = NULL;
 
   return upvalue;
+}
+
+GCList* newList(VM *vm, int length) {
+  GCList* list = ALLOCATE_GC_OBJ(vm, GCList, GC_LIST);
+
+  list->elements = ALLOCATE(vm, NULL, Constant, length);
+  list->elementC = 0;
+
+  list->listCurrentCap = 0;
+  GROW_CAP(list->listCurrentCap);
+
+  return list;
+}
+
+GCMap* newMap(VM *vm) {
+  GCMap* map = ALLOCATE_GC_OBJ(vm, GCMap, GC_MAP);
+  initTable(&map->table);
+
+  return map;
 }

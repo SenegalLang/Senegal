@@ -1,0 +1,12 @@
+class Senegal {
+   var name = "Mel";
+}
+
+class Bird extends Senegal {
+var age = 21;
+}
+
+var newBird = Bird();
+
+println(newBird.name); // output Mel
+println(newBird.age); // output 21

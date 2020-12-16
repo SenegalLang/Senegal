@@ -1,0 +1,24 @@
+var list = [1, 2, 3, 4, 5, 7];
+
+println(list); // output [1,2,3,4,5,7]
+
+list[5] = 6;
+
+println(list[5]); // output 6
+println(list.length()); // output 6
+
+var filledList = List.filled(3, 1);
+
+println(filledList); // output [1,1,1]
+
+filledList.insertAt(0, 3);
+println(filledList); // output [3,1,1]
+
+filledList.add(25);
+println(filledList); // output [3,1,1,25]
+
+filledList.removeAt(1);
+println(filledList); // output [3,1,25]
+
+filledList.clear();
+println(filledList); // output []

@@ -1,0 +1,30 @@
+// root
+
+import "sgl:math"
+
+println(e); // output 2.718281828459045
+println(ln10); // output 2.302585092994046
+println(ln2); // output 0.6931471805599453
+println(log2e); // output 1.442695040888963
+println(log10e); // output 0.4342944819032518
+println(pi); // output 3.141592653589793
+println(sqrt1_2); // output 0.7071067811865476
+println(sqrt2); // output 1.414213562373095
+
+println(min(0, 1)); // output 0
+println(max(0, 1)); // output 1
+println(remap(1, 0, 1, 0, 10)); // output 10
+println(sin(2.30)); // output 0.7457052121767203
+println(cos(0.52)); // output 0.8678191796776499
+println(tan(5.6)); // output -0.8139432836897027
+println(asin(0.92)); // output 1.168080485214235
+println(acos(0.45)); // output 1.1040309877476
+println(atan(5.98)); // output 1.40510535008419
+println(atan2(2.53, -10.2)); // output 2.898460284233957
+println(toDegrees(1)); // output 57.29577951308232
+println(toRadians(57.29577951308232)); // output 1
+println(gcd(81, 153)); // output 9
+println(gcd(81, -153)); // output 9
+println(log(5.6)); // output 1.722766597741104
+println(round(5.8)); // output 6
+println(random(0, 10).type); // output num
