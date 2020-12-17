@@ -2,7 +2,6 @@
 id: tour
 title: Senegal Tour
 sidebar_label: Tour
-slug: /
 ---
 
 ```js

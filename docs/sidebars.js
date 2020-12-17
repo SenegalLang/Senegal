@@ -4,6 +4,7 @@ module.exports = {
         type: 'category',
         label: 'Senegal Docs',
         items: [
+        'overview',
         'tour',
             {
                 Core: [

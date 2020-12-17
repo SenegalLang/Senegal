@@ -13,7 +13,7 @@ function Home() {
   return (
       <Layout
           title={siteConfig.title}
-          description="Smol Programming Language">
+          description="Language">
         <div className={styles.hero}>
           <header>
             <img src={useBaseUrl('img/logo.svg')} />

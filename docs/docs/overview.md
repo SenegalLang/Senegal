@@ -1,5 +1,9 @@
-<p align="center"><img src="misc/logo.png" height="150px"></p>
-<h1 align="center">Senegal</h1>
+---
+id: overview
+title: Overview
+sidebar_label: Overview
+slug: /
+---
 
 Senegal is a powerful, small-but-fast, concurrent, class-based, and dynamically-typed programming language with a modern syntax.
 
@@ -33,6 +37,3 @@ Have I piqued your interest? Great! Head over to our [docs](https://lang-senegal
 Feel free to join in and help out with Senegal. You can start by
 - Joining the discord - https://discord.gg/9dq6YB2
 - and reading the style guide - https://lang-senegal.web.app/docs/Contribute/style
-
-## Documentation
-The documentation is still a work in progress, but you can find it at: https://lang-senegal.web.app/
