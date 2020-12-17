@@ -7,7 +7,7 @@ void initTable(Table *table) {
   table->entries = NULL;
 }
 
-Entry* findEntry(Entry* entries, int cap, Constant key) {
+Entry* tableFind(Entry* entries, int cap, Constant key) {
   uint32_t index = hashConstant(key) & cap; // hash % cap
   Entry* tombstone = NULL;
 
@@ -33,7 +33,7 @@ bool tableRemove(Table* table, Constant key) {
   if (table->count == 0)
     return false;
 
-  Entry* entry = findEntry(table->entries, table->cap, key);
+  Entry* entry = tableFind(table->entries, table->cap, key);
   if (IS_NULL(entry->key))
     return false;
 
@@ -47,7 +47,7 @@ bool tableGetEntry(Table* table, Constant key, Constant* c) {
   if (table->count == 0)
     return false;
 
-  Entry* entry = findEntry(table->entries, table->cap, key);
+  Entry* entry = tableFind(table->entries, table->cap, key);
 
   if (IS_NULL(entry->key))
     return false;

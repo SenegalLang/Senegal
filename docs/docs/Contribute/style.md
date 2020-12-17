@@ -1,6 +1,6 @@
 ---
 id: style
-title: Senegal Styling Guide
+title: Senegal Repo Styling Guide
 sidebar_label: Style Guide
 ---
 

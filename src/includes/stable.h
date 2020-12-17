@@ -16,7 +16,7 @@ typedef struct {
 
 void initTable(Table* table);
 
-Entry* findEntry(Entry* entries, int cap, Constant key);
+Entry* tableFind(Entry* entries, int cap, Constant key);
 
 bool tableRemove(Table* table, Constant key);
 void tableRemoveWhite(Table* table);

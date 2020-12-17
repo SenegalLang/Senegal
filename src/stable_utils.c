@@ -26,7 +26,7 @@ static void adjustCap(VM* vm, Table* table, int cap) {
     if (IS_NULL(entry->key))
       continue;
 
-    Entry* dest = findEntry(entries, cap, entry->key);
+    Entry* dest = tableFind(entries, cap, entry->key);
     dest->key = entry->key;
     dest->constant = entry->constant;
     table->count++;
@@ -43,7 +43,7 @@ bool tableInsert(VM* vm, Table* table, Constant key, Constant c) {
     adjustCap(vm, table, cap);
   }
 
-  Entry* entry = findEntry(table->entries, table->cap, key);
+  Entry* entry = tableFind(table->entries, table->cap, key);
 
   bool isNew = IS_NULL(entry->key);
 
