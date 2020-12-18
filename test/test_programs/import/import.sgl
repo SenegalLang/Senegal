@@ -1,0 +1,17 @@
+// output true == true: true
+// output tBool == fBool: false
+// output tBool && fBool: false
+// output tBool: true
+// output tbool asNum: 1
+// output tBool type: bool
+// output tBool isEmpty: false
+import "../bool/bool.sgl"
+
+// output Mel
+// output null
+import "../class/class.sgl"
+
+var senegal = Senegal("Foo");
+
+println(senegal.name); // output Foo
+println(tBool); // output true

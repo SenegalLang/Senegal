@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <libgen.h>
+#include <string.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -6,7 +8,7 @@
 #include "includes/smemory.h"
 
 #if DEBUG_PRINT_CODE
-  #include "includes/sdebug.h"
+#include "includes/sdebug.h"
 #endif
 
 #ifdef _WIN32
@@ -162,7 +164,7 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
 }
 
 
-GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath) {
+GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senegalPath, char* dir) {
   Lexer lexer;
   initLexer(&lexer, source);
 
@@ -187,6 +189,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath)
         fprintf(stderr, "`%s` is not a core senegal library", importSource);
       }
 
+      // TODO: Test more thoroughly
       if (IS_NULL(constant)) {
         int senegalPathLen = strlen(senegalPath);
 
@@ -205,17 +208,34 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath)
         memcpy(path + senegalPathLen + 6, importSource, libLen);
         memcpy(path + senegalPathLen + libLen + 6, PATH_SEPARATOR, 1);
         memcpy(path + senegalPathLen + libLen + 7, importSource, libLen);
+
+        // Save the directory path
+        char* tempDir = strdup(path);
+
         memcpy(path + senegalPathLen + (libLen * 2) + 7, ".sgl", 4);
 
         path[senegalPathLen + (libLen * 2) + 16] = '\0';
 
-        interpret(vm, readFileWithPath(path), senegalPath);
+        interpret(vm, readFileWithPath(path), senegalPath, tempDir);
       } else {
-      AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
+        AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
       }
 
     } else {
-      interpret(vm, readFileWithPath(importSource), senegalPath);
+      char* tempDir = strdup(dir);
+
+      // +2 for separator and terminator
+      char* filePath = (char*)malloc(strlen(dir) + strlen(importSource) + 2);
+      filePath[0] = '\0';
+      strcat(filePath, tempDir);
+      strcat(filePath, PATH_SEPARATOR);
+      strcat(filePath, importSource);
+
+
+      char* fpDup = strdup(filePath);
+      char* newDir = dirname(fpDup);
+
+      interpret(vm, readFileWithPath(filePath), senegalPath, newDir);
     }
   }
 

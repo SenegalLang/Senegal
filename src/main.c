@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <locale.h>
+#include <libgen.h>
+#include <string.h>
 
 #include "includes/sutils.h"
 #include "includes/sinstructions.h"
@@ -26,6 +28,12 @@
 
 static void repl(VM* vm, char* senegalPath) {
   char line[1024];
+
+  char cwd[260]; // PATH_MAX
+  if (getcwd(cwd, sizeof(cwd)) == NULL) {
+    fprintf(stderr, "Failed to get current directory");
+    exit(1);
+  }
 
   for (;;) {
     printf("> ");
@@ -68,19 +76,26 @@ static void repl(VM* vm, char* senegalPath) {
 
       }
 
-      interpret(vm, block, senegalPath);
+      interpret(vm, block, senegalPath, cwd);
     } else if (strcmp(line, ".exit\n") == 0) {
       break;
     } else {
-      interpret(vm, line, senegalPath);
+      interpret(vm, line, senegalPath, cwd);
     }
   }
 }
 
+static inline char* getFileDir(VM* vm, const char* filePath) {
+  char* pathDup = strdup(filePath);
+
+  return dirname(pathDup);
+}
+
 static void runFile(VM* vm, const char* path, char* senegalPath) {
   char* source = readFileWithPath(path);
+  char* dir = getFileDir(vm, path);
 
-  InterpretationResult result = interpret(vm, source, senegalPath);
+  InterpretationResult result = interpret(vm, source, senegalPath, dir);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);

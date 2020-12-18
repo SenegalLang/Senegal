@@ -174,7 +174,7 @@ GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 
-InterpretationResult interpret(VM* vm, char* source, char* senegalPath);
+InterpretationResult interpret(VM* vm, char* source, const char* senegalPath, char* dir);
 
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);
