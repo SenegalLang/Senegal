@@ -1002,7 +1002,8 @@ static InterpretationResult run(VM* vm) {
     }
 
     if (!bindMethod(vm, instance->class, id)) {
-      throwRuntimeError(vm, "Field not found: %s", id->chars);      return RUNTIME_ERROR;
+      throwRuntimeError(vm, "Field not found: %s", id->chars);
+      return RUNTIME_ERROR;
     }
 
     DISPATCH();

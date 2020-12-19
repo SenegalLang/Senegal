@@ -88,7 +88,6 @@ static Constant numRemainder(VM* vm, int arity, Constant* args) {
 
 void initNumClass(VM *vm) {
   vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), true);
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "num", 3)), vm->numClass);
 
   defineClassNativeFunc(vm, "isFinite", numIsFinite, vm->numClass);
   defineClassNativeFunc(vm, "isInfinite", numIsInfinite, vm->numClass);

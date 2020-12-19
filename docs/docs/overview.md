@@ -27,7 +27,7 @@ mel.talk("Hello world!"); // Mel says: Hello World
 
 ## Features
 - Fast single-pass compiler
-- Dynamically typed (Plan to move out of being dynamically typed soon)
+- Dynamically typed
 - Coroutines
 
 ## Get Started

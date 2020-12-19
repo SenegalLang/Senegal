@@ -278,8 +278,6 @@ static Constant stringSubstr(VM* vm, int arity, Constant *args) {
 
 void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
-  // Fields
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "String", 6)), vm->stringClass);
 
   // Static methods
   defineClassNativeStaticFunc(vm, "fromByte", stringFromByte, vm->stringClass);

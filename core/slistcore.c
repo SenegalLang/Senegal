@@ -118,7 +118,6 @@ static Constant listFilled(VM* vm, int arity, Constant* args) {
 
 void initListClass(VM *vm) {
   vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(copyString(vm, NULL, "List", 4)), vm->listClass);
 
   defineClassNativeStaticFunc(vm, "List", listNew, vm->listClass);
   defineClassNativeStaticFunc(vm, "filled", listFilled, vm->listClass);

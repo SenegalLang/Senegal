@@ -62,10 +62,14 @@ size_t getline(char **lineptr, size_t *n, FILE *stream) {
 GCClass* ioFileClass;
 
 static Constant sglClock(VM* vm, int arity, Constant* args) {
+  expect(0, arity, "clock");
+
   return NUM_CONST((double)clock());
 }
 
 static Constant sglReadLine(VM* vm, int arity, Constant* args) {
+  expect(0, arity, "readLine");
+
   char* line = NULL;
   size_t len;
 
@@ -75,10 +79,16 @@ static Constant sglReadLine(VM* vm, int arity, Constant* args) {
 }
 
 static Constant sglSleep(VM* vm, int arity, Constant* args) {
-  expect(1, arity, "seconds");
+  expect(1, arity, "sleep");
 
   int seconds = AS_NUMBER(args[0]);
   return NUM_CONST(sleep(seconds));
+}
+
+static Constant sglExit(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "exit");
+
+  exit(AS_NUMBER(args[0]));
 }
 
 static Constant sglRunCmd(VM* vm, int arity, Constant* args) {
@@ -151,6 +161,7 @@ Constant initIoLib(VM* vm, int arity, Constant* args) {
   defineGlobalFunc(vm, "clock", sglClock);
   defineGlobalFunc(vm, "readln", sglReadLine);
   defineGlobalFunc(vm, "sleep", sglSleep);
+  defineGlobalFunc(vm, "exit", sglExit);
 
   defineGlobalFunc(vm, "runCmd", sglRunCmd);
   defineGlobalFunc(vm, "system", sglSystem);
