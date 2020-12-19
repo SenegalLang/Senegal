@@ -45,7 +45,7 @@
               "source": "@site/docs\\Contribute\\style.md",
               "slug": "/",
               "permalink": "/docs/",
-              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/Contribute/style.md",
+              "editUrl": "https://github.com/SenegalLang/Senegal/edit/master/docs/docs/Contribute/style.md",
               "version": "current",
               "lastUpdatedAt": 1539502055,
               "sidebar_label": "Style Guide",
@@ -60,7 +60,7 @@
               "source": "@site/docs\\tour.md",
               "slug": "/tour",
               "permalink": "/docs/tour",
-              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/docs/tour.md",
+              "editUrl": "https://github.com/SenegalLang/Senegal/edit/master/docs/docs/tour.md",
               "version": "current",
               "lastUpdatedAt": 1539502055
             }
@@ -100,7 +100,7 @@
               "source": "@site/community\\support.md",
               "slug": "/support",
               "permalink": "/community/support",
-              "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/community/support.md",
+              "editUrl": "https://github.com/SenegalLang/Senegal/edit/master/docs/community/support.md",
               "version": "current",
               "lastUpdatedBy": "Author",
               "lastUpdatedAt": 1539502055,

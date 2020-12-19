@@ -15,7 +15,7 @@ export default {
       {
         "id": "community",
         "path": "community",
-        "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/",
+        "editUrl": "https://github.com/SenegalLang/Senegal/edit/master/docs/",
         "routeBasePath": "community",
         "sidebarPath": "D:\\Projects\\Senegal\\docs\\sidebarsCommunity.js",
         "showLastUpdateAuthor": true,
@@ -39,7 +39,7 @@ export default {
     },
     "announcementBar": {
       "id": "leave_star",
-      "content": "⭐️ If you like our projects, give it a star on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/Calamity210/Senegal\">GitHub</a>! ⭐️",
+      "content": "⭐️ If you like our projects, give it a star on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://github.com/SenegalLang/Senegal\">GitHub</a>! ⭐️",
       "backgroundColor": "#fff",
       "textColor": "#000",
       "isCloseable": true
@@ -65,7 +65,7 @@ export default {
           "position": "left"
         },
         {
-          "href": "https://github.com/Calamity210/Senegal",
+          "href": "https://github.com/SenegalLang/Senegal",
           "label": "GitHub",
           "position": "right"
         }
@@ -88,7 +88,7 @@ export default {
           "items": [
             {
               "label": "GitHub",
-              "href": "https://github.com/Calamity210/Senegal"
+              "href": "https://github.com/SenegalLang/Senegal"
             }
           ]
         }
@@ -109,7 +109,7 @@ export default {
         "docs": {
           "path": "docs",
           "sidebarPath": "D:\\Projects\\Senegal\\docs\\sidebars.js",
-          "editUrl": "https://github.com/Calamity210/Senegal/edit/master/docs/",
+          "editUrl": "https://github.com/SenegalLang/Senegal/edit/master/docs/",
           "showLastUpdateTime": true,
           "disableVersioning": false,
           "lastVersion": "current",

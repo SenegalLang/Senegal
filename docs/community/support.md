@@ -12,4 +12,4 @@ On this page, we've listed some communities you can join to engage with other Se
 
 ## Feature requests
 
-For new feature requests, you can open issues on our [Github Repository](https://github.com/Calamity210/Senegal)
+For new feature requests, you can open issues on our [Github Repository](https://github.com/SenegalLang/Senegal)

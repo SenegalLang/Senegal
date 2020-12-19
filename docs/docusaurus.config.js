@@ -13,7 +13,7 @@ module.exports = {
             {
                 id: 'community',
                 path: 'community',
-                editUrl: 'https://github.com/Calamity210/Senegal/edit/master/docs/',
+                editUrl: 'https://github.com/SenegalLang/Senegal/edit/master/docs/',
                 routeBasePath: 'community',
                 sidebarPath: require.resolve('./sidebarsCommunity.js'),
                 showLastUpdateAuthor: true,
@@ -31,7 +31,7 @@ module.exports = {
         },
         announcementBar: {
             id: 'leave_star',
-            content: '⭐️ If you like our projects, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/Calamity210/Senegal">GitHub</a>! ⭐️',
+            content: '⭐️ If you like our projects, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/SenegalLang/Senegal">GitHub</a>! ⭐️',
         },
         navbar: {
             hideOnScroll: true,
@@ -54,7 +54,7 @@ module.exports = {
                     position: 'left',
                 },
                 {
-                    href: 'https://github.com/Calamity210/Senegal',
+                    href: 'https://github.com/SenegalLang/Senegal',
                     label: 'GitHub',
                     position: 'right',
                 },
@@ -77,7 +77,7 @@ module.exports = {
                     items: [
                         {
                             label: 'GitHub',
-                            href: 'https://github.com/Calamity210/Senegal',
+                            href: 'https://github.com/SenegalLang/Senegal',
                         },
                     ],
                 },
@@ -97,7 +97,7 @@ module.exports = {
                     path: 'docs',
                     sidebarPath: require.resolve('./sidebars.js'),
                     editUrl:
-                        'https://github.com/Calamity210/Senegal/edit/master/docs/',
+                        'https://github.com/SenegalLang/Senegal/edit/master/docs/',
                     showLastUpdateTime: true,
                     disableVersioning: false,
                     lastVersion: 'current',
