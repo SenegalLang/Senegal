@@ -403,6 +403,10 @@ static bool invoke(VM* vm, GCString* id, int arity) {
   return invokeFromClass(vm, instance->class, id, arity);
 }
 
+static bool isFalse(Constant constant) {
+  return IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)) || (IS_NUMBER(constant) && AS_NUMBER(constant) == 0);
+}
+
 static InterpretationResult run(VM* vm) {
   register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
@@ -659,7 +663,7 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_NOT): {
     Constant constant = POP();
-    Constant c = BOOL_CONST(IS_BOOL(constant) && !AS_BOOL(constant));
+    Constant c = BOOL_CONST(isFalse(constant));
     PUSH(c);
     DISPATCH();
   }
@@ -1189,7 +1193,7 @@ static InterpretationResult run(VM* vm) {
 
     Constant constant = PEEK();
 
-    if (IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)))
+    if (isFalse(constant))
       frame->pc += offset;
 
     DISPATCH();

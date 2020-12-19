@@ -11,6 +11,11 @@
 #define MAX_FINITE 1.7976931348623157e+308
 #define MIN_POSITIVE 5e-324
 
+static Constant numAsBool(VM* vm, int arity, Constant* args) {
+  register double num = AS_NUMBER(args[-1]);
+  return BOOL_CONST(num != 0);
+}
+
 static Constant numIsFinite(VM* vm, int arity, Constant* args) {
   register double num = AS_NUMBER(args[-1]);
   return BOOL_CONST(num != INF && num != NEGATIVE_INF && num != NAN);
@@ -89,6 +94,7 @@ static Constant numRemainder(VM* vm, int arity, Constant* args) {
 void initNumClass(VM *vm) {
   vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), true);
 
+  defineClassNativeFunc(vm, "asBool", numAsBool, vm->numClass);
   defineClassNativeFunc(vm, "isFinite", numIsFinite, vm->numClass);
   defineClassNativeFunc(vm, "isInfinite", numIsInfinite, vm->numClass);
   defineClassNativeFunc(vm, "toString", numToString, vm->numClass);
