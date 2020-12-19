@@ -793,7 +793,7 @@ static InterpretationResult run(VM* vm) {
       GCList* list = AS_LIST(POP());
 
       if (index >= list->elementC) {
-        throwRuntimeError(vm, "Out of range: %d, valid range is %d", index, list->elementC - 1);
+        throwRuntimeError(vm, "Out of range: %d, valid range is %d", (int)index, list->elementC - 1);
         return RUNTIME_ERROR;
       }
 
@@ -1075,7 +1075,7 @@ static InterpretationResult run(VM* vm) {
     Constant constant;
 
     if (tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
-      throwRuntimeError(vm, "Senegal attempted to define an existing global: %s", id);
+      throwRuntimeError(vm, "Senegal attempted to define an existing global: %s", id->chars);
       return RUNTIME_ERROR;
     }
 
