@@ -22,6 +22,7 @@ module.exports = {
          label: 'Contribute',
          items: [
             'Contribute/style',
+            'Contribute/tree_hygiene',
          ],
         },
     ]
