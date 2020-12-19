@@ -23,6 +23,7 @@ module.exports = {
          items: [
             'Contribute/style',
             'Contribute/tree_hygiene',
+            'Contribute/contributing',
          ],
         },
     ]
