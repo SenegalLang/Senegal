@@ -276,6 +276,10 @@ static Constant stringSubstr(VM* vm, int arity, Constant *args) {
   return GC_OBJ_CONST(copyString(vm, NULL, substring(string , start, end), (end - start) - 1));
 }
 
+static Constant stringToString(VM* vm, int arity, Constant *args) {
+  return args[-1];
+}
+
 void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
 
@@ -301,5 +305,6 @@ void initStringClass(VM *vm) {
   defineClassNativeFunc(vm, "toLower", stringToLower, vm->stringClass);
   defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
   defineClassNativeFunc(vm, "toUpper", stringToUpper, vm->stringClass);
+  defineClassNativeFunc(vm, "toString", stringToString, vm->stringClass);
 
 }

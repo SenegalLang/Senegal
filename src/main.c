@@ -146,8 +146,6 @@ int main(int argc, const char* argv[]) {
 
   addPaths(&vm);
 
-  defineArgv(&vm, argc, argv);
-
   // Get senegal directory from PATH
   char* senegalPath = NULL;
   char *sysPath = getenv("PATH");
@@ -186,28 +184,28 @@ int main(int argc, const char* argv[]) {
 
   if (argc == 1) {
     repl(&vm, senegalPath);
-  }
+  } else {
+    int argsStart = 0;
 
-  else if (argc == 2) {
-    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-      printf("%s", SENEGAL_HELP);
-
-      return 0;
+    for (int i = 2; i < argc; i++) {
+      if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
+        printf("%s", SENEGAL_HELP);
+        return 0;
+      } else if (!strcmp(argv[i], "--version")) {
+        printf("%s", SENEGAL_VERSION);
+        return 0;
+      } else if(!strcmp(argv[i], "--args")) {
+        argsStart = i + 1;
+        break;
+      } else {
+        fprintf(stderr, "%s", SENEGAL_HELP);
+        return 64;
+      }
     }
 
-    else if (strcmp(argv[1], "--version") == 0) {
-      printf("%s", SENEGAL_VERSION);
-
-      return 0;
-    }
+    defineArgv(&vm, argc - argsStart, argv + argsStart);
 
     runFile(&vm, argv[1], senegalPath);
-  }
-
-  else {
-    fprintf(stderr, "%s", SENEGAL_HELP);
-
-    return 64;
   }
 
   freeVM(&vm);
