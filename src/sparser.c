@@ -4,6 +4,7 @@
 #include "includes/scompiler.h"
 #include "includes/sgcobject_utils.h"
 #include "includes/stable_utils.h"
+#include "../core/includes/slistcore.h"
 
 int deepestLoopStart = -1;
 int deepestLoopDepth = 0;
@@ -85,6 +86,9 @@ static void sync(Parser* parser, Lexer* lexer) {
       case SENEGAL_WHILE:
       case SENEGAL_FOR:
       case SENEGAL_VAR:
+      case SENEGAL_CONST:
+      case SENEGAL_STATIC:
+      case SENEGAL_FINAL:
       case SENEGAL_RETURN:
         return;
 
@@ -109,6 +113,99 @@ static bool idsEqual(Token* a, Token* b) {
   return memcmp(a->start, b->start, a->length) == 0;
 }
 
+static Constant parseConstants(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer) {
+  Constant value;
+
+  advance(parser, lexer);
+
+  switch (parser->previous.type) {
+    case SENEGAL_NULL:
+      value = NULL_CONST;
+      break;
+
+    case SENEGAL_TRUE:
+      value = BOOL_CONST(true);
+      break;
+
+    case SENEGAL_FALSE:
+      value = BOOL_CONST(false);
+      break;
+
+    case SENEGAL_LBRACKET: {
+      if (match(parser, lexer, SENEGAL_RBRACKET)) {
+        value = GC_OBJ_CONST(newList(vm, 0));
+        break;
+      }
+
+      GCList* list = newList(vm, 1);
+
+      do {
+        addToList(vm, &list, parseConstants(vm, parser, compiler, cc, lexer));
+      } while (match(parser, lexer, SENEGAL_COMMA));
+
+      consume(parser, lexer, SENEGAL_RBRACKET, "Senegal expected list to be closed with `]`");
+
+      value = GC_OBJ_CONST(list);
+
+      break;
+    }
+
+    case SENEGAL_LBRACE: {
+      if (match(parser, lexer, SENEGAL_RBRACE)) {
+        value = GC_OBJ_CONST(newMap(vm));
+        break;
+      }
+
+      GCMap* map = newMap(vm);
+
+      do {
+        Constant key = parseConstants(vm, parser, compiler, cc, lexer);
+
+        if (!match(parser, lexer, SENEGAL_COLON))
+          error(parser, &parser->previous, "Senegal expected `:` after map key");
+
+        Constant entry = parseConstants(vm, parser, compiler, cc, lexer);
+
+        tableInsert(vm, &map->table, key, entry);
+      } while (match(parser, lexer, SENEGAL_COMMA));
+
+      consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected map to be closed with `}`");
+
+      value = GC_OBJ_CONST(map);
+      break;
+    }
+
+    case SENEGAL_STRING:
+      value = GC_OBJ_CONST(copyString(vm, compiler, parser->previous.start + 1, parser->previous.length - 2));
+      break;
+
+    case SENEGAL_NUMBER:
+      value = NUM_CONST(strtod(parser->previous.start, NULL));
+      break;
+
+    case SENEGAL_ID: {
+      GCString* id = copyString(vm, compiler, parser->previous.start, parser->previous.length);
+
+      Constant constant;
+      if (!tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
+        // Silencing an annoying warning
+        value = NULL_CONST;
+
+        error(parser, &parser->previous, "Senegal tried to assign a non-constant variable to a constant");
+        break;
+      }
+
+      value = constant;
+      break;
+    }
+
+    default:
+      error(parser, &parser->previous, "Senegal tried to assign a non-constant variable to a constant");
+      break;
+  }
+
+  return value;
+}
 
 // == Local Variables ==
 static int resolveLocal(Parser* parser, Compiler* compiler, Token* name) {
@@ -188,6 +285,31 @@ static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler,
 
   consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
   defineVariable(vm, parser, compiler, i, global);
+}
+
+static void parseConstVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier.");
+
+  declareVariable(parser, compiler);
+
+  GCString* id = copyString(vm, compiler, parser->previous.start, parser->previous.length);
+
+  consume(parser, lexer, SENEGAL_EQUAL, "Senegal expected `=` after constant variable identifier.");
+
+  Constant constant;
+  Constant value;
+
+  if (tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
+    error(parser, &parser->current,"Senegal attempted to define an existing global: %s");
+    return;
+  }
+
+  value = parseConstants(vm, parser, compiler, cc, lexer);
+
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), value);
+
+  consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
 }
 
 static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
@@ -657,6 +779,8 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
     else if (match(parser, lexer, SENEGAL_VAR))
       parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
+    // TODO(Calamity210): parse const
+
     else {
       advance(parser, lexer);
       error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body");
@@ -683,6 +807,8 @@ void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* par
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, SENEGAL_VAR))
     parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+  else if (match(parser, lexer, SENEGAL_CONST))
+    parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
   else
     advance(parser, lexer);
 
@@ -700,6 +826,8 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, SENEGAL_VAR))
     parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+  else if (match(parser, lexer, SENEGAL_CONST))
+    parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
   else
     parseStatement(vm, compiler, cc, parser, lexer, i);
 
@@ -922,7 +1050,7 @@ void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Le
 
 void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
 
-  if (match(parser, lexer, SENEGAL_LBRACE))
+  if (match(parser, lexer, SENEGAL_RBRACE))
     writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newMap(vm)));
 
   uint8_t entryCount = 0;
@@ -1193,11 +1321,12 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected for statement to be enclosed in parenthesis.");
 
       // Initializer
-      if (match(parser, lexer, SENEGAL_VAR)) {
+      if (match(parser, lexer, SENEGAL_VAR))
         parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-      } else if (!match(parser, lexer, SENEGAL_SEMI)) {
+      else if (match(parser, lexer, SENEGAL_CONST))
+        parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+      else if (!match(parser, lexer, SENEGAL_SEMI))
         parseExpressionStatement(vm, parser, compiler, cc, lexer, i);
-      }
 
       int enclosingLoopStart = deepestLoopStart;
       int enclosingLoopDepth = deepestLoopDepth;

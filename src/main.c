@@ -203,7 +203,7 @@ int main(int argc, const char* argv[]) {
       }
     }
 
-    defineArgv(&vm, argc - argsStart, argv + argsStart);
+    defineArgv(&vm, argsStart == 0 ? argsStart : argc - argsStart, argv + argsStart);
 
     runFile(&vm, argv[1], senegalPath);
   }

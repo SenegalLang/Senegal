@@ -141,7 +141,16 @@ static SenegalTokenType idToken(Lexer* lexer) {
             return collectKeyword(lexer, 2, 3, "ass", SENEGAL_CLASS);
 
           case 'o':
-            return collectKeyword(lexer, 2, 6, "ntinue", SENEGAL_CONTINUE);
+            if (lexer->current - lexer->start > 3) {
+              switch (lexer->start[3]) {
+                case 's':
+                  return collectKeyword(lexer, 4, 1, "t", SENEGAL_CONST);
+
+                case 't':
+                  return collectKeyword(lexer, 4, 4, "inue", SENEGAL_CONTINUE);
+              }
+            }
+
         }
       }
 

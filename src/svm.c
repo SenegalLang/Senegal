@@ -900,11 +900,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->boolClass->staticFields, GC_OBJ_CONST(id), &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      } else if (tableGetEntry(&vm->boolClass->fields, GC_OBJ_CONST(id), &constant)) {
+      if (tableGetEntry(&vm->boolClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -918,11 +914,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->listClass->staticFields, GC_OBJ_CONST(id), &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      } else if (tableGetEntry(&vm->stringClass->fields, GC_OBJ_CONST(id), &constant)) {
+      if (tableGetEntry(&vm->stringClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -936,11 +928,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->listClass->staticFields, GC_OBJ_CONST(id), &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      } else if (tableGetEntry(&vm->listClass->fields, GC_OBJ_CONST(id), &constant)) {
+      if (tableGetEntry(&vm->listClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -954,11 +942,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->mapClass->staticFields, GC_OBJ_CONST(id), &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      } else if (tableGetEntry(&vm->mapClass->fields, GC_OBJ_CONST(id), &constant)) {
+      if (tableGetEntry(&vm->mapClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -972,11 +956,7 @@ static InterpretationResult run(VM* vm) {
       GCString *id = READ_STRING();
 
       Constant constant;
-      if (tableGetEntry(&vm->numClass->staticFields, GC_OBJ_CONST(id), &constant)) {
-        POP();
-        PUSH(constant);
-        DISPATCH();
-      } else if (tableGetEntry(&vm->numClass->fields, GC_OBJ_CONST(id), &constant)) {
+      if (tableGetEntry(&vm->numClass->fields, GC_OBJ_CONST(id), &constant)) {
         POP();
         PUSH(constant);
         DISPATCH();
@@ -995,11 +975,7 @@ static InterpretationResult run(VM* vm) {
     GCString *id = READ_STRING();
 
     Constant constant;
-    if (tableGetEntry(&instance->class->staticFields, GC_OBJ_CONST(id), &constant)) {
-      POP();
-      PUSH(constant);
-      DISPATCH();
-    } else if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
+    if (tableGetEntry(&instance->class->fields, GC_OBJ_CONST(id), &constant)) {
       POP();
       PUSH(constant);
       DISPATCH();
@@ -1445,7 +1421,7 @@ GCClass* newClass(VM *vm, GCString *id, bool isFinal) {
   initTable(&class->staticFields);
 
   // Define type for class
-  defineClassNativeStaticField(vm, "type", GC_OBJ_CONST(id), class);
+  defineClassNativeField(vm, "type", GC_OBJ_CONST(id), class);
 
   return class;
 }

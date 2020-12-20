@@ -1,0 +1,15 @@
+const n = null;
+const t = true;
+const f = false;
+const l = [0, 'string', {'key': 21}];
+const m = {'key': 21};
+const s = 'string';
+const v = f;
+
+println(n); // output null
+println(t); // output true
+println(f); // output false
+println(l[2]['key']); // output 21
+println(m['key']); // output 21
+println(s); // output string
+println(v); // output false
