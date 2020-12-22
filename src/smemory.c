@@ -86,7 +86,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
 
     case GC_STRING: {
       GCString *string = (GCString *) gc;
-      FREE_ARRAY(vm, compiler, char, string->chars, string->length);
+      FREE_ARRAY(vm, compiler, char, string->chars, string->length + 1);
       FREE(vm, compiler, GCString, gc);
       break;
     }
@@ -127,7 +127,6 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
-  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
@@ -183,7 +182,6 @@ static void markRoots(VM* vm, Compiler* compiler) {
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
-  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);

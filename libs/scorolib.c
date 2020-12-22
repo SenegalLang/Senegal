@@ -9,8 +9,10 @@ static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
   }
 
   GCClosure* closure = AS_CLOSURE(args[0]);
+
   if (closure->function->arity > 1) {
     printf("Coroutine functions can have a maximum of one argument\n");
+    exit(0);
   }
 
 

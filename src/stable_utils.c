@@ -6,7 +6,6 @@
 #define MAX_TABLE_LOAD 0.75
 
 void freeTable(VM* vm, Table *table) {
-  FREE_ARRAY(vm, NULL, Entry, table->entries, table->cap + 1);
   initTable(table);
 }
 
