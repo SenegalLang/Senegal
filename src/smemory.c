@@ -59,9 +59,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
     }
 
     case GC_COROUTINE: {
-      GCCoroutine* coroutine = (GCCoroutine*)gc;
-      FREE_ARRAY(vm, compiler, CallFrame*, coroutine->frames, coroutine->frameCount);
-
+      FREE(vm, compiler, GCCoroutine, gc);
       break;
     }
 
@@ -229,10 +227,27 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       break;
     }
 
+    case GC_COROUTINE: {
+      GCCoroutine* coroutine = (GCCoroutine*)gc;
+
+      GCUpvalue* upvalue = coroutine->openUpvalues;
+
+      while (upvalue) {
+        markGCObject(vm, (GCObject*)upvalue);
+        upvalue = upvalue->next;
+      }
+
+      markGCObject(vm, (GCObject*)coroutine->caller);
+      markConstant(vm, *coroutine->error);
+
+      break;
+    }
+
     case GC_FUNCTION: {
       GCFunction* function = (GCFunction*)gc;
       markGCObject(vm, (GCObject*)function->id);
       markArray(vm, &function->instructions.constants);
+      break;
     }
 
     case GC_INSTANCE: {
@@ -248,7 +263,6 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       break;
     }
 
-      // REDUNDANT, MIGHT BE ABLE TO REMOVE
     case GC_NATIVE:
     case GC_STRING:
       break;

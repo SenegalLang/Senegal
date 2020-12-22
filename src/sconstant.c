@@ -49,6 +49,10 @@ void printConstant(Constant constant) {
         printf("%s", AS_CLASS(constant)->id->chars);
         break;
 
+      case GC_COROUTINE:
+        printf("Coroutine");
+        break;
+
       case GC_CLOSURE:
         printFunction(AS_CLOSURE(constant)->function);
         break;
@@ -102,6 +106,10 @@ void printConstant(Constant constant) {
 
         case GC_CLOSURE:
           printFunction(AS_CLOSURE(constant)->function);
+          break;
+
+        case GC_COROUTINE:
+          printf("Coroutine");
           break;
 
         case GC_FUNCTION:

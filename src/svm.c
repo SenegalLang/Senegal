@@ -110,13 +110,7 @@ GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
   coroutine->error = NULL;
   resetStack(coroutine);
 
-  if (closure != NULL) {
-    if (vm->coroutine->frameCount == FRAMES_MAX) {
-      throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
-      vm->coroutine = NULL;
-      return NULL;
-    }
-
+  if (closure) {
     CallFrame* frame = &coroutine->frames[coroutine->frameCount++];
     frame->closure = closure;
     frame->pc = closure->function->instructions.bytes;

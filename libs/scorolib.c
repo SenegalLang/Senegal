@@ -13,9 +13,8 @@ static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
     printf("Coroutine functions can have a maximum of one argument\n");
   }
 
-  GCCoroutine* coroutine = newCoroutine(vm, OTHER, closure);
 
-  return GC_OBJ_CONST(coroutine);
+  return GC_OBJ_CONST(newCoroutine(vm, OTHER, closure));
 }
 
 static bool runCoroutine(VM* vm, GCCoroutine* coroutine, Constant* args, bool isCall, bool hasConstant) {
