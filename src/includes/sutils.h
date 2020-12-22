@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 
-#define NAN_TAGGING 0
+#define NAN_TAGGING 1
 #define COMPUTED_GOTO 1
 
 #define DEBUG_LOG_GC 0
