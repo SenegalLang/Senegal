@@ -5,7 +5,7 @@ import shutil
 
 def build(build_type, run, test):
     suffix = ".exe" if platform.system().lower() == "windows" else ""
-    
+
     if not os.path.exists("build"):
         os.mkdir("build")
 
@@ -18,11 +18,11 @@ def build(build_type, run, test):
     if build_type.lower() == "release":
         os.system("cd build && cmake --build . --config Release")
 
-        shutil.copy(os.path.join("build", f"senegal{suffix}"), os.path.join("test", f"senegal{suffix}"))
+        shutil.copy(os.path.join("build", "senegal" + suffix), os.path.join("test", "senegal" + suffix))
     else:
         os.system("cd build && cmake --build . --config Debug")
 
-        shutil.copy(os.path.join("build", f"senegal{suffix}"), os.path.join("test", f"senegal{suffix}"))
+        shutil.copy(os.path.join("build", "senegal" + suffix), os.path.join("test", "senegal" + suffix))
 
 
     if test:
