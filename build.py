@@ -38,7 +38,7 @@ def main():
 
     args = vars(parser.parse_args())
     
-    build(args["[RELEASE | DEBUG]"], args["run"], args["test"])
+    build(args["[RELEASE | DEBUG]"].lower(), args["run"], args["test"])
 
 if __name__ == "__main__":
     main()
