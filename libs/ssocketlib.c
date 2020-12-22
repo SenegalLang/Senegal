@@ -151,7 +151,7 @@ Constant sglClose(VM* vm, int arity, Constant* args) {
   int ret = close(sock);
 #endif
 
-  return AS_NUMBER(ret);
+  return NUM_CONST(ret);
 }
 
 // HostEnt {

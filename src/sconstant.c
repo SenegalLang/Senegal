@@ -9,10 +9,10 @@ void initConstantPool(ConstantPool* cp) {
 }
 
 static void printFunction(GCFunction* function) {
-  if (function == NULL)
+  if (!function)
     return;
 
-  if (function->id == NULL) {
+  if (!function->id) {
     printf("<Senegal Program>");
     return;
   }
@@ -47,6 +47,10 @@ void printConstant(Constant constant) {
     switch (GC_OBJ_TYPE(constant)) {
       case GC_CLASS:
         printf("%s", AS_CLASS(constant)->id->chars);
+        break;
+
+      case GC_COROUTINE:
+        printf("Coroutine");
         break;
 
       case GC_CLOSURE:
@@ -90,7 +94,7 @@ void printConstant(Constant constant) {
       break;
 
     case TYPE_NUM:
-      printf("%g", AS_NUMBER(constant));
+      printf("%.16g", AS_NUMBER(constant));
       break;
 
     case TYPE_GC_OBJ: {
@@ -104,6 +108,10 @@ void printConstant(Constant constant) {
           printFunction(AS_CLOSURE(constant)->function);
           break;
 
+        case GC_COROUTINE:
+          printf("Coroutine");
+          break;
+
         case GC_FUNCTION:
           printFunction(AS_FUNCTION(constant));
           break;
@@ -115,6 +123,21 @@ void printConstant(Constant constant) {
         case GC_INSTANCE_METHOD:
           printFunction(AS_INSTANCE_METHOD(constant)->method->function);
           break;
+
+        case GC_LIST: {
+          GCList* list = AS_LIST(constant);
+          printf("[");
+
+          for (int i = 0; i < list->elementC; i++) {
+            printConstant(list->elements[(list->elementC - 1) - i]);
+
+            if (i != list->elementC - 1)
+              printf(",");
+          }
+
+          printf("]");
+          break;
+        }
 
         case GC_NATIVE:
           printf("<Senegal Native Function>");

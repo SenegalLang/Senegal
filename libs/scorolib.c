@@ -13,9 +13,8 @@ static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
     printf("Coroutine functions can have a maximum of one argument\n");
   }
 
-  GCCoroutine* coroutine = newCoroutine(vm, OTHER, closure);
 
-  return GC_OBJ_CONST(coroutine);
+  return GC_OBJ_CONST(newCoroutine(vm, OTHER, closure));
 }
 
 static bool runCoroutine(VM* vm, GCCoroutine* coroutine, Constant* args, bool isCall, bool hasConstant) {
@@ -44,12 +43,11 @@ static bool runCoroutine(VM* vm, GCCoroutine* coroutine, Constant* args, bool is
   }
 
   if (hasConstant)
-    vm->coroutine->stackTop--;
+    pop(vm);
 
   if (coroutine->frameCount == 1 && coroutine->frames[0].pc == coroutine->frames[0].closure->function->instructions.bytes) {
     if (coroutine->frames[0].closure->function->arity == 1) {
-      coroutine->stackTop[0] = hasConstant ? args[1] : NULL_CONST;
-      coroutine->stackTop++;
+      push(vm, hasConstant ? args[1] : NULL_CONST);
     }
   } else {
     coroutine->stackTop[-1] = hasConstant ? args[1] : NULL_CONST;
@@ -65,12 +63,12 @@ static Constant sglCurrentCoroutine(VM *vm, int arity, Constant *args) {
 
 static Constant sglCallCoroutine(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[0]);
-  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 1));
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
 }
 
 static Constant sglTransferCoroutine(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[0]);
-  return BOOL_CONST(runCoroutine(vm, coroutine, args, false, arity > 1));
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, false, arity > 2));
 }
 
 static Constant sglCoroutineTransferError(VM* vm, int arity, Constant* args) {
@@ -92,24 +90,24 @@ static Constant sglCoroutineYield(VM* vm, int arity, Constant* args) {
 
   if (vm->coroutine != NULL) {
     if (arity > 0)
-      vm->coroutine->stackTop[-1] = args[0];
+      return args[0];
     else
-      vm->coroutine->stackTop[-1] = NULL_CONST;
+      return NULL_CONST;
   }
 
-  return arity > 0 ? args[0] : NULL_CONST;
+  return NULL_CONST;
 }
 
 static Constant sglCoroutineIsComplete(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[0]);
 
-  return BOOL_CONST(coroutine->frameCount == 0 || coroutine->error == NULL);
+  return BOOL_CONST(coroutine->frameCount == 0 || !coroutine->error);
 }
 
 static Constant sglHaltCoroutine(VM* vm, int arity, Constant* args) {
   vm->coroutine->error = &args[0];
 
-  return IS_NULL(args[0]);
+  return BOOL_CONST(IS_NULL(args[0]));
 }
 
 static Constant sglSuspendCoroutine(VM* vm, int arity, Constant* args) {

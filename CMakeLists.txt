@@ -1,10 +1,18 @@
 project(senegal C)
 cmake_minimum_required(VERSION 3.17)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
+
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 file(GLOB src "*/*.h" "*/*.c")
 
-add_executable(senegal ${src} libs/includes/ssocketlib.h libs/ssocketlib.c libs/includes/sfilelib.h libs/sfilelib.c)
+add_executable(senegal ${src})
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)

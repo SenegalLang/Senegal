@@ -5,7 +5,7 @@
 char* readFileWithPath(const char* path) {
   FILE* file = fopen(path, "rb");
 
-  if (file == NULL) {
+  if (!file) {
     fprintf(stderr, "Senegal was unable to open file `%s`.\n", path);
     exit(74);
   }
@@ -16,7 +16,7 @@ char* readFileWithPath(const char* path) {
 
   char* buffer = (char*)malloc(fileSize + 1);
 
-  if (buffer == NULL) {
+  if (!buffer) {
     fprintf(stderr, "Senegal was unable to allocate enough memory to read \"%s\".\n", path);
     exit(74);
   }
@@ -42,7 +42,7 @@ char* readFile(FILE* file) {
 
   char* buffer = (char*)malloc(fileSize + 1);
 
-  if (buffer == NULL) {
+  if (!buffer) {
     fprintf(stderr, "Senegal was unable to allocate enough memory to read.\n");
     exit(74);
   }

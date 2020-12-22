@@ -30,7 +30,7 @@ static void repl(VM* vm, char* senegalPath) {
   char line[1024];
 
   char cwd[260]; // PATH_MAX
-  if (getcwd(cwd, sizeof(cwd)) == NULL) {
+  if (!getcwd(cwd, sizeof(cwd))) {
     fprintf(stderr, "Failed to get current directory");
     exit(1);
   }
@@ -175,7 +175,7 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  if (senegalPath == NULL) {
+  if (!senegalPath) {
     char cwd[260]; // PATH_MAX
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
       senegalPath = cwd;

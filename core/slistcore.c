@@ -105,7 +105,7 @@ static Constant listFilled(VM* vm, int arity, Constant* args) {
   expect(2, arity, "filled");
 
   double size = AS_NUMBER(args[0]);
-  double element = args[1];
+  Constant element = args[1];
 
   GCList* list = newList(vm, (int)size);
   list->elementC = (int)size;
