@@ -3,7 +3,7 @@ import os
 import platform
 import shutil
 
-def build(build_type: str, run: bool, test: bool):
+def build(build_type, run, test):
     if not os.path.exists("build"):
         os.mkdir("build")
 
