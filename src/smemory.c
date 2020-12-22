@@ -30,7 +30,7 @@ void* reallocate(VM* vm, Compiler* compiler, void* pointer, size_t oldSize, size
 
   void* result = realloc(pointer, newSize);
 
-  if (result == NULL) {
+  if (!result) {
     exit(1);
   }
 
@@ -140,7 +140,7 @@ void freeVM(VM* vm) {
 }
 
 void markGCObject(VM* vm, GCObject* gc) {
-  if (gc == NULL || gc->isMarked
+  if (!gc || gc->isMarked
       || gc->type == GC_STRING || gc->type == GC_NATIVE)
     return;
 
@@ -156,7 +156,7 @@ void markGCObject(VM* vm, GCObject* gc) {
     vm->grayCapacity = GROW_CAP(vm->grayCapacity);
     vm->grayStack = realloc(vm->grayStack, sizeof(GCObject*) * vm->grayCapacity);
 
-    if (vm->grayStack == NULL)
+    if (!vm->grayStack)
       exit(1);
   }
 

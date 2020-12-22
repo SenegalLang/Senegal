@@ -42,7 +42,7 @@ void parsePrecedence(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* 
   advance(parser, lexer);
 
   ParseFunc prefixRule = getRule(parser->previous.type)->prefix;
-  if (prefixRule == NULL) {
+  if (!prefixRule) {
     error(parser, &parser->previous, "Senegal expected an expression.");
     return;
   }
@@ -434,7 +434,7 @@ static int addUpvalue(Parser* parser, Compiler* compiler, uint8_t index, bool is
 }
 
 static int resolveUpvalue(Parser* parser, Compiler* compiler, Token* id) {
-  if (compiler->parent == NULL)
+  if (!compiler->parent)
     return -1;
 
   int local = resolveLocal(parser, compiler->parent, id);
@@ -1090,7 +1090,7 @@ void parseString(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
 }
 
 void parseSuper(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
-  if (cc == NULL) {
+  if (!cc) {
     error(parser, &parser->previous, "Senegal cannot access `super` outside of a class.");
   } else if (!cc->hasSuper) {
     error(parser, &parser->previous, "Senegal cannot access `super` without a superclass");
@@ -1133,7 +1133,7 @@ void parseTernary(VM *vm, Parser *parser, Compiler *compiler, ClassCompiler *cc,
 }
 
 void parseThis(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
-  if (cc == NULL) {
+  if (!cc) {
     error(parser, &parser->previous, "Senegal could not gain access to `this` in a global scope");
     return;
   }

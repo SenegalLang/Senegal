@@ -11,7 +11,7 @@ static Constant mapNew(VM* vm, int arity, Constant* args) {
 static Constant mapAdd(VM* vm, int arity, Constant* args) {
   expect(2, arity, "add");
 
-  tableInsert(vm, &AS_MAP(args[-1])->table, GC_OBJ_CONST(args[0]), args[1]);
+  tableInsert(vm, &AS_MAP(args[-1])->table, args[0], args[1]);
 
   return NULL_CONST;
 }

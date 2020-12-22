@@ -18,11 +18,10 @@ Entry* tableFind(Entry* entries, int cap, Constant key) {
       if (IS_NULL(entry->constant)) {
         return tombstone != NULL ? tombstone : entry;
       } else {
-        if (tombstone == NULL)
+        if (!tombstone)
           tombstone = entry;
       }
-    }
-    else if (areEqual(key, entry->key))
+    } else if (areEqual(key, entry->key))
       return entry;
 
     index = (index + 1) & cap; // (index + 1) % cap

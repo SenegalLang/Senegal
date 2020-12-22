@@ -5,60 +5,6 @@
 #include "includes/sfilelib.h"
 #include "../src/includes/smemory.h"
 
-#ifdef _WIN32
-size_t getline(char **lineptr, size_t *n, FILE *stream) {
-  char *bufptr = NULL;
-  char *p = bufptr;
-  size_t size;
-  int c;
-
-  if (lineptr == NULL) {
-    return -1;
-  }
-  if (stream == NULL) {
-    return -1;
-  }
-  if (n == NULL) {
-    return -1;
-  }
-  bufptr = *lineptr;
-  size = *n;
-
-  c = fgetc(stream);
-  if (c == EOF) {
-    return -1;
-  }
-  if (bufptr == NULL) {
-    bufptr = malloc(128);
-    if (bufptr == NULL) {
-      return -1;
-    }
-    size = 128;
-  }
-  p = bufptr;
-  while(c != EOF) {
-    if ((p - bufptr) > (size - 1)) {
-      size = size + 128;
-      bufptr = realloc(bufptr, size);
-      if (bufptr == NULL) {
-        return -1;
-      }
-    }
-    *p++ = c;
-    if (c == '\n') {
-      break;
-    }
-    c = fgetc(stream);
-  }
-
-  *p++ = '\0';
-  *lineptr = bufptr;
-  *n = size;
-
-  return p - bufptr - 1;
-}
-#endif
-
 GCClass* ioFileClass;
 
 static Constant sglClock(VM* vm, int arity, Constant* args) {
@@ -73,7 +19,7 @@ static Constant sglReadLine(VM* vm, int arity, Constant* args) {
   char* line = NULL;
   size_t len;
 
-  size_t lineLen = getline(&line, &len, stdin);
+  size_t lineLen = sglGetLine(&line, &len, stdin);
 
   return GC_OBJ_CONST(copyString(vm, NULL, line, lineLen));
 }
@@ -111,7 +57,7 @@ static Constant sglRunCmd(VM* vm, int arity, Constant* args) {
 
   fp = popen(fullCommand, "r");
 
-  if (fp == NULL)
+  if (!fp)
     return NULL_CONST;
 
   while (fgets(line, sizeof(line), fp) != NULL) {
