@@ -19,6 +19,8 @@ Note: While contributing to this script the applied changes should be compatible
 from __future__ import print_function
 import argparse
 import os
+import sys
+import subprocess
 import platform
 import shutil
 
@@ -26,7 +28,10 @@ verbose = False
 
 def log(text):
     if verbose:
-        print("\u001b[1m\u001b[33;1mInfo:\u001b[0m " + text)
+        print("\u001b[1m\u001b[33;1minfo:\u001b[0m " + text) if sys.stdout.isatty() else print("info: " + text)
+
+def error(text):
+    print("\u001b[1m\u001b[31;1merror:\u001b[0m " + text) if sys.stdout.isatty() else print("error: " + text)
 
 def build(build_type, run, test):
     senegal_executable = "senegal.exe" if platform.system().lower() == "windows" else "senegal"
@@ -37,30 +42,56 @@ def build(build_type, run, test):
 
         if platform.system().lower() == "windows":
             log("Generating the MinGW Makefiles.")
-            os.system("cd build && cmake .. -G \"MinGW Makefiles\"")
+            
+            if os.system("cd build && cmake .. -G \"MinGW Makefiles\"") != 0:
+                error("Failed running command `cd build && cmake .. -G \"MinGW Makefiles\"`")
+                exit(1)
 
         else:
             log("Generating the make files.")
-            os.system("cd build && cmake ..")
+            
+            if os.system("cd build && cmake ..") != 0:
+                error("Failed running command `cd build && cmake ..`")
+                exit(1)
     
     if build_type.lower() == "release":
         log("Building Senegal lang [optimized | release]")
-        os.system("cd build && cmake --build . --config Release")
+        
+        if os.system("cd build && cmake --build . --config Release") != 0:
+            error("Failed building Senegal lang [optimized | release]")
+            exit(1)
 
         log("Copying build/" + senegal_executable + " to test/" + senegal_executable)
-        shutil.copy(os.path.join("build", senegal_executable), os.path.join("test", senegal_executable))
+        
+        try:
+            shutil.copy(os.path.join("build", senegal_executable), os.path.join("test", senegal_executable))
+        except:
+            error("Unable to copy build/" + senegal_executable + " to test/" + senegal_executable)
+            exit(1)
     else:
         log("Building Senegal lang [unoptimized | debug]")
-        os.system("cd build && cmake --build . --config Debug")
+        
+        if os.system("cd build && cmake --build . --config Debug") != 0:
+            error("Failed building Senegal lang [unoptimized | debug]")
+            exit(1)
 
         log("Copying build/" + senegal_executable + " to test/" + senegal_executable)
-        shutil.copy(os.path.join("build", senegal_executable), os.path.join("test", senegal_executable))
+
+        try:
+            shutil.copy(os.path.join("build", senegal_executable), os.path.join("test", senegal_executable))
+        except:
+            error("Unable to copy build/" + senegal_executable + " to test/" + senegal_executable)
+            exit(1)
 
     if test:
-        os.system("cd test && pub get && pub run test")
+        if os.system("cd test && dart pub get && dart pub run test") != 0:
+            error("Failed running command `cd test && dart pub get && dart pub run test`")
+            exit(1)
 
     if run:
-        os.system(os.path.join("build", "senegal.exe"))
+        if os.system(os.path.join("build", "senegal.exe")) != 0:
+            error("Failed executing command build/senegal.exe")
+            exit(1)
 
 def main():
     global verbose
