@@ -5,7 +5,7 @@
 GCObject* allocateGCObject(VM* vm, size_t size, GCObjectType type) {
   GCObject* gc = (GCObject*)reallocate(vm, NULL, NULL, 0, size);
   gc->type = type;
-  gc->next= vm->gcObjects;
+  gc->next = vm->gcObjects;
   gc->isMarked = false;
 
   vm->gcObjects = gc;

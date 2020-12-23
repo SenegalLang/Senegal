@@ -30,7 +30,7 @@ void* reallocate(VM* vm, Compiler* compiler, void* pointer, size_t oldSize, size
 
   void* result = realloc(pointer, newSize);
 
-  if (result == NULL) {
+  if (!result) {
     exit(1);
   }
 
@@ -59,9 +59,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
     }
 
     case GC_COROUTINE: {
-      GCCoroutine* coroutine = (GCCoroutine*)gc;
-      FREE_ARRAY(vm, compiler, CallFrame*, coroutine->frames, coroutine->frameCount);
-
+      FREE(vm, compiler, GCCoroutine, gc);
       break;
     }
 
@@ -88,7 +86,7 @@ static void freeGCObject(VM* vm, Compiler* compiler, GCObject* gc) {
 
     case GC_STRING: {
       GCString *string = (GCString *) gc;
-      FREE_ARRAY(vm, compiler, char, string->chars, string->length);
+      FREE_ARRAY(vm, compiler, char, string->chars, string->length + 1);
       FREE(vm, compiler, GCString, gc);
       break;
     }
@@ -129,7 +127,6 @@ void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
 
-  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);
   markGCObject(vm, (GCObject*)vm->mapClass);
@@ -140,7 +137,7 @@ void freeVM(VM* vm) {
 }
 
 void markGCObject(VM* vm, GCObject* gc) {
-  if (gc == NULL || gc->isMarked
+  if (!gc || gc->isMarked
       || gc->type == GC_STRING || gc->type == GC_NATIVE)
     return;
 
@@ -156,7 +153,7 @@ void markGCObject(VM* vm, GCObject* gc) {
     vm->grayCapacity = GROW_CAP(vm->grayCapacity);
     vm->grayStack = realloc(vm->grayStack, sizeof(GCObject*) * vm->grayCapacity);
 
-    if (vm->grayStack == NULL)
+    if (!vm->grayStack)
       exit(1);
   }
 
@@ -185,7 +182,6 @@ static void markRoots(VM* vm, Compiler* compiler) {
 
   markTable(vm, &vm->globals);
   markCompilerRoots(vm, compiler);
-  markGCObject(vm, (GCObject*)vm->coroutine);
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->numClass);
   markGCObject(vm, (GCObject*)vm->stringClass);
@@ -229,10 +225,27 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       break;
     }
 
+    case GC_COROUTINE: {
+      GCCoroutine* coroutine = (GCCoroutine*)gc;
+
+      GCUpvalue* upvalue = coroutine->openUpvalues;
+
+      while (upvalue) {
+        markGCObject(vm, (GCObject*)upvalue);
+        upvalue = upvalue->next;
+      }
+
+      markGCObject(vm, (GCObject*)coroutine->caller);
+      markConstant(vm, *coroutine->error);
+
+      break;
+    }
+
     case GC_FUNCTION: {
       GCFunction* function = (GCFunction*)gc;
       markGCObject(vm, (GCObject*)function->id);
       markArray(vm, &function->instructions.constants);
+      break;
     }
 
     case GC_INSTANCE: {
@@ -248,7 +261,6 @@ static void blackenGCObject(VM* vm, GCObject* gc) {
       break;
     }
 
-      // REDUNDANT, MIGHT BE ABLE TO REMOVE
     case GC_NATIVE:
     case GC_STRING:
       break;

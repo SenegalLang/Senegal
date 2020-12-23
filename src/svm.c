@@ -40,7 +40,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 
     fprintf(stderr, "<Line %d> ",
             function->instructions.lines[instruction].line);
-    if (function->id == NULL) {
+    if (!function->id) {
       fprintf(stderr, "Global Scope\n");
     } else {
       fprintf(stderr, "%s()\n", function->id->chars);
@@ -58,7 +58,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -66,7 +66,7 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newInstance(vm, class)));
-  tableInsert(vm, &vm->globals, GC_OBJ_CONST(vm->coroutine->stack[0]), vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
   pop(vm);
   pop(vm);
 }
@@ -85,6 +85,7 @@ void initVM(VM* vm) {
   initTable(&vm->globals);
   initTable(&vm->strings);
   initTable(&vm->corePaths);
+
 
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "print", printApi);
@@ -110,13 +111,7 @@ GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
   coroutine->error = NULL;
   resetStack(coroutine);
 
-  if (closure != NULL) {
-    if (vm->coroutine->frameCount == FRAMES_MAX) {
-      throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
-      vm->coroutine = NULL;
-      return NULL;
-    }
-
+  if (closure) {
     CallFrame* frame = &coroutine->frames[coroutine->frameCount++];
     frame->closure = closure;
     frame->pc = closure->function->instructions.bytes;
@@ -160,7 +155,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
       if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(class->id), &constructor)) {
         Constant result = AS_NATIVE(constructor)(vm, arity, vm->coroutine->stackTop - arity);
 
-        if (vm->coroutine == NULL)
+        if (!vm->coroutine)
           return true;
 
         vm->coroutine->stackTop -= arity + 1;
@@ -192,7 +187,7 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
     case GC_NATIVE: {
       Constant result = AS_NATIVE(callee)(vm, arity, vm->coroutine->stackTop - arity);
 
-      if (vm->coroutine == NULL)
+      if (!vm->coroutine)
         return true;
 
       vm->coroutine->stackTop -= arity + 1;
@@ -224,7 +219,7 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
   GCUpvalue* createdUpvalue = newUpvalue(vm, local);
   createdUpvalue->next = upvalue;
 
-  if (previousUpvalue == NULL) {
+  if (!previousUpvalue) {
     vm->coroutine->openUpvalues = createdUpvalue;
   } else {
     previousUpvalue->next = createdUpvalue;
@@ -748,6 +743,7 @@ static InterpretationResult run(VM* vm) {
       if (!tableGetEntry(&map->table, key, &c)) {
         throwRuntimeError(vm, "Map entry was not found for key: ");
         printConstant(key);
+        printf("\n");
         return RUNTIME_ERROR;
       }
 
@@ -1212,7 +1208,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1224,7 +1220,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1236,7 +1232,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1248,7 +1244,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1260,7 +1256,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1272,7 +1268,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1284,7 +1280,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1296,7 +1292,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1308,7 +1304,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1320,7 +1316,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1336,7 +1332,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (vm->coroutine == NULL)
+    if (!vm->coroutine)
       return OK;
 
     UPDATE_FRAME();
@@ -1356,7 +1352,7 @@ static InterpretationResult run(VM* vm) {
     closeUpvalues(vm, frame->constants);
 
     if (vm->coroutine->frameCount == 0) {
-      if (vm->coroutine->caller == NULL) {
+      if (!vm->coroutine->caller) {
         PUSH(result);
         return OK;
       }
@@ -1388,7 +1384,7 @@ InterpretationResult interpret(VM* vm, char* source, const char* senegalPath, ch
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source, senegalPath, dir);
 
-  if (function == NULL)
+  if (!function)
     return COMPILE_TIME_ERROR;
 
   push(vm, GC_OBJ_CONST(function));

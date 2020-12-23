@@ -6,7 +6,6 @@
 #define MAX_TABLE_LOAD 0.75
 
 void freeTable(VM* vm, Table *table) {
-  FREE_ARRAY(vm, NULL, Entry, table->entries, table->cap + 1);
   initTable(table);
 }
 
@@ -64,7 +63,7 @@ void tableInsertAll(VM* vm, Table* from, Table* to) {
     Entry* entry = &from->entries[i];
 
     if (!IS_NULL(entry->key))
-      tableInsert(vm, to, GC_OBJ_CONST(entry->key), entry->constant);
+      tableInsert(vm, to, entry->key, entry->constant);
   }
 
 }
@@ -72,7 +71,7 @@ void tableInsertAll(VM* vm, Table* from, Table* to) {
 void markTable(VM* vm, Table *table) {
   for (int i = 0; i <= table->cap; i++) {
     Entry* entry = &table->entries[i];
-    markGCObject(vm, (GCObject*)entry->key);
+    markGCObject(vm, (GCObject*)&entry->key);
     markConstant(vm, entry->constant);
   }
 }

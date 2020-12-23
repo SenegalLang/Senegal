@@ -34,7 +34,7 @@ static Constant sglOpenFile(VM* vm, int arity, Constant* args) {
 
   FILE* file = fopen(filePath, mode);
 
-  if (file == NULL) {
+  if (!file) {
     fprintf(stderr, "Senegal was unable to open file `%s`.\n", filePath);
     exit(74);
   }

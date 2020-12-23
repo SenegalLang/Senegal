@@ -250,7 +250,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senega
 }
 
 void markCompilerRoots(VM* vm, Compiler* compiler) {
-  if (compiler == NULL)
+  if (!compiler)
     return;
 
   Compiler* compiler1 = compiler;

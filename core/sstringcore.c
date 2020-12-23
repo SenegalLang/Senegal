@@ -74,11 +74,11 @@ static int indexOf(char* string, char* contain, int start) {
   int containLen = strlen(contain);
 
   if (containLen > strLen)
-    return NUM_CONST(-1);
+    return -1;
 
   char* res = strstr(string + start, contain);
 
-  if (res == NULL)
+  if (!res)
     return -1;
 
   return res - string;
