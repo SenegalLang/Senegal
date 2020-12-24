@@ -1,3 +1,0 @@
-D:/Projects/Senegal/cmake-build-release/CMakeFiles/senegal.dir
-D:/Projects/Senegal/cmake-build-release/CMakeFiles/edit_cache.dir
-D:/Projects/Senegal/cmake-build-release/CMakeFiles/rebuild_cache.dir
