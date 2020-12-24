@@ -191,6 +191,29 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
         return true;
 
       vm->coroutine->stackTop -= arity + 1;
+
+      if (vm->coroutine->error) {
+        GCCoroutine *cur = vm->coroutine;
+        Constant error = *cur->error;
+
+        while (cur != NULL) {
+          cur->error = &error;
+
+          if (cur->state == TRY) {
+            vm->coroutine = cur->caller;
+            vm->coroutine->stackTop[-1] = *cur->error;
+            return true;
+          }
+
+          GCCoroutine *caller = cur->caller;
+          cur->caller = NULL;
+          cur = caller;
+        }
+
+        printConstant(stderr, *vm->coroutine->error);
+        return false;
+      }
+
       push(vm, result);
       return true;
     }
@@ -742,7 +765,7 @@ static InterpretationResult run(VM* vm) {
       Constant c;
       if (!tableGetEntry(&map->table, key, &c)) {
         throwRuntimeError(vm, "Map entry was not found for key: ");
-        printConstant(key);
+        printConstant(stdout, key);
         printf("\n");
         return RUNTIME_ERROR;
       }
@@ -1347,8 +1370,8 @@ static InterpretationResult run(VM* vm) {
 
     CASE(OPCODE_RET): {
     Constant result = POP();
-
     vm->coroutine->frameCount--;
+
     closeUpvalues(vm, frame->constants);
 
     if (vm->coroutine->frameCount == 0) {

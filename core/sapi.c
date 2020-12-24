@@ -63,14 +63,14 @@ Constant assertApi(VM* vm, int arity, Constant *args) {
   if (!areEqual(args[0], args[1])) {
     if (arity >= 3) {
       for (int i = 1; i < arity; i++)
-        printConstant(args[i]);
+        printConstant(stdout, args[i]);
 
       printf("\n");
     } else {
       printf("ASSERT(");
-      printConstant(args[0]);
+      printConstant(stdout, args[0]);
       printf(" != ");
-      printConstant(args[1]);
+      printConstant(stdout, args[1]);
       printf(")");
     }
 
@@ -82,7 +82,7 @@ Constant assertApi(VM* vm, int arity, Constant *args) {
 
 Constant printApi(VM* vm, int arity, Constant* args) {
   for (int i = 0; i < arity; i++)
-    printConstant(args[i]);
+    printConstant(stdout, args[i]);
 
   return NULL_CONST;
 }
@@ -90,7 +90,7 @@ Constant printApi(VM* vm, int arity, Constant* args) {
 Constant printlnApi(VM* vm, int arity, Constant* args) {
 
   for (int i = 0; i < arity; i++)
-    printConstant(args[i]);
+    printConstant(stdout, args[i]);
 
   printf("\n");
 

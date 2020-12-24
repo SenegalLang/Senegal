@@ -1,0 +1,3 @@
+"C:\Program Files\JetBrains\CLion 2020.2.3\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\senegal.dir/objects.a
+C:\msys64\mingw64\bin\ar.exe cr CMakeFiles\senegal.dir/objects.a @CMakeFiles\senegal.dir\objects1.rsp
+C:\msys64\mingw64\bin\gcc.exe -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles\senegal.dir/objects.a -Wl,--no-whole-archive  -o senegal.exe -Wl,--out-implib,libsenegal.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\senegal.dir\linklibs.rsp

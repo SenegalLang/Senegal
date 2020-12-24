@@ -8,77 +8,77 @@ void initConstantPool(ConstantPool* cp) {
   cp->count = 0;
 }
 
-static void printFunction(GCFunction* function) {
+static void printFunction(FILE* file, GCFunction* function) {
   if (!function)
     return;
 
   if (!function->id) {
-    printf("<Senegal Program>");
+    fprintf(file, "<Senegal Program>");
     return;
   }
 
-  printf("<Senegal Function %s>", function->id->chars);
+  fprintf(file,"<Senegal Function %s>", function->id->chars);
 }
 
-void printConstant(Constant constant) {
+void printConstant(FILE* file, Constant constant) {
 
 #if NAN_TAGGING
   if (IS_BOOL(constant)) {
-    printf(AS_BOOL(constant) ? "true" : "false");
+    fprintf(file, AS_BOOL(constant) ? "true" : "false");
   } else if (IS_LIST(constant)) {
     GCList* list = AS_LIST(constant);
-    printf("[");
+    fprintf(file, "[");
 
     for (int i = 0; i < list->elementC; i++) {
-      printConstant(list->elements[(list->elementC - 1) - i]);
+      printConstant(file, list->elements[(list->elementC - 1) - i]);
 
       if (i != list->elementC - 1)
-        printf(",");
+        fprintf(file, ",");
     }
 
-    printf("]");
+    fprintf(file, "]");
 
   } else if (IS_NULL(constant)) {
-    printf("null");
+    fprintf(file, "null");
   } else if (IS_NUMBER(constant)) {
-    printf("%.16g", AS_NUMBER(constant));
+    fprintf(file, "%.16g", AS_NUMBER(constant));
   } else if (IS_GC_OBJ(constant)) {
 
     switch (GC_OBJ_TYPE(constant)) {
       case GC_CLASS:
-        printf("%s", AS_CLASS(constant)->id->chars);
+        fprintf(file, "%s", AS_CLASS(constant)->id->chars);
         break;
 
       case GC_COROUTINE:
-        printf("Coroutine");
+        fprintf(file, "Coroutine");
         break;
 
       case GC_CLOSURE:
-        printFunction(AS_CLOSURE(constant)->function);
+        printFunction(file, AS_CLOSURE(constant)->function);
         break;
 
       case GC_FUNCTION:
-        printFunction(AS_FUNCTION(constant));
+        printFunction(file, AS_FUNCTION(constant));
         break;
 
       case GC_INSTANCE:
-        printf("Instance of %s", AS_INSTANCE(constant)->class->id->chars);
+        fprintf(file, "Instance of %s", AS_INSTANCE(constant)->class->id->chars);
         break;
 
       case GC_INSTANCE_METHOD:
-        printFunction(AS_INSTANCE_METHOD(constant)->method->function);
+        printFunction(file, AS_INSTANCE_METHOD(constant)->method->function);
         break;
 
       case GC_NATIVE:
-        printf("<Senegal Native Function>");
+        fprintf(file, "<Senegal Native Function>");
         break;
 
       case GC_STRING:
-        printf("%s", AS_CSTRING(constant));
+        fprintf(file, "%s", AS_CSTRING(constant));
         break;
 
       case GC_UPVALUE:
-        printf("Upvalue");
+        fprintf(file, "Upvalue");
         break;
     }
   }
@@ -86,69 +86,69 @@ void printConstant(Constant constant) {
 
   switch (constant.type) {
     case TYPE_NULL:
-      printf("null");
+      fprintf(file, "null");
       break;
 
     case TYPE_BOOL:
-      printf(AS_BOOL(constant) ? "true" : "false");
+      fprintf(file, AS_BOOL(constant) ? "true" : "false");
       break;
 
     case TYPE_NUM:
-      printf("%.16g", AS_NUMBER(constant));
+      fprintf(file, "%.16g", AS_NUMBER(constant));
       break;
 
     case TYPE_GC_OBJ: {
       switch (GC_OBJ_TYPE(constant)) {
 
         case GC_CLASS:
-          printf("%s", AS_CLASS(constant)->id->chars);
+          fprintf(file, "%s", AS_CLASS(constant)->id->chars);
           break;
 
         case GC_CLOSURE:
-          printFunction(AS_CLOSURE(constant)->function);
+          printFunction(file, AS_CLOSURE(constant)->function);
           break;
 
         case GC_COROUTINE:
-          printf("Coroutine");
+          fprintf(file, "Coroutine");
           break;
 
         case GC_FUNCTION:
-          printFunction(AS_FUNCTION(constant));
+          printFunction(file, AS_FUNCTION(constant));
           break;
 
         case GC_INSTANCE:
-          printf("Instance of %s", AS_INSTANCE(constant)->class->id->chars);
+          fprintf(file, "Instance of %s", AS_INSTANCE(constant)->class->id->chars);
           break;
 
         case GC_INSTANCE_METHOD:
-          printFunction(AS_INSTANCE_METHOD(constant)->method->function);
+          printFunction(file, AS_INSTANCE_METHOD(constant)->method->function);
           break;
 
         case GC_LIST: {
           GCList* list = AS_LIST(constant);
-          printf("[");
+          fprintf(file, "[");
 
           for (int i = 0; i < list->elementC; i++) {
-            printConstant(list->elements[(list->elementC - 1) - i]);
+            printConstant(file, list->elements[(list->elementC - 1) - i]);
 
             if (i != list->elementC - 1)
-              printf(",");
+              fprintf(file, ",");
           }
 
-          printf("]");
+          fprintf(file, "]");
           break;
         }
 
         case GC_NATIVE:
-          printf("<Senegal Native Function>");
+          fprintf(file, "<Senegal Native Function>");
           break;
 
         case GC_STRING:
-          printf("%s", AS_CSTRING(constant));
+          fprintf(file, "%s", AS_CSTRING(constant));
           break;
 
         case GC_UPVALUE:
-          printf("Upvalue");
+          fprintf(file, "Upvalue");
           break;
       }
     }

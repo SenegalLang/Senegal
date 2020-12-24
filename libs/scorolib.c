@@ -15,7 +15,6 @@ static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
     exit(0);
   }
 
-
   return GC_OBJ_CONST(newCoroutine(vm, OTHER, closure));
 }
 
@@ -68,6 +67,13 @@ static Constant sglCallCoroutine(VM* vm, int arity, Constant* args) {
   return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
 }
 
+static Constant sglTryCoroutine(VM* vm, int arity, Constant* args) {
+  GCCoroutine* coroutine = AS_COROUTINE(args[0]);
+  (*(&coroutine))->state = TRY;
+
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
+}
+
 static Constant sglTransferCoroutine(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[0]);
   return BOOL_CONST(runCoroutine(vm, coroutine, args, false, arity > 2));
@@ -79,8 +85,10 @@ static Constant sglCoroutineTransferError(VM* vm, int arity, Constant* args) {
   return NULL_CONST;
 }
 
-static Constant sglErrorCoroutine(VM* vm, int arity, Constant* args) {
-  return *AS_COROUTINE(args[0])->error;
+static Constant sglThrowCoroutine(VM* vm, int arity, Constant* args) {
+  vm->coroutine->error = &args[0];
+
+  return BOOL_CONST(IS_NULL(args[0]));
 }
 
 static Constant sglCoroutineYield(VM* vm, int arity, Constant* args) {
@@ -106,11 +114,6 @@ static Constant sglCoroutineIsComplete(VM* vm, int arity, Constant* args) {
   return BOOL_CONST(coroutine->frameCount == 0 || !coroutine->error);
 }
 
-static Constant sglHaltCoroutine(VM* vm, int arity, Constant* args) {
-  vm->coroutine->error = &args[0];
-
-  return BOOL_CONST(IS_NULL(args[0]));
-}
 
 static Constant sglSuspendCoroutine(VM* vm, int arity, Constant* args) {
   vm->coroutine = NULL;
@@ -124,13 +127,13 @@ Constant initCoroLib(VM *vm, int arity, Constant *args) {
   defineGlobalFunc(vm, "currentCoroutine", sglCurrentCoroutine);
 
   defineGlobalFunc(vm, "call", sglCallCoroutine);
+  defineGlobalFunc(vm, "try", sglTryCoroutine);
   defineGlobalFunc(vm, "transfer", sglTransferCoroutine);
   defineGlobalFunc(vm, "transferError", sglCoroutineTransferError);
 
-  defineGlobalFunc(vm, "throw", sglErrorCoroutine);
+  defineGlobalFunc(vm, "throw", sglThrowCoroutine);
   defineGlobalFunc(vm, "yield", sglCoroutineYield);
 
   defineGlobalFunc(vm, "isComplete", sglCoroutineIsComplete);
-  defineGlobalFunc(vm, "halt", sglHaltCoroutine);
   defineGlobalFunc(vm, "suspend", sglSuspendCoroutine);
 }

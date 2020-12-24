@@ -22,7 +22,7 @@ typedef enum {
 
 typedef enum {
     ROOT,
-    RUNNING,
+    TRY,
     OTHER
 } CoroutineState;
 

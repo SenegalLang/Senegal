@@ -91,7 +91,7 @@ bool areEqual(Constant a, Constant b);
 
 void initConstantPool(ConstantPool* cp);
 
-void printConstant(Constant constant);
+void printConstant(FILE* file, Constant constant);
 
 typedef enum {
     GC_CLASS,

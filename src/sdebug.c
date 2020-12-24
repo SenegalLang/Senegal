@@ -20,7 +20,7 @@ static int noOperandInstruction(const char* name, int offset) {
 static int loadNInstruction(const char* name, Instructions *instructions, int n, int offset) {
   uint8_t constant = instructions->bytes[n + 1];
   printf("%-16s %4d '", name, constant);
-  printConstant(instructions->constants.constants[constant]);
+  printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
   return offset + 1;
@@ -29,7 +29,7 @@ static int loadNInstruction(const char* name, Instructions *instructions, int n,
 static int loadInstruction(const char* name, Instructions *instructions, int offset) {
   uint8_t constant = instructions->bytes[offset + 1];
   printf("%-16s %4d '", name, constant);
-  printConstant(instructions->constants.constants[constant]);
+  printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
   return offset + 2;
@@ -41,7 +41,7 @@ static int lLoadInstruction(const char* name, Instructions *instructions, int of
                      | (instructions->bytes[offset + 1] << 16);
 
   printf("%-16s %4d '", name, constant);
-  printConstant(instructions->constants.constants[constant]);
+  printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
   return offset + 4;
@@ -73,7 +73,7 @@ static int invokeInstruction(const char* id, Instructions* i, int offset) {
   uint8_t arity = i->bytes[offset + 2];
 
   printf("%-16s (%d args) %4d '", id, arity, constant);
-  printConstant(i->constants.constants[constant]);
+  printConstant(stdout, i->constants.constants[constant]);
   printf("\n");
 
   return offset + 3;
@@ -217,7 +217,7 @@ int disassembleInstruction(Instructions *instructions, int offset) {
       offset++;
       uint8_t constant = instructions->bytes[offset++];
       printf("%-16s %4d ", "OPCODE_CLOSURE", constant);
-      printConstant(instructions->constants.constants[constant]);
+      printConstant(stdout, instructions->constants.constants[constant]);
       printf("\n");
 
       GCFunction* function = AS_FUNCTION(instructions->constants.constants[constant]);

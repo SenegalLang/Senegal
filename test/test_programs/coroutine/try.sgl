@@ -1,0 +1,11 @@
+import 'sgl:corolib'
+
+function foo() {
+    throw("Caught Error");
+}
+
+
+var coroutine = newCoroutine(foo);
+
+var caughtError = try(coroutine); // output Caught Error
+println(caughtError);
