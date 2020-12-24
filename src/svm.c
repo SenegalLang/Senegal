@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include "includes/sutils.h"
 #include "includes/scompiler.h"
@@ -587,21 +588,29 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    double powerNum = AS_NUMBER(POP());
-    double num = AS_NUMBER(POP());
+    double b = AS_NUMBER(POP());
+    double a = AS_NUMBER(POP());
+    Constant c = NUM_CONST(pow(a, b));
 
-    Constant c = NUM_CONST(power(num, powerNum));
     PUSH(c);
     DISPATCH();
   }
 
-    CASE(OPCODE_ADD):
-    if (IS_STRING(PEEK()) || IS_STRING(PEEK2()))
-      CONCAT_STRINGS();
-    else
-      BINARY_OP(vm, NUM_CONST, +);
+    CASE(OPCODE_ADD): {
+      bool isFirstString = IS_STRING(PEEK());
 
-    DISPATCH();
+      if (isFirstString != IS_STRING(PEEK2())) {
+        throwRuntimeError(vm, "Incorrect operands for string concatenation.");
+        return RUNTIME_ERROR;
+      }
+
+      if (isFirstString)
+        CONCAT_STRINGS();
+      else
+        BINARY_OP(vm, NUM_CONST, +);
+
+      DISPATCH();
+    }
 
     CASE(OPCODE_SUB):
     BINARY_OP(vm, NUM_CONST, -);

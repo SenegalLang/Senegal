@@ -18,7 +18,8 @@ var coroutine2 = newCoroutine(bar);
 
 println("Before Call"); // output Before Call
 
-println(call(coroutine));
+var yielded = call(coroutine);
+println(yielded);
 // output Before Yield
 // output Yield Value
 

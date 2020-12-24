@@ -521,18 +521,6 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
             writeByte(vm, parser, i, OPCODE_POP);
             break;
 
-          case SENEGAL_STAR_STAR:
-            advance(parser, lexer);
-
-            if (!check(parser, SENEGAL_NUMBER))
-              error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
-
-            writeByte(vm, parser, i, getOP);
-            parseExpression(vm, parser, compiler, cc, lexer, i);
-            writeByte(vm, parser, i, OPCODE_POW);
-            writeByte(vm, parser, i, setOP);
-            break;
-
           case SENEGAL_PLUS_EQUAL:
             advance(parser, lexer);
 
@@ -615,18 +603,6 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
         writeByte(vm, parser, i, OPCODE_DEC);
         writeShort(vm, parser, i, setOP, (uint8_t) id);
         writeByte(vm, parser, i, OPCODE_POP);
-        break;
-
-      case SENEGAL_STAR_STAR:
-        advance(parser, lexer);
-
-        if (!check(parser, SENEGAL_NUMBER))
-          error(parser, &parser->previous, "Senegal can only raise to the power of a number.");
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_POW);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
         break;
 
       case SENEGAL_PLUS_EQUAL:
@@ -905,6 +881,10 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
 
     case SENEGAL_PLUS:
       writeByte(vm, parser, i, OPCODE_ADD);
+      break;
+
+    case SENEGAL_STAR_STAR:
+      writeByte(vm, parser, i, OPCODE_POW);
       break;
 
     case SENEGAL_MINUS:

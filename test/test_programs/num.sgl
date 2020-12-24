@@ -21,7 +21,10 @@ println("Operators:"); // output Operators:
 var i = 6;
 
 println(i--); // output 6
-println(i ** 2); // output 25
+
+i = i ** 2;
+
+println(i); // output 25
 println(i++); // output 25
 println(i += 4); // output 30
 println(i /= 2); // output 15

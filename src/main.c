@@ -18,15 +18,9 @@
 
 #include "../libs/includes/ssocketlib.h"
 
-#define SENEGAL_HELP \
-  "Usage: senegal [flags] | [senegal-file]\n\n" \
-  "Global options:\n" \
-  "-h, --help                 Print this usage information.\n" \
-  "    --version              Print the Senegal version.\n"
-
-#define SENEGAL_VERSION "Senegal 0.0.1"
-
 static void repl(VM* vm, char* senegalPath) {
+  printf(SENEGAL_REPL);
+
   char line[1024];
 
   char cwd[260]; // PATH_MAX
