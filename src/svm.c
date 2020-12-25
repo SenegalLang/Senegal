@@ -1231,125 +1231,191 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_CALL): {
-    int arity = READ_BYTE();
-    if (!callConstant(vm, peek(vm, arity), arity)) {
-      return RUNTIME_ERROR;
-    }
+  {
+    Constant callee;
+    GCClosure* closure;
+    int arity;
 
-    if (!vm->coroutine)
-      return OK;
+    CASE(OPCODE_CALL):
+      arity = READ_BYTE();
+      callee = peek(vm, arity);
+      goto callConst;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+    CASE(OPCODE_CALL0):
+    callee = peek(vm, 0);
+    arity = 0;
+    goto callConst;
 
-    CASE(OPCODE_CALL0): {
-    if (!callConstant(vm, peek(vm, 0), 0)) {
-      return RUNTIME_ERROR;
-    }
+    CASE(OPCODE_CALL1):
+    callee = peek(vm, 1);
+    arity = 1;
+    goto callConst;
 
-    if (!vm->coroutine)
-      return OK;
+    CASE(OPCODE_CALL2):
+    callee = peek(vm, 2);
+    arity = 2;
+    goto callConst;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+    CASE(OPCODE_CALL3):
+    callee = peek(vm, 3);
+    arity = 3;
+    goto callConst;
 
-    CASE(OPCODE_CALL1): {
-    if (!callConstant(vm, peek(vm, 1), 1)) {
-      return RUNTIME_ERROR;
-    }
+    CASE(OPCODE_CALL4):
+    callee = peek(vm, 4);
+    arity = 4;
+    goto callConst;
 
-    if (!vm->coroutine)
-      return OK;
+    CASE(OPCODE_CALL5):
+    callee = peek(vm, 5);
+    arity = 5;
+    goto callConst;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+    CASE(OPCODE_CALL6):
+    callee = peek(vm, 6);
+    arity = 6;
+    goto callConst;
 
-    CASE(OPCODE_CALL2): {
-    if (!callConstant(vm, peek(vm, 2), 2)) {
-      return RUNTIME_ERROR;
-    }
+    CASE(OPCODE_CALL7):
+    callee = peek(vm, 7);
+    arity = 7;
+    goto callConst;
 
-    if (!vm->coroutine)
-      return OK;
+    CASE(OPCODE_CALL8):
+      callee = peek(vm, 8);
+      arity = 8;
+      goto callConst;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+    callConst:
+    if (IS_GC_OBJ(callee))
+      switch (GC_OBJ_TYPE(callee)) {
+        case GC_CLASS: {
+          GCClass *class = AS_CLASS(callee);
+          vm->coroutine->stackTop[-arity - 1] = GC_OBJ_CONST(newInstance(vm, class));
 
-    CASE(OPCODE_CALL3): {
-    if (!callConstant(vm, peek(vm, 3), 3)) {
-      return RUNTIME_ERROR;
-    }
+          Constant constructor;
+          if (tableGetEntry(&class->staticMethods, GC_OBJ_CONST(class->id), &constructor)) {
+            Constant result = AS_NATIVE(constructor)(vm, arity, vm->coroutine->stackTop - arity);
 
-    if (!vm->coroutine)
-      return OK;
+            if (!vm->coroutine) {
+              if (!vm->coroutine)
+                return OK;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+              UPDATE_FRAME();
+              DISPATCH();
+            }
 
-    CASE(OPCODE_CALL4): {
-    if (!callConstant(vm, peek(vm, 4), 4)) {
-      return RUNTIME_ERROR;
-    }
+            vm->coroutine->stackTop -= arity + 1;
+            push(vm, result);
 
-    if (!vm->coroutine)
-      return OK;
+            if (!vm->coroutine)
+              return OK;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+            UPDATE_FRAME();
+            DISPATCH();
+          }
 
-    CASE(OPCODE_CALL5): {
-    if (!callConstant(vm, peek(vm, 5), 5)) {
-      return RUNTIME_ERROR;
-    }
+          if (tableGetEntry(&class->methods, GC_OBJ_CONST(class->id), &constructor)) {
+            closure = AS_CLOSURE(constructor);
+            goto finishCall;
+          }
 
-    if (!vm->coroutine)
-      return OK;
+          if (arity != 0) {
+            throwRuntimeError(vm, "%s's constructor takes no arguments", class->id->chars);
+            return RUNTIME_ERROR;
+          }
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+          if (!vm->coroutine)
+            return OK;
 
-    CASE(OPCODE_CALL6): {
-    if (!callConstant(vm, peek(vm, 6), 6)) {
-      return RUNTIME_ERROR;
-    }
+          UPDATE_FRAME();
+          DISPATCH();
+        }
 
-    if (!vm->coroutine)
-      return OK;
+        case GC_CLOSURE:
+          closure = AS_CLOSURE(callee);
+          goto finishCall;
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+        case GC_INSTANCE_METHOD: {
+          GCInstanceMethod *im = AS_INSTANCE_METHOD(callee);
+          vm->coroutine->stackTop[-arity - 1] = im->receiver;
+          closure = im->method;
 
-    CASE(OPCODE_CALL7): {
-    if (!callConstant(vm, peek(vm, 7), 7)) {
-      return RUNTIME_ERROR;
-    }
+          goto finishCall;
+        }
 
-    if (!vm->coroutine)
-      return OK;
+        case GC_NATIVE: {
+          Constant result = AS_NATIVE(callee)(vm, arity, vm->coroutine->stackTop - arity);
 
-    UPDATE_FRAME();
-    DISPATCH();
-  }
+          if (!vm->coroutine)
+            return OK;
 
-    CASE(OPCODE_CALL8): {
-    if (!callConstant(vm, peek(vm, 8), 8)) {
-      return RUNTIME_ERROR;
-    }
+          vm->coroutine->stackTop -= arity + 1;
 
-    if (!vm->coroutine)
-      return OK;
+          if (vm->coroutine->error) {
+            GCCoroutine *cur = vm->coroutine;
+            Constant error = *cur->error;
 
-    UPDATE_FRAME();
-    DISPATCH();
+            while (cur != NULL) {
+              cur->error = &error;
+
+              if (cur->state == TRY) {
+                vm->coroutine = cur->caller;
+                vm->coroutine->stackTop[-1] = *cur->error;
+
+                if (!vm->coroutine)
+                  return OK;
+
+                UPDATE_FRAME();
+                DISPATCH();
+              }
+
+              GCCoroutine *caller = cur->caller;
+              cur->caller = NULL;
+              cur = caller;
+            }
+
+            printConstant(stderr, *vm->coroutine->error);
+            return RUNTIME_ERROR;
+          }
+
+          PUSH(result);
+
+          if (!vm->coroutine)
+            return OK;
+
+          UPDATE_FRAME();
+          DISPATCH();
+        }
+        default:
+          throwRuntimeError(vm, "Senegal can only call functions and constructors");
+          return RUNTIME_ERROR;
+      }
+
+    throwRuntimeError(vm, "Senegal can only call functions and constructors");
+    return RUNTIME_ERROR;
+
+    finishCall:
+      if (arity != closure->function->arity) {
+        throwRuntimeError(vm, "Function %s expected %d arguments but found %d", closure->function->id->chars, closure->function->arity, arity);
+        return RUNTIME_ERROR;
+      }
+
+      if (vm->coroutine->frameCount == FRAMES_MAX) {
+        throwRuntimeError(vm, "Senegal's stack overflowed: Stack overflow");
+        return RUNTIME_ERROR;
+      }
+
+      CallFrame* newFrame = &vm->coroutine->frames[vm->coroutine->frameCount++];
+      newFrame->closure = closure;
+      newFrame->pc = closure->function->instructions.bytes;
+      newFrame->constants = vm->coroutine->stackTop - arity - 1;
+
+      if (!vm->coroutine)
+        return OK;
+
+      UPDATE_FRAME();
+      DISPATCH();
   }
 
     CASE(OPCODE_INVOKE):{
