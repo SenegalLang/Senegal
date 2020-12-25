@@ -826,6 +826,7 @@ static InterpretationResult run(VM* vm) {
       }
 
       list->elements[(list->elementC - 1) - (int)index] = newValue;
+      PUSH(newValue);
     } else {
       throwRuntimeError(vm, "Tried accessing an invalid type.");
       return RUNTIME_ERROR;
