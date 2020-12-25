@@ -802,10 +802,6 @@ static InterpretationResult run(VM* vm) {
     Constant newValue = POP();
 
     if (IS_MAP(PEEK2())) {
-      if (!IS_STRING(PEEK())) {
-        throwRuntimeError(vm, "Senegal maps only support String keys");
-        return RUNTIME_ERROR;
-      }
 
       Constant key = POP();
       GCMap* map = AS_MAP(POP());
