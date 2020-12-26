@@ -14,7 +14,7 @@
 #include "../core/includes/snumcore.h"
 #include "../core/includes/smapcore.h"
 #include "../core/includes/slistcore.h"
-#include "../core/includes/scorolib.h"
+#include "../core/includes/scorocore.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"

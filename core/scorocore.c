@@ -1,4 +1,4 @@
-#include "includes/scorolib.h"
+#include "includes/scorocore.h"
 #include "../core/includes/sapi.h"
 #include "../src/includes/sparser.h"
 
@@ -66,7 +66,7 @@ static Constant sglCurrentCoroutine(VM *vm, int arity, Constant *args) {
 
 static Constant sglCallCoroutine(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
-  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 1));
 }
 
 static Constant sglTryCoroutine(VM* vm, int arity, Constant* args) {
@@ -129,12 +129,11 @@ void initCoroutineClass(VM *vm) {
   defineClassNativeStaticMethod(vm, "Coroutine", sglNewCoroutine, vm->coroutineClass);
   defineClassNativeStaticMethod(vm, "current", sglCurrentCoroutine, vm->coroutineClass);
 
-  defineClassNativeMethod(vm, "isComplete", sglCoroutineIsComplete, vm->coroutineClass);
-
   defineClassNativeMethod(vm, "call", sglCallCoroutine, vm->coroutineClass);
-  defineClassNativeMethod(vm, "try", sglTryCoroutine, vm->coroutineClass);
+  defineClassNativeMethod(vm, "isComplete", sglCoroutineIsComplete, vm->coroutineClass);
   defineClassNativeMethod(vm, "takeover", sglTakeoverCoroutine, vm->coroutineClass);
   defineClassNativeMethod(vm, "takeoverError", sglCoroutineTakeoverError, vm->coroutineClass);
+  defineClassNativeMethod(vm, "try", sglTryCoroutine, vm->coroutineClass);
 
   defineGlobalFunc(vm, "throw", sglThrowCoroutine);
   defineGlobalFunc(vm, "yield", sglCoroutineYield);

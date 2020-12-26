@@ -10,6 +10,7 @@ module.exports = {
             {
                 Core: [
                     'Core/bool',
+                    'Core/coroutine',
                     'Core/list',
                     'Core/map',
                     'Core/string'
