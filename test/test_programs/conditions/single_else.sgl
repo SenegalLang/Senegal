@@ -1,0 +1,4 @@
+if (false)
+    println('true');
+else
+    println('false'); // output false

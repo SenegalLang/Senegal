@@ -1,0 +1,1 @@
+true ? 1; // error <Line 1 Error:;> `Senegal expected `:` after the first ternary statement`

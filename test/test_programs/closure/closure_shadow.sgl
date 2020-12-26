@@ -1,0 +1,12 @@
+var outer = 'outer';
+function foo() {
+    {
+        println(outer); // output outer
+        var outer = 'inner';
+        println(outer); // output inner
+    }
+
+    println(outer); // output outer
+}
+
+foo();

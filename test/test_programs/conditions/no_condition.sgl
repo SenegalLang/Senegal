@@ -1,0 +1,1 @@
+? 'true' : 'false'; // error <Line 1 Error:?> `Senegal expected an expression.`

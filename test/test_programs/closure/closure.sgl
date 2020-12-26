@@ -1,0 +1,6 @@
+function printFoo() => println('foo');
+
+var i = printFoo;
+
+println('bar'); // output bar
+i(); // output foo
