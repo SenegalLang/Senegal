@@ -1358,38 +1358,7 @@ static InterpretationResult run(VM* vm) {
             return OK;
 
           vm->coroutine->stackTop -= arity + 1;
-
-          if (vm->coroutine->error) {
-            GCCoroutine *cur = vm->coroutine;
-            Constant error = *cur->error;
-
-            while (cur != NULL) {
-              cur->error = &error;
-
-              if (cur->state == TRY) {
-                vm->coroutine = cur->caller;
-                vm->coroutine->stackTop[-1] = *cur->error;
-
-                if (!vm->coroutine)
-                  return OK;
-
-                UPDATE_FRAME();
-                DISPATCH();
-              }
-
-              GCCoroutine *caller = cur->caller;
-              cur->caller = NULL;
-              cur = caller;
-            }
-
-            printConstant(stderr, *vm->coroutine->error);
-            return RUNTIME_ERROR;
-          }
-
           PUSH(result);
-
-          if (!vm->coroutine)
-            return OK;
 
           UPDATE_FRAME();
           DISPATCH();
@@ -1485,11 +1454,12 @@ static InterpretationResult run(VM* vm) {
     current->caller = NULL;
     current->state = OTHER;
 
-    if (vm->coroutine != NULL)
+    if (vm->coroutine)
       PUSH(result);
+    else
+      PUSH(NULL_CONST);
 
-    PUSH(NULL_CONST);
-
+    UPDATE_FRAME();
     DISPATCH();
   }
 
