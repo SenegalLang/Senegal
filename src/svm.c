@@ -196,28 +196,6 @@ static bool callConstant(VM* vm, Constant callee, int arity) {
 
       vm->coroutine->stackTop -= arity + 1;
 
-      if (vm->coroutine->error) {
-        GCCoroutine *cur = vm->coroutine;
-        Constant error = *cur->error;
-
-        while (cur != NULL) {
-          cur->error = &error;
-
-          if (cur->state == TRY) {
-            vm->coroutine = cur->caller;
-            vm->coroutine->stackTop[-1] = *cur->error;
-            return true;
-          }
-
-          GCCoroutine *caller = cur->caller;
-          cur->caller = NULL;
-          cur = caller;
-        }
-
-        printConstant(stderr, *vm->coroutine->error);
-        return false;
-      }
-
       push(vm, result);
       return true;
     }
@@ -1463,13 +1441,59 @@ static InterpretationResult run(VM* vm) {
     DISPATCH();
   }
 
-    CASE(OPCODE_NULL): {
+  CASE(OPCODE_NULL): {
     Constant c = NULL_CONST;
     PUSH(c);
     DISPATCH();
   }
 
-    CASE(OPCODE_RET): {
+  CASE(OPCODE_SUSPEND):
+    return OK;
+
+  CASE(OPCODE_THROW): {
+    Constant error = POP();
+    vm->coroutine->error = &error;
+
+    GCCoroutine *cur = vm->coroutine;
+
+    while (cur != NULL) {
+      cur->error = &error;
+
+      if (cur->state == TRY) {
+        vm->coroutine = cur->caller;
+        vm->coroutine->stackTop[-1] = *cur->error;
+
+        UPDATE_FRAME();
+        DISPATCH();
+      }
+
+      GCCoroutine *caller = cur->caller;
+      cur->caller = NULL;
+      cur = caller;
+    }
+
+    printConstant(stderr, *vm->coroutine->error);
+    return RUNTIME_ERROR;
+  }
+
+  CASE (OPCODE_YIELD): {
+    Constant result = POP();
+
+    GCCoroutine* current = vm->coroutine;
+    vm->coroutine = current->caller;
+
+    current->caller = NULL;
+    current->state = OTHER;
+
+    if (vm->coroutine != NULL)
+      PUSH(result);
+
+    PUSH(NULL_CONST);
+
+    DISPATCH();
+  }
+
+  CASE(OPCODE_RET): {
     Constant result = POP();
     vm->coroutine->frameCount--;
 

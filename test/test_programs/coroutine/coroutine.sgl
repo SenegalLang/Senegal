@@ -1,6 +1,6 @@
 function foo() {
     println('Before Yield');
-    yield("Yield Value");
+    yield "Yield Value";
     println('After Yield');
 
     coroutine2.takeover();

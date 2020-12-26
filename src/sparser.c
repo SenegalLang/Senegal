@@ -90,6 +90,9 @@ static void sync(Parser* parser, Lexer* lexer) {
       case SENEGAL_STATIC:
       case SENEGAL_FINAL:
       case SENEGAL_RETURN:
+      case SENEGAL_YIELD:
+      case SENEGAL_THROW:
+      case SENEGAL_SUSPEND:
         return;
 
       default:
@@ -359,6 +362,26 @@ static void parseBlock(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* pa
   consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected block to be closed with `}`");
 }
 
+static void parseReturn(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer) {
+  advance(parser, lexer);
+
+  if (compiler->type == PROGRAM) {
+    error(parser, &parser->previous, "Senegal can't return from a global scope.");
+  }
+
+  if (match(parser, lexer, SENEGAL_SEMI)) {
+    writeRetByte(vm, compiler, parser, &compiler->function->instructions);
+  } else {
+    if (compiler->type == CONSTRUCTOR) {
+      error(parser, &parser->previous, "Senegal cannot return from a constructor.");
+    }
+
+    parseExpression(vm, parser, compiler, cc, lexer, &compiler->function->instructions);
+    consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
+    writeByte(vm, parser, &compiler->function->instructions, OPCODE_RET);
+  }
+}
+
 static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, FunctionType type) {
   Compiler compiler;
   initCompiler(vm, parser, oldCompiler, &compiler, type, false);
@@ -381,24 +404,7 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
   consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected `)` after function arguments.");
 
   if (check(parser, SENEGAL_EQUAL_GREATER)) {
-    advance(parser, lexer);
-
-    // TODO(Calamity210): Move to a parseReturn function
-    if (compiler.type == PROGRAM) {
-      error(parser, &parser->previous, "Senegal can't return from a global scope.");
-    }
-
-    if (match(parser, lexer, SENEGAL_SEMI)) {
-      writeRetByte(vm, &compiler, parser, &compiler.function->instructions);
-    } else {
-      if (compiler.type == CONSTRUCTOR) {
-        error(parser, &parser->previous, "Senegal cannot return from a constructor.");
-      }
-
-      parseExpression(vm, parser, &compiler, cc, lexer, &compiler.function->instructions);
-      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
-      writeByte(vm, parser, &compiler.function->instructions, OPCODE_RET);
-    }
+    parseReturn(vm, parser, &compiler, cc, lexer);
   } else {
     consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` before function body.");
     parseBlock(vm, &compiler, cc, parser, lexer, &compiler.function->instructions);
@@ -1224,32 +1230,38 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       break;
     }
 
-    case SENEGAL_RETURN: {
-      // TODO(Calamity210): Move to a parseReturn function
+    case SENEGAL_RETURN:
+      parseReturn(vm, parser, compiler, cc, lexer);
+      break;
+
+    case SENEGAL_SUSPEND:
+      advance(parser, lexer);
+      writeByte(vm, parser, &compiler->function->instructions, OPCODE_SUSPEND);
+      break;
+
+    case SENEGAL_THROW:
       advance(parser, lexer);
 
-      if (compiler->type == PROGRAM) {
-        error(parser, &parser->previous, "Senegal can't return from a global scope.");
-      }
+      parseExpression(vm, parser, compiler, cc, lexer, &compiler->function->instructions);
+      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
+      writeByte(vm, parser, &compiler->function->instructions, OPCODE_THROW);
+      break;
+
+    case SENEGAL_YIELD:
+      advance(parser, lexer);
 
       if (match(parser, lexer, SENEGAL_SEMI)) {
-        writeRetByte(vm, compiler, parser, i);
-      } else {
-        if (compiler->type == CONSTRUCTOR) {
-          error(parser, &parser->previous, "Senegal cannot return from a constructor.");
-        }
-
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
-        writeByte(vm, parser, i, OPCODE_RET);
+        writeShort(vm, parser, &compiler->function->instructions, OPCODE_NULL, OPCODE_YIELD);
+        break;
       }
 
+      parseExpression(vm, parser, compiler, cc, lexer, &compiler->function->instructions);
+      consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
+      writeByte(vm, parser, &compiler->function->instructions, OPCODE_YIELD);
       break;
-    }
 
     case SENEGAL_SWITCH: {
-      // TODO(Calamity210): Implement switch using a jump table
-
+      // TODO(Calamity210): Implement switch
       break;
     }
 

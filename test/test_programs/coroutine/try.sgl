@@ -1,5 +1,5 @@
 function foo() {
-    throw("Caught Error");
+    throw "Caught Error";
 }
 
 

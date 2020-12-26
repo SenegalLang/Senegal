@@ -87,40 +87,10 @@ static Constant sglCoroutineTakeoverError(VM* vm, int arity, Constant* args) {
   return NULL_CONST;
 }
 
-static Constant sglThrowCoroutine(VM* vm, int arity, Constant* args) {
-  vm->coroutine->error = &args[0];
-
-  return BOOL_CONST(IS_NULL(args[0]));
-}
-
-static Constant sglCoroutineYield(VM* vm, int arity, Constant* args) {
-  GCCoroutine* current = vm->coroutine;
-  vm->coroutine = current->caller;
-
-  current->caller = NULL;
-  current->state = OTHER;
-
-  if (vm->coroutine != NULL) {
-    if (arity > 0)
-      return args[0];
-    else
-      return NULL_CONST;
-  }
-
-  return NULL_CONST;
-}
-
 static Constant sglCoroutineIsComplete(VM* vm, int arity, Constant* args) {
   GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
 
   return BOOL_CONST(coroutine->frameCount == 0 || !coroutine->error);
-}
-
-
-static Constant sglSuspendCoroutine(VM* vm, int arity, Constant* args) {
-  vm->coroutine = NULL;
-
-  return BOOL_CONST(false);
 }
 
 void initCoroutineClass(VM *vm) {
@@ -134,8 +104,4 @@ void initCoroutineClass(VM *vm) {
   defineClassNativeMethod(vm, "takeover", sglTakeoverCoroutine, vm->coroutineClass);
   defineClassNativeMethod(vm, "takeoverError", sglCoroutineTakeoverError, vm->coroutineClass);
   defineClassNativeMethod(vm, "try", sglTryCoroutine, vm->coroutineClass);
-
-  defineGlobalFunc(vm, "throw", sglThrowCoroutine);
-  defineGlobalFunc(vm, "yield", sglCoroutineYield);
-  defineGlobalFunc(vm, "suspend", sglSuspendCoroutine);
 }

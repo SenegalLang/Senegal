@@ -214,7 +214,15 @@ static SenegalTokenType idToken(Lexer* lexer) {
             return collectKeyword(lexer, 2, 4, "atic", SENEGAL_STATIC);
 
           case 'u':
-            return collectKeyword(lexer, 2, 3, "per", SENEGAL_SUPER);
+            if (lexer->current - lexer->start > 2) {
+              switch (lexer->start[2]) {
+                case 'p':
+                  return collectKeyword(lexer, 3, 2, "er", SENEGAL_SUPER);
+
+                case 's':
+                  return collectKeyword(lexer, 3, 4, "pend", SENEGAL_SUSPEND);
+              }
+            }
 
           case 'w':
             return collectKeyword(lexer, 2, 4, "itch", SENEGAL_SWITCH);
@@ -226,7 +234,15 @@ static SenegalTokenType idToken(Lexer* lexer) {
       if (lexer->current - lexer->start > 1) {
         switch (lexer->start[1]) {
           case 'h':
-            return collectKeyword(lexer, 2, 2, "is", SENEGAL_THIS);
+            if (lexer->current - lexer->start > 2) {
+              switch (lexer->start[2]) {
+                case 'i':
+                  return collectKeyword(lexer, 3, 1, "s", SENEGAL_THIS);
+
+                case 'r':
+                  return collectKeyword(lexer, 3, 2, "ow", SENEGAL_THROW);
+              }
+            }
 
           case 'r':
             return collectKeyword(lexer, 2, 2, "ue", SENEGAL_TRUE);
@@ -240,6 +256,9 @@ static SenegalTokenType idToken(Lexer* lexer) {
 
     case 'w':
       return collectKeyword(lexer, 1, 4, "hile", SENEGAL_WHILE);
+
+    case 'y':
+      return collectKeyword(lexer, 1, 4, "ield", SENEGAL_YIELD);
 
   }
 
