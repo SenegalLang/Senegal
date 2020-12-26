@@ -284,27 +284,27 @@ void initStringClass(VM *vm) {
   vm->stringClass = newClass(vm, copyString(vm, NULL, "String", 6), true);
 
   // Static methods
-  defineClassNativeStaticFunc(vm, "fromByte", stringFromByte, vm->stringClass);
+  defineClassNativeStaticMethod(vm, "fromByte", stringFromByte, vm->stringClass);
 
   // Instance methods
-  defineClassNativeFunc(vm, "at", stringByteAt, vm->stringClass);
-  defineClassNativeFunc(vm, "contains", stringContains, vm->stringClass);
-  defineClassNativeFunc(vm, "endsWith", stringEndsWith, vm->stringClass);
-  defineClassNativeFunc(vm, "indexOf", stringIndexOf, vm->stringClass);
-  defineClassNativeFunc(vm, "isAlpha", stringIsAlpha, vm->stringClass);
-  defineClassNativeFunc(vm, "isAlphaNum", stringIsAlphaNum, vm->stringClass);
-  defineClassNativeFunc(vm, "isEmpty", stringIsEmpty, vm->stringClass);
-  defineClassNativeFunc(vm, "isHex", stringIsHex, vm->stringClass);
-  defineClassNativeFunc(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
-  defineClassNativeFunc(vm, "isNum", stringIsNum, vm->stringClass);
-  defineClassNativeFunc(vm, "length", stringLength, vm->stringClass);
-  defineClassNativeFunc(vm, "replace", stringReplace, vm->stringClass);
-  defineClassNativeFunc(vm, "split", stringSplit, vm->stringClass);
-  defineClassNativeFunc(vm, "startsWith", stringStartsWith, vm->stringClass);
-  defineClassNativeFunc(vm, "substr", stringSubstr, vm->stringClass);
-  defineClassNativeFunc(vm, "toLower", stringToLower, vm->stringClass);
-  defineClassNativeFunc(vm, "toNum", stringToNum, vm->stringClass);
-  defineClassNativeFunc(vm, "toUpper", stringToUpper, vm->stringClass);
-  defineClassNativeFunc(vm, "toString", stringToString, vm->stringClass);
+  defineClassNativeMethod(vm, "at", stringByteAt, vm->stringClass);
+  defineClassNativeMethod(vm, "contains", stringContains, vm->stringClass);
+  defineClassNativeMethod(vm, "endsWith", stringEndsWith, vm->stringClass);
+  defineClassNativeMethod(vm, "indexOf", stringIndexOf, vm->stringClass);
+  defineClassNativeMethod(vm, "isAlpha", stringIsAlpha, vm->stringClass);
+  defineClassNativeMethod(vm, "isAlphaNum", stringIsAlphaNum, vm->stringClass);
+  defineClassNativeMethod(vm, "isEmpty", stringIsEmpty, vm->stringClass);
+  defineClassNativeMethod(vm, "isHex", stringIsHex, vm->stringClass);
+  defineClassNativeMethod(vm, "isNotEmpty", stringIsNotEmpty, vm->stringClass);
+  defineClassNativeMethod(vm, "isNum", stringIsNum, vm->stringClass);
+  defineClassNativeMethod(vm, "length", stringLength, vm->stringClass);
+  defineClassNativeMethod(vm, "replace", stringReplace, vm->stringClass);
+  defineClassNativeMethod(vm, "split", stringSplit, vm->stringClass);
+  defineClassNativeMethod(vm, "startsWith", stringStartsWith, vm->stringClass);
+  defineClassNativeMethod(vm, "substr", stringSubstr, vm->stringClass);
+  defineClassNativeMethod(vm, "toLower", stringToLower, vm->stringClass);
+  defineClassNativeMethod(vm, "toNum", stringToNum, vm->stringClass);
+  defineClassNativeMethod(vm, "toUpper", stringToUpper, vm->stringClass);
+  defineClassNativeMethod(vm, "toString", stringToString, vm->stringClass);
 
 }

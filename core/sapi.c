@@ -11,7 +11,7 @@ void expect(int expected, int actual, char *name) {
   }
 }
 
-void defineClassNativeFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+void defineClassNativeMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
   tableInsert(vm, &class->methods, vm->coroutine->stack[0], vm->coroutine->stack[1]);
@@ -25,7 +25,7 @@ void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* cla
   pop(vm);
 }
 
-void defineClassNativeStaticFunc(VM* vm, const char* id, NativeFunc function, GCClass* class) {
+void defineClassNativeStaticMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
   tableInsert(vm, &class->staticMethods, vm->coroutine->stack[0], vm->coroutine->stack[1]);

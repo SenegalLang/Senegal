@@ -158,6 +158,7 @@ struct sVM {
     Table corePaths;
 
     GCClass* boolClass;
+    GCClass* coroutineClass;
     GCClass* listClass;
     GCClass* mapClass;
     GCClass* numClass;

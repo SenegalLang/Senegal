@@ -1,11 +1,9 @@
-import 'sgl:corolib'
-
 function foo() {
     throw("Uncaught Error");
 }
 
 
-var coroutine = newCoroutine(foo);
+var coroutine = Coroutine(foo);
 
-var unCaughtError = call(coroutine); // error Uncaught Error
+var unCaughtError = coroutine.call(); // error Uncaught Error
 println(unCaughtError);

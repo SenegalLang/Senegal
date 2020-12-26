@@ -12,7 +12,6 @@
 #include "includes/stable_utils.h"
 #include "../libs/includes/smathlib.h"
 #include "../libs/includes/siolib.h"
-#include "../libs/includes/scorolib.h"
 #include "../libs/includes/sfilelib.h"
 #include "../core/includes/sapi.h"
 
@@ -106,10 +105,6 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:io", 6)),
               GC_OBJ_CONST(newNative(vm, initIoLib)));
-
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:corolib", 11)),
-              GC_OBJ_CONST(newNative(vm, initCoroLib)));
 
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:file", 8)),

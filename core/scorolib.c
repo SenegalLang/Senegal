@@ -3,7 +3,9 @@
 #include "../src/includes/sparser.h"
 
 static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
-  if (arity != 1 || !IS_CLOSURE(args[0])) {
+  expect(1, arity, "Coroutine");
+
+  if (!IS_CLOSURE(args[0])) {
     printf("Coroutine's constructor requires a closure as an argument\n");
     exit(0);
   }
@@ -63,25 +65,25 @@ static Constant sglCurrentCoroutine(VM *vm, int arity, Constant *args) {
 }
 
 static Constant sglCallCoroutine(VM* vm, int arity, Constant* args) {
-  GCCoroutine* coroutine = AS_COROUTINE(args[0]);
+  GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
   return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
 }
 
 static Constant sglTryCoroutine(VM* vm, int arity, Constant* args) {
-  GCCoroutine* coroutine = AS_COROUTINE(args[0]);
+  GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
   (*(&coroutine))->state = TRY;
 
-  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 2));
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, true, arity > 1));
 }
 
-static Constant sglTransferCoroutine(VM* vm, int arity, Constant* args) {
-  GCCoroutine* coroutine = AS_COROUTINE(args[0]);
-  return BOOL_CONST(runCoroutine(vm, coroutine, args, false, arity > 2));
+static Constant sglTakeoverCoroutine(VM* vm, int arity, Constant* args) {
+  GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
+  return BOOL_CONST(runCoroutine(vm, coroutine, args, false, arity > 1));
 }
 
-static Constant sglCoroutineTransferError(VM* vm, int arity, Constant* args) {
-  runCoroutine(vm, AS_COROUTINE(args[0]), args, false, true);
-  vm->coroutine->error = &args[1];
+static Constant sglCoroutineTakeoverError(VM* vm, int arity, Constant* args) {
+  runCoroutine(vm, AS_COROUTINE(args[-1]), args, false, true);
+  vm->coroutine->error = &args[0];
   return NULL_CONST;
 }
 
@@ -109,7 +111,7 @@ static Constant sglCoroutineYield(VM* vm, int arity, Constant* args) {
 }
 
 static Constant sglCoroutineIsComplete(VM* vm, int arity, Constant* args) {
-  GCCoroutine* coroutine = AS_COROUTINE(args[0]);
+  GCCoroutine* coroutine = AS_COROUTINE(args[-1]);
 
   return BOOL_CONST(coroutine->frameCount == 0 || !coroutine->error);
 }
@@ -121,19 +123,20 @@ static Constant sglSuspendCoroutine(VM* vm, int arity, Constant* args) {
   return BOOL_CONST(false);
 }
 
-Constant initCoroLib(VM *vm, int arity, Constant *args) {
+void initCoroutineClass(VM *vm) {
+  vm->coroutineClass = newClass(vm, copyString(vm, NULL, "Coroutine", 9), true);
 
-  defineGlobalFunc(vm, "newCoroutine", sglNewCoroutine);
-  defineGlobalFunc(vm, "currentCoroutine", sglCurrentCoroutine);
+  defineClassNativeStaticMethod(vm, "Coroutine", sglNewCoroutine, vm->coroutineClass);
+  defineClassNativeStaticMethod(vm, "current", sglCurrentCoroutine, vm->coroutineClass);
 
-  defineGlobalFunc(vm, "call", sglCallCoroutine);
-  defineGlobalFunc(vm, "try", sglTryCoroutine);
-  defineGlobalFunc(vm, "transfer", sglTransferCoroutine);
-  defineGlobalFunc(vm, "transferError", sglCoroutineTransferError);
+  defineClassNativeMethod(vm, "isComplete", sglCoroutineIsComplete, vm->coroutineClass);
+
+  defineClassNativeMethod(vm, "call", sglCallCoroutine, vm->coroutineClass);
+  defineClassNativeMethod(vm, "try", sglTryCoroutine, vm->coroutineClass);
+  defineClassNativeMethod(vm, "takeover", sglTakeoverCoroutine, vm->coroutineClass);
+  defineClassNativeMethod(vm, "takeoverError", sglCoroutineTakeoverError, vm->coroutineClass);
 
   defineGlobalFunc(vm, "throw", sglThrowCoroutine);
   defineGlobalFunc(vm, "yield", sglCoroutineYield);
-
-  defineGlobalFunc(vm, "isComplete", sglCoroutineIsComplete);
   defineGlobalFunc(vm, "suspend", sglSuspendCoroutine);
 }

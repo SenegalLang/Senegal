@@ -94,19 +94,19 @@ static Constant numRemainder(VM* vm, int arity, Constant* args) {
 void initNumClass(VM *vm) {
   vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), true);
 
-  defineClassNativeFunc(vm, "asBool", numAsBool, vm->numClass);
-  defineClassNativeFunc(vm, "isFinite", numIsFinite, vm->numClass);
-  defineClassNativeFunc(vm, "isInfinite", numIsInfinite, vm->numClass);
-  defineClassNativeFunc(vm, "toString", numToString, vm->numClass);
-  defineClassNativeFunc(vm, "isNaN", numIsNan, vm->numClass);
-  defineClassNativeFunc(vm, "isNeg", numIsNeg, vm->numClass);
+  defineClassNativeMethod(vm, "asBool", numAsBool, vm->numClass);
+  defineClassNativeMethod(vm, "isFinite", numIsFinite, vm->numClass);
+  defineClassNativeMethod(vm, "isInfinite", numIsInfinite, vm->numClass);
+  defineClassNativeMethod(vm, "toString", numToString, vm->numClass);
+  defineClassNativeMethod(vm, "isNaN", numIsNan, vm->numClass);
+  defineClassNativeMethod(vm, "isNeg", numIsNeg, vm->numClass);
 
-  defineClassNativeFunc(vm, "abs", numAbs, vm->numClass);
-  defineClassNativeFunc(vm, "ceil", numCeil, vm->numClass);
-  defineClassNativeFunc(vm, "clamp", numClamp, vm->numClass);
-  defineClassNativeFunc(vm, "compareTo", numCompareTo, vm->numClass);
-  defineClassNativeFunc(vm, "floor", numFloor, vm->numClass);
-  defineClassNativeFunc(vm, "remainder", numRemainder, vm->numClass);
+  defineClassNativeMethod(vm, "abs", numAbs, vm->numClass);
+  defineClassNativeMethod(vm, "ceil", numCeil, vm->numClass);
+  defineClassNativeMethod(vm, "clamp", numClamp, vm->numClass);
+  defineClassNativeMethod(vm, "compareTo", numCompareTo, vm->numClass);
+  defineClassNativeMethod(vm, "floor", numFloor, vm->numClass);
+  defineClassNativeMethod(vm, "remainder", numRemainder, vm->numClass);
 
   defineClassNativeStaticField(vm, "nan", NUM_CONST(NAN), vm->numClass);
   defineClassNativeStaticField(vm, "infinity", NUM_CONST(INF), vm->numClass);

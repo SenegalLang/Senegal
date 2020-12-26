@@ -18,6 +18,6 @@ static Constant boolToString(VM* vm, int arity, Constant *args) {
 void initBoolClass(VM* vm) {
   vm->boolClass = newClass(vm, copyString(vm, NULL, "bool", 4), true);
 
-  defineClassNativeFunc(vm, "asNum", boolAsNum, vm->boolClass);
-  defineClassNativeFunc(vm, "toString", boolToString, vm->boolClass);
+  defineClassNativeMethod(vm, "asNum", boolAsNum, vm->boolClass);
+  defineClassNativeMethod(vm, "toString", boolToString, vm->boolClass);
 }

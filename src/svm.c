@@ -14,6 +14,7 @@
 #include "../core/includes/snumcore.h"
 #include "../core/includes/smapcore.h"
 #include "../core/includes/slistcore.h"
+#include "../core/includes/scorolib.h"
 
 #if DEBUG_TRACE_EXECUTION
 #include "includes/sdebug.h"
@@ -93,12 +94,14 @@ void initVM(VM* vm) {
   defineNativeFunc(vm, "println", printlnApi);
 
   initBoolClass(vm);
+  initCoroutineClass(vm);
   initListClass(vm);
   initMapClass(vm);
   initNumClass(vm);
   initStringClass(vm);
 
   defineGlobal(vm, "bool", GC_OBJ_CONST(vm->boolClass));
+  defineGlobal(vm, "Coroutine", GC_OBJ_CONST(vm->coroutineClass));
   defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
   defineGlobal(vm, "Map", GC_OBJ_CONST(vm->mapClass));
   defineGlobal(vm, "num", GC_OBJ_CONST(vm->numClass));
@@ -106,7 +109,7 @@ void initVM(VM* vm) {
 }
 
 GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
-  GCCoroutine* coroutine = ALLOCATE(vm, NULL, GCCoroutine, 1);
+  GCCoroutine* coroutine = ALLOCATE_GC_OBJ(vm, GCCoroutine, GC_COROUTINE);
   coroutine->state = state;
   coroutine->caller = NULL;
   coroutine->error = NULL;
@@ -339,6 +342,18 @@ static bool invoke(VM* vm, GCString* id, int arity) {
 
     Constant constant;
     if (tableGetEntry(&boolInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
+      vm->coroutine->stackTop[-arity - 1] = receiver;
+      return callConstant(vm, constant, arity);
+    }
+
+    return false;
+  }
+
+  if (IS_COROUTINE(receiver)) {
+    GCInstance* coroInstance = newInstance(vm, vm->coroutineClass);
+
+    Constant constant;
+    if (tableGetEntry(&coroInstance->class->methods, GC_OBJ_CONST(id), &constant)) {
       vm->coroutine->stackTop[-arity - 1] = receiver;
       return callConstant(vm, constant, arity);
     }
@@ -921,7 +936,7 @@ static InterpretationResult run(VM* vm) {
       DISPATCH();
     }
 
-    if (IS_BOOL(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "bool", 4) == 0)) {
+    if (IS_BOOL(left)) {
       GCString *id = READ_STRING();
 
       Constant constant;
@@ -935,7 +950,21 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_STRING(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "String", 6) == 0)) {
+    if (IS_COROUTINE(left)) {
+      GCString *id = READ_STRING();
+
+      Constant constant;
+      if (tableGetEntry(&vm->coroutineClass->fields, GC_OBJ_CONST(id), &constant)) {
+        POP();
+        PUSH(constant);
+        DISPATCH();
+      }
+
+      throwRuntimeError(vm, "Field not found: %s", id->chars);
+      return RUNTIME_ERROR;
+    }
+
+    if (IS_STRING(left)) {
       GCString *id = READ_STRING();
 
       Constant constant;
@@ -949,7 +978,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_LIST(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "List", 4) == 0)) {
+    if (IS_LIST(left)) {
       GCString *id = READ_STRING();
 
       Constant constant;
@@ -963,7 +992,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_MAP(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "Map", 3) == 0)) {
+    if (IS_MAP(left)) {
       GCString *id = READ_STRING();
 
       Constant constant;
@@ -977,7 +1006,7 @@ static InterpretationResult run(VM* vm) {
       return RUNTIME_ERROR;
     }
 
-    if (IS_NUMBER(left) || (IS_INSTANCE(left) && memcmp(AS_INSTANCE(left)->class->id->chars, "num", 3) == 0)) {
+    if (IS_NUMBER(left)) {
       GCString *id = READ_STRING();
 
       Constant constant;

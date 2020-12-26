@@ -1,11 +1,9 @@
-import 'sgl:corolib'
-
 function foo() {
     println('Before Yield');
     yield("Yield Value");
     println('After Yield');
 
-    transfer(coroutine2);
+    coroutine2.takeover();
     println('Transfer should not return to this');
 }
 
@@ -13,18 +11,18 @@ function bar() {
     println("Transferred to coroutine2");
 }
 
-var coroutine = newCoroutine(foo);
-var coroutine2 = newCoroutine(bar);
+var coroutine = Coroutine(foo);
+var coroutine2 = Coroutine(bar);
 
 println("Before Call"); // output Before Call
 
-var yielded = call(coroutine);
+var yielded = coroutine.call();
 println(yielded);
 // output Before Yield
 // output Yield Value
 
 println("After Call"); // output After Call
 
-call(coroutine);
+coroutine.call();
 // output After Yield
 // output Transferred to coroutine2

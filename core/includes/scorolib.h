@@ -3,6 +3,6 @@
 
 #include "../../src/includes/svm.h"
 
-Constant initCoroLib(VM* vm, int arity, Constant* args);
+void initCoroutineClass(VM* vm);
 
 #endif //SENEGAL_SCOROLIB_H

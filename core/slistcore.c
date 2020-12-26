@@ -119,12 +119,12 @@ static Constant listFilled(VM* vm, int arity, Constant* args) {
 void initListClass(VM *vm) {
   vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
 
-  defineClassNativeStaticFunc(vm, "List", listNew, vm->listClass);
-  defineClassNativeStaticFunc(vm, "filled", listFilled, vm->listClass);
+  defineClassNativeStaticMethod(vm, "List", listNew, vm->listClass);
+  defineClassNativeStaticMethod(vm, "filled", listFilled, vm->listClass);
 
-  defineClassNativeFunc(vm, "add", listAdd, vm->listClass);
-  defineClassNativeFunc(vm, "clear", listClear, vm->listClass);
-  defineClassNativeFunc(vm, "insertAt", listInsertAt, vm->listClass);
-  defineClassNativeFunc(vm, "length", listLength, vm->listClass);
-  defineClassNativeFunc(vm, "removeAt", listRemoveAt, vm->listClass);
+  defineClassNativeMethod(vm, "add", listAdd, vm->listClass);
+  defineClassNativeMethod(vm, "clear", listClear, vm->listClass);
+  defineClassNativeMethod(vm, "insertAt", listInsertAt, vm->listClass);
+  defineClassNativeMethod(vm, "length", listLength, vm->listClass);
+  defineClassNativeMethod(vm, "removeAt", listRemoveAt, vm->listClass);
 }

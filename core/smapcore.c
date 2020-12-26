@@ -51,12 +51,12 @@ static Constant mapLength(VM* vm, int arity, Constant* args) {
 void initMapClass(VM *vm) {
   vm->mapClass = newClass(vm, copyString(vm, NULL, "Map", 3), true);
 
-  defineClassNativeStaticFunc(vm, "Map", mapNew, vm->mapClass);
-  defineClassNativeFunc(vm, "add", mapAdd, vm->mapClass);
-  defineClassNativeFunc(vm, "clear", mapClear, vm->mapClass);
-  defineClassNativeFunc(vm, "contains", mapContains, vm->mapClass);
-  defineClassNativeFunc(vm, "isEmpty", mapIsEmpty, vm->mapClass);
-  defineClassNativeFunc(vm, "isNotEmpty", mapIsNotEmpty, vm->mapClass);
-  defineClassNativeFunc(vm, "length", mapLength, vm->mapClass);
-  defineClassNativeFunc(vm, "remove", mapRemove, vm->mapClass);
+  defineClassNativeStaticMethod(vm, "Map", mapNew, vm->mapClass);
+  defineClassNativeMethod(vm, "add", mapAdd, vm->mapClass);
+  defineClassNativeMethod(vm, "clear", mapClear, vm->mapClass);
+  defineClassNativeMethod(vm, "contains", mapContains, vm->mapClass);
+  defineClassNativeMethod(vm, "isEmpty", mapIsEmpty, vm->mapClass);
+  defineClassNativeMethod(vm, "isNotEmpty", mapIsNotEmpty, vm->mapClass);
+  defineClassNativeMethod(vm, "length", mapLength, vm->mapClass);
+  defineClassNativeMethod(vm, "remove", mapRemove, vm->mapClass);
 }
