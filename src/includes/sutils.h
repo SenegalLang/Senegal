@@ -17,14 +17,6 @@
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
-#define SENEGAL_REPL \
-"\x1B[32m  _________                                 .__    \x1B[33m__________              .__   \n" \
-"\x1B[32m /   _____/ ____   ____   ____   _________  |  |   \x1B[33m\\______   \\ ____ ______ |  |  \n" \
-"\x1B[32m \\_____  \\_/ __ \\ /    \\_/ __ \\ / ___\\__  \\ |  |    \x1B[33m|       _// __ \\\\____ \\|  |  \n" \
-"\x1B[32m /        \\  ___/|   |  \\  ___// /_/  > __ \\|  |__  \x1B[33m|    |   \\  ___/|  |_> >  |__\n" \
-"\x1B[32m/_______  /\\___  >___|  /\\___  >___  (____  /____/  \x1B[33m|____|_  /\\___  >   __/|____/\n" \
-"\x1B[32m        \\/     \\/     \\/     \\/_____/     \\/               \x1B[33m\\/     \\/|__|         \x1B[0m\n" \
-
 #define SENEGAL_HELP \
   "Usage: senegal [flags] | [senegal-file]\n\n" \
   "Global options:\n" \
@@ -32,6 +24,23 @@
   "    --version              Print the Senegal version.\n"
 
 #define SENEGAL_VERSION "Senegal 0.0.1"
+
+#define DEFAULT "\x1B[0m"
+#define RED     "\x1B[31m"
+#define GREEN   "\x1B[32m"
+#define YELLOW  "\x1B[33m"
+#define BLUE    "\x1B[34m"
+#define PURPLE "\x1B[35m"
+#define CYAN    "\x1B[36m"
+#define WHITE   "\x1B[37m"
+
+#define SENEGAL_REPL \
+"\x1B[32m  _________                                 .__    \x1B[33m__________              .__   \n" \
+"\x1B[32m /   _____/ ____   ____   ____   _________  |  |   \x1B[33m\\______   \\ ____ ______ |  |  \n" \
+"\x1B[32m \\_____  \\_/ __ \\ /    \\_/ __ \\ / ___\\__  \\ |  |    \x1B[33m|       _// __ \\\\____ \\|  |  \n" \
+"\x1B[32m /        \\  ___/|   |  \\  ___// /_/  > __ \\|  |__  \x1B[33m|    |   \\  ___/|  |_> >  |__\n" \
+"\x1B[32m/_______  /\\___  >___|  /\\___  >___  (____  /____/  \x1B[33m|____|_  /\\___  >   __/|____/\n" \
+"\x1B[32m        \\/     \\/     \\/     \\/_____/     \\/               \x1B[33m\\/     \\/|__|         \x1B[0m\n"
 
 char* readFileWithPath(const char* path);
 char* readFile(FILE* file);

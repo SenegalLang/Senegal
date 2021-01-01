@@ -156,7 +156,7 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
 
 #if DEBUG_PRINT_CODE
   if (!parser->hasError)
-    disassembleInstructions(&compiler->function->instructions, function->id != NULL ? function->id->chars : "<global>");
+    disassembleInstructions(&compiler->function->instructions, function->id != NULL ? function->id->chars : "global");
 #endif
 
   compiler = compiler->parent;

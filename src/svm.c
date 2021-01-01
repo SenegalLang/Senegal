@@ -16,7 +16,7 @@
 #include "../core/includes/slistcore.h"
 #include "../core/includes/scorocore.h"
 
-#if DEBUG_TRACE_EXECUTION
+#if DEBUG_PRINT_CODE
 #include "includes/sdebug.h"
 #endif
 

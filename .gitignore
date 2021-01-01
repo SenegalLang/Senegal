@@ -14,6 +14,7 @@ out/
 **/*.exe
 **/*.out
 **/*.o
+**/senegal
 
 docs/node_modules/
 docs/build/

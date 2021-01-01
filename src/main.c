@@ -78,15 +78,14 @@ static void repl(VM* vm, char* senegalPath) {
   }
 }
 
-static inline char* getFileDir(VM* vm, const char* filePath) {
+static char* getFileDir(const char* filePath) {
   char* pathDup = strdup(filePath);
-
   return dirname(pathDup);
 }
 
 static void runFile(VM* vm, const char* path, char* senegalPath) {
   char* source = readFileWithPath(path);
-  char* dir = getFileDir(vm, path);
+  char* dir = getFileDir(path);
 
   InterpretationResult result = interpret(vm, source, senegalPath, dir);
 
@@ -128,11 +127,11 @@ static void defineArgv(VM* vm, int argc, const char* argv[]) {
 
 int main(int argc, const char* argv[]) {
   setlocale(LC_ALL, "");
+
   VM vm;
 
   // setbuf(stdout, 0);
   initVM(&vm);
-
   addPaths(&vm);
 
   // Get senegal directory from PATH
@@ -151,7 +150,7 @@ int main(int argc, const char* argv[]) {
 #endif
 
   for (dir = strtok(sysPath, delim); dir; dir = strtok(NULL, delim)) {
-    int dirLen = strlen(dir);
+    int dirLen = (int)strlen(dir);
     char execPath[dirLen + execLen + 1];
 
     memcpy(execPath, dir, dirLen);
@@ -183,9 +182,8 @@ int main(int argc, const char* argv[]) {
       } else if (!strcmp(argv[i], "--version")) {
         printf("%s", SENEGAL_VERSION);
         return 0;
-      } else if(!strcmp(argv[i], "--args")) {
+      } else if (!strcmp(argv[i], "--args")) {
         argsStart = i + 1;
-        break;
       } else {
         fprintf(stderr, "%s", SENEGAL_HELP);
         return 64;
@@ -193,7 +191,6 @@ int main(int argc, const char* argv[]) {
     }
 
     defineArgv(&vm, argsStart == 0 ? argsStart : argc - argsStart, argv + argsStart);
-
     runFile(&vm, argv[1], senegalPath);
   }
 
