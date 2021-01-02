@@ -1,3 +1,0 @@
-/home/calamity/Projects/Senegal/cmake-build-debug-coverage/CMakeFiles/rebuild_cache.dir
-/home/calamity/Projects/Senegal/cmake-build-debug-coverage/CMakeFiles/edit_cache.dir
-/home/calamity/Projects/Senegal/cmake-build-debug-coverage/CMakeFiles/senegal.dir
