@@ -65,17 +65,17 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   pop(vm);
 }
 
-static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
-  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  push(vm, GC_OBJ_CONST(newInstance(vm, class)));
-  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
-  pop(vm);
-  pop(vm);
-}
+//static void defineNativeInstance(VM* vm, const char* id, GCClass* class) {
+//  push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
+//  push(vm, GC_OBJ_CONST(newInstance(vm, class)));
+//  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
+//  pop(vm);
+//  pop(vm);
+//}
 
 void initVM(VM* vm) {
   vm->coroutine = NULL;
-  vm->coroutine = newCoroutine(vm,  ROOT, NULL);
+  vm->coroutine = newCoroutine(vm, ROOT, NULL);
 
   vm->gcObjects = NULL;
   vm->bytesAllocated = 0;
@@ -234,8 +234,7 @@ static GCUpvalue* captureUpvalue(VM* vm, Constant* local) {
 }
 
 static void closeUpvalues(VM* vm, const Constant* last) {
-  while (vm->coroutine->openUpvalues != NULL &&
-         vm->coroutine->openUpvalues->place >= last) {
+  while (vm->coroutine->openUpvalues && vm->coroutine->openUpvalues->place >= last) {
     GCUpvalue* upvalue = vm->coroutine->openUpvalues;
     upvalue->closed = *upvalue->place;
     upvalue->place = &upvalue->closed;
@@ -419,8 +418,8 @@ static bool isFalse(Constant constant) {
   return IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)) || (IS_NUMBER(constant) && AS_NUMBER(constant) == 0);
 }
 
-static InterpretationResult run(VM* vm) {
-  register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
+static InterpretationResult run(register VM* vm) {
+register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
 #define PEEK() (vm->coroutine->stackTop[-1])
 #define PEEK2() (vm->coroutine->stackTop[-2])

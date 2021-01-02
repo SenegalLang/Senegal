@@ -19,7 +19,7 @@
 void* reallocate(VM* vm, Compiler* compiler, void* pointer, size_t oldSize, size_t newSize) {
   vm->bytesAllocated += newSize - oldSize;
 
-  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC && vm->coroutine != NULL) {
+  if (newSize > oldSize && vm->bytesAllocated > vm->nextGC && vm->coroutine) {
     collectGarbage(vm, compiler);
   }
 

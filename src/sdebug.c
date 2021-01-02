@@ -5,7 +5,7 @@
 #include "includes/sopcodes.h"
 
 // Used to ensure a consistent formatting
-#define SPACE "     "
+#define TABS "\t\t"
 
 void disassembleInstructions(Instructions *instructions, const char *name) {
   //        <<< name >>>
@@ -13,7 +13,7 @@ void disassembleInstructions(Instructions *instructions, const char *name) {
 
   //  | PC |    (line)       OPCODE       Constant
   printf("%2$s| PC |%1$s%3$s(line)%1$s%4$s    OPCODE   %1$s%1$s%5$sConstant%6$s\n",
-         SPACE, GREEN, CYAN, PURPLE, BLUE, DEFAULT);
+         TABS, GREEN, CYAN, PURPLE, BLUE, DEFAULT);
 
   for (int offset = 0; offset < instructions->bytesCount;) {
     offset = disassembleInstruction(instructions, offset);
@@ -29,7 +29,7 @@ static int noOperandInstruction(const char* name, int offset) {
 
 static int loadNInstruction(const char* name, Instructions *instructions, int n, int offset) {
   uint8_t constant = instructions->bytes[n + 1];
-  printf("%s%-16s%s%s%4d ", PURPLE, name, SPACE, BLUE, constant);
+  printf("%s%-16s%s%s%4d ", PURPLE, name, TABS, BLUE, constant);
   printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
@@ -38,7 +38,7 @@ static int loadNInstruction(const char* name, Instructions *instructions, int n,
 
 static int loadInstruction(const char* name, Instructions *instructions, int offset) {
   uint8_t constant = instructions->bytes[offset + 1];
-  printf("%s%-16s%s%s%4d ", PURPLE, name, SPACE, BLUE, constant);
+  printf("%s%-16s%s%s%4d ", PURPLE, name, TABS, BLUE, constant);
   printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
@@ -50,7 +50,7 @@ static int lLoadInstruction(const char* name, Instructions *instructions, int of
                      | (instructions->bytes[offset + 1] << 8)
                      | (instructions->bytes[offset + 1] << 16);
 
-  printf("%s%-16s%s%s%4d ", PURPLE, name, SPACE, BLUE, constant);
+  printf("%s%-16s%s%s%4d ", PURPLE, name, TABS, BLUE, constant);
   printConstant(stdout, instructions->constants.constants[constant]);
   printf("\n");
 
@@ -59,21 +59,21 @@ static int lLoadInstruction(const char* name, Instructions *instructions, int of
 
 static int byteInstruction(const char* name, Instructions* instructions, int offset) {
   uint8_t slot = instructions->bytes[offset + 1];
-  printf("%s%-16s%s%s%4d\n", PURPLE, name, SPACE, BLUE, slot);
+  printf("%s%-16s%s%s%4d\n", PURPLE, name, TABS, BLUE, slot);
 
   return offset + 2;
 }
 
 static int byteNInstruction(const char* name, Instructions* instructions, int n, int offset) {
   uint8_t slot = instructions->bytes[n + 1];
-  printf("%s%-16s%s%s%4d\n", PURPLE, name, SPACE, BLUE, slot);
+  printf("%s%-16s%s%s%4d\n", PURPLE, name, TABS, BLUE, slot);
 
   return offset + 1;
 }
 
 static int jmpInstruction(const char* name, int sign, Instructions* instructions, int offset) {
   uint16_t jump = (uint16_t)(instructions->bytes[offset + 1] << 8) | instructions->bytes[offset + 2];
-  printf("%s%-16s%s%s%4d -> %d\n", PURPLE, name, SPACE, BLUE, offset, offset + 3 + sign * jump);
+  printf("%s%-16s%s%s%4d -> %d\n", PURPLE, name, TABS, BLUE, offset, offset + 3 + sign * jump);
 
   return offset + 3;
 }
@@ -82,7 +82,7 @@ static int invokeInstruction(const char* id, Instructions* i, int offset) {
   uint8_t constant = i->bytes[offset + 1];
   uint8_t arity = i->bytes[offset + 2];
 
-  printf("%s%-16s%s%s(%d args) %4d '", PURPLE, id, SPACE, BLUE, arity, constant);
+  printf("%s%-16s%s%s(%d args) %4d '", PURPLE, id, TABS, BLUE, arity, constant);
   printConstant(stdout, i->constants.constants[constant]);
   printf("\n");
 
@@ -94,7 +94,7 @@ int disassembleInstruction(Instructions *instructions, int offset) {
 
   int line = getLine(instructions, offset);
 
-    printf("%s(%s%4d%s)%s", SPACE, CYAN, line, DEFAULT, SPACE);
+    printf("%s(%s%4d%s)%s", TABS, CYAN, line, DEFAULT, TABS);
 
   uint8_t opcode = instructions->bytes[offset];
 
@@ -222,7 +222,7 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_CLOSURE: {
       offset++;
       uint8_t constant = instructions->bytes[offset++];
-      printf("%s%-16s%s%s%4d%s ", PURPLE, "OPCODE_CLOSURE", SPACE, BLUE, constant, DEFAULT);
+      printf("%s%-16s%s%s%4d%s ", PURPLE, "OPCODE_CLOSURE", TABS, BLUE, constant, DEFAULT);
       printConstant(stdout, instructions->constants.constants[constant]);
       printf("\n");
 

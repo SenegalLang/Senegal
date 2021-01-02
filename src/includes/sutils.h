@@ -13,7 +13,7 @@
 #define COMPUTED_GOTO 1
 
 #define DEBUG_LOG_GC 0
-#define DEBUG_PRINT_CODE 0
+#define DEBUG_PRINT_CODE 1
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 

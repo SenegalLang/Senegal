@@ -35,16 +35,23 @@ typedef uint64_t Constant;
 #define IS_GC_OBJ(gc) (((gc) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
 #define GC_OBJ_CONST(gc) (Constant)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(gc))
 
-static inline double valueToNumber(Constant constant) {
-  double number;
-  memcpy(&number, &constant, sizeof(Constant));
-  return number;
+typedef union
+{
+    uint64_t bits64;
+    uint32_t bits32[2];
+    double num;
+} SenegalDoubleBits;
+
+static inline double valueToNumber(uint64_t constant) {
+  SenegalDoubleBits data;
+  data.bits64 = constant;
+  return data.num;
 }
 
-static inline Constant numToConstant(double number) {
-  Constant constant;
-  memcpy(&constant, &number, sizeof(double));
-  return constant;
+static inline Constant numToConstant(double num) {
+  SenegalDoubleBits data;
+  data.num = num;
+  return data.bits64;
 }
 #else
 

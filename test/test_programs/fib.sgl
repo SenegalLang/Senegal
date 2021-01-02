@@ -6,5 +6,5 @@ function fib(n) {
 }
 
 var start = (clock() / CLOCKS_PER_SEC);
-println(fib(16)); // output 987
+println(fib(32)); // output 2178309
 println((clock() / CLOCKS_PER_SEC) - start); // ignore
