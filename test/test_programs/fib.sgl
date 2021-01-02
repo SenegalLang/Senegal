@@ -5,6 +5,12 @@ function fib(n) {
   return fib(n - 2) + fib(n - 1);
 }
 
-var start = (clock() / CLOCKS_PER_SEC);
-println(fib(32)); // output 2178309
-println((clock() / CLOCKS_PER_SEC) - start); // ignore
+var start = (clock());
+// output 317811
+// output 317811
+// output 317811
+// output 317811
+// output 317811
+for (var i = 0; i < 5; i++)
+println(fib(28));
+println((clock()) - start); // ignore

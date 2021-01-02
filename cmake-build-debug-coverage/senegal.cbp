@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="senegal"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/calamity/Projects/Senegal/cmake-build-debug-coverage"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/calamity/Projects/Senegal/cmake-build-debug-coverage"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/calamity/Projects/Senegal/cmake-build-debug-coverage"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="senegal">
+				<Option output="/home/calamity/Projects/Senegal/cmake-build-debug-coverage/senegal" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/calamity/Projects/Senegal/cmake-build-debug-coverage"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 senegal"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="senegal/fast">
+				<Option output="/home/calamity/Projects/Senegal/cmake-build-debug-coverage/senegal" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/calamity/Projects/Senegal/cmake-build-debug-coverage"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include-fixed"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 senegal/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/calamity/Projects/Senegal/cmake-build-debug-coverage/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/calamity/Projects/Senegal/core/sapi.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/sboolcore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/scorocore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/slistcore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/smapcore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/snumcore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/core/sstringcore.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/libs/sfilelib.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/libs/siolib.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/libs/smathlib.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/libs/ssocketlib.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/main.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/scompiler.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sconstant.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sconstant_utils.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sdebug.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sgcobject_utils.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sinstruction_utils.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sinstructions.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/slexer.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/smemory.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sparser.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/stable.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/stable_utils.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/sutils.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/src/svm.c">
+			<Option target="senegal"/>
+		</Unit>
+		<Unit filename="/home/calamity/Projects/Senegal/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

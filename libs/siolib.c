@@ -10,7 +10,7 @@ GCClass* ioFileClass;
 static Constant sglClock(VM* vm, int arity, Constant* args) {
   expect(0, arity, "clock");
 
-  return NUM_CONST((double)clock());
+  return NUM_CONST((double)clock() / CLOCKS_PER_SEC);
 }
 
 static Constant sglReadLine(VM* vm, int arity, Constant* args) {
@@ -103,7 +103,6 @@ static Constant sglPClose(VM* vm, int arity, Constant* args) {
 Constant initIoLib(VM* vm, int arity, Constant* args) {
   ioFileClass = newClass(vm, copyString(vm, NULL, "File", 4), true);
 
-  defineGlobal(vm, "CLOCKS_PER_SEC", NUM_CONST(CLOCKS_PER_SEC));
   defineGlobalFunc(vm, "clock", sglClock);
   defineGlobalFunc(vm, "readln", sglReadLine);
   defineGlobalFunc(vm, "sleep", sglSleep);
