@@ -18,3 +18,7 @@ println(senegal.isEmpty()); // output true
 
 var nonStringKey = {12: "foo"};
 println(nonStringKey[12]); // output foo
+
+var mapString = nonStringKey.toString();
+println(mapString); // output {12: foo}
+println(nonStringKey); // output {12: foo}

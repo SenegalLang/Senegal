@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <float.h>
 #include "includes/sconstant.h"
 #include "includes/smemory.h"
 
@@ -8,156 +9,217 @@ void initConstantPool(ConstantPool* cp) {
   cp->count = 0;
 }
 
-static void printFunction(FILE* file, GCFunction* function) {
+static char* functionToString(GCFunction* function) {
   if (!function)
-    return;
+    return "";
 
-  if (!function->id) {
-    fprintf(file, "<Senegal Program>");
-    return;
-  }
+  if (!function->id)
+    return "<Senegal Program>";
 
-  fprintf(file,"<Senegal Function %s>", function->id->chars);
+  return function->id->chars;
 }
 
-void printConstant(FILE* file, Constant constant) {
+static char* listToString(GCList* list) {
 
+  char* string = "[";
+  int length = 1;
+
+  for (int i = 0; i < list->elementC; i++) {
+    if (i != list->elementC - 1) {
+      char *elementStr = constantToString(list->elements[(list->elementC - 1) - i]);
+      int elementLen = (int) strlen(elementStr);
+      int newLen = length + elementLen;
+
+      char *newChars = malloc(newLen + 2);
+      memcpy(newChars, string, length);
+      memcpy(newChars + length, elementStr, elementLen);
+      newChars[newLen] = ',';
+      newChars[newLen + 1] = '\0';
+
+      string = newChars;
+      length = newLen + 1;
+    } else {
+      char *elementStr = constantToString(list->elements[(list->elementC - 1) - i]);
+      int elementLen = (int) strlen(elementStr);
+      int newLen = length + elementLen;
+
+      char *newChars = malloc(newLen + 1);
+      memcpy(newChars, string, length);
+      memcpy(newChars + length, elementStr, elementLen);
+      newChars[newLen] = '\0';
+
+      string = newChars;
+      length = newLen;
+    }
+  }
+
+  length++;
+  char *newChars = malloc(length + 1);
+  memcpy(newChars, string, length - 1);
+  memcpy(newChars + (length - 1), "]", 1);
+  newChars[length] = '\0';
+  string = newChars;
+
+  return string;
+}
+
+static char* mapToString(GCMap* map) {
+  char* string = "{";
+  int length = 1;
+
+  for (int i = 0; i < map->table.cap; i++) {
+      if (IS_NULL(map->table.entries[i].key))
+        continue;
+
+    char *keyStr = constantToString(map->table.entries[i].key);
+    int keyLen = (int) strlen(keyStr);
+    int newKeyLen = length + keyLen;
+
+    char *newKeyChars = malloc(newKeyLen + 3);
+    memcpy(newKeyChars, string, length);
+    memcpy(newKeyChars + length, keyStr, keyLen);
+    newKeyChars[newKeyLen] = ':';
+    newKeyChars[newKeyLen + 1] = ' ';
+    newKeyChars[newKeyLen + 2] = '\0';
+
+    string = newKeyChars;
+    length = newKeyLen + 2;
+
+    char *elementStr = constantToString(map->table.entries[i].constant);
+    int elementLen = (int) strlen(elementStr);
+    int newLen = length + elementLen;
+
+    char *newChars = malloc(newLen + 2);
+    memcpy(newChars, string, length);
+    memcpy(newChars + length, elementStr, elementLen);
+    newChars[newLen] = ',';
+    newChars[newLen + 1] = '\0';
+
+    string = newChars;
+    length = newLen + 1;
+  }
+
+  string[length - 1] = '}';
+
+  return string;
+}
+
+char* constantToString(Constant constant) {
 #if NAN_TAGGING
   if (IS_BOOL(constant)) {
-    fprintf(file, AS_BOOL(constant) ? "true" : "false");
-  } else if (IS_LIST(constant)) {
-    GCList* list = AS_LIST(constant);
-    fprintf(file, "[");
-
-    for (int i = 0; i < list->elementC; i++) {
-      printConstant(file, list->elements[(list->elementC - 1) - i]);
-
-      if (i != list->elementC - 1)
-        fprintf(file, ",");
-    }
-
-    fprintf(file, "]");
-
+    return AS_BOOL(constant) ? "true" : "false";
   } else if (IS_NULL(constant)) {
-    fprintf(file, "null");
+    return "null";
   } else if (IS_NUMBER(constant)) {
-    fprintf(file, "%.16g", AS_NUMBER(constant));
-  } else if (IS_GC_OBJ(constant)) {
+    char* numString = malloc(3 + DBL_MANT_DIG - DBL_MIN_EXP);
+    sprintf(numString, "%.16g", AS_NUMBER(constant));
 
+    return numString;
+  } else if (IS_GC_OBJ(constant)) {
     switch (GC_OBJ_TYPE(constant)) {
       case GC_CLASS:
-        fprintf(file, "%s", AS_CLASS(constant)->id->chars);
-        break;
-
+        return AS_CLASS(constant)->id->chars;
       case GC_COROUTINE:
-        fprintf(file, "Coroutine");
-        break;
-
+        return "Coroutine";
       case GC_CLOSURE:
-        printFunction(file, AS_CLOSURE(constant)->function);
-        break;
-
+        return functionToString(AS_CLOSURE(constant)->function);
       case GC_FUNCTION:
-        printFunction(file, AS_FUNCTION(constant));
-        break;
+        return functionToString(AS_FUNCTION(constant));
+      case GC_INSTANCE: {
+        char* origId = AS_INSTANCE(constant)->class->id->chars;
+        int idLen = (int)strlen(AS_INSTANCE(constant)->class->id->chars);
 
-      case GC_INSTANCE:
-        fprintf(file, "Instance of %s", AS_INSTANCE(constant)->class->id->chars);
-        break;
+        char* id = malloc(13 + idLen);
+        memcpy(id, "Instance of ", 12);
+        memcpy(id + 12, origId, idLen);
+        id[idLen + 13] = '\0';
 
+        return id;
+      }
       case GC_INSTANCE_METHOD:
-        printFunction(file, AS_INSTANCE_METHOD(constant)->method->function);
-        break;
-
+        return functionToString(AS_INSTANCE_METHOD(constant)->method->function);
       case GC_NATIVE:
-        fprintf(file, "<Senegal Native Function>");
-        break;
-
+        return "<Senegal Native Function>";
       case GC_STRING:
-        fprintf(file, "%s", AS_CSTRING(constant));
-        break;
-
+        return AS_CSTRING(constant);
       case GC_UPVALUE:
-        fprintf(file, "Upvalue");
-        break;
+        return "Upvalue";
+      case GC_LIST:
+        return listToString(AS_LIST(constant));
+      case GC_MAP:
+        return mapToString(AS_MAP(constant));
     }
   }
 #else
-
   switch (constant.type) {
     case TYPE_NULL:
-      fprintf(file, "null");
-      break;
+      return "null";
 
     case TYPE_BOOL:
-      fprintf(file, AS_BOOL(constant) ? "true" : "false");
-      break;
+      return AS_BOOL(constant) ? "true" : "false";
 
-    case TYPE_NUM:
-      fprintf(file, "%.16g", AS_NUMBER(constant));
-      break;
+    case TYPE_NUM: {
+      char* numString = malloc(3 + DBL_MANT_DIG - DBL_MIN_EXP);
+      sprintf(numString, "%.16g", AS_NUMBER(constant));
+      return numString;
+    }
 
     case TYPE_GC_OBJ: {
       switch (GC_OBJ_TYPE(constant)) {
 
         case GC_CLASS:
-          fprintf(file, "%s", AS_CLASS(constant)->id->chars);
-          break;
+          return AS_CLASS(constant)->id->chars;
 
         case GC_CLOSURE:
-          printFunction(file, AS_CLOSURE(constant)->function);
-          break;
+          return functionToString(AS_CLOSURE(constant)->function);
 
         case GC_COROUTINE:
-          fprintf(file, "Coroutine");
-          break;
+          return "Coroutine";
 
         case GC_FUNCTION:
-          printFunction(file, AS_FUNCTION(constant));
-          break;
+          return functionToString(AS_FUNCTION(constant));
 
-        case GC_INSTANCE:
-          fprintf(file, "Instance of %s", AS_INSTANCE(constant)->class->id->chars);
-          break;
+        case GC_INSTANCE: {
+          char* origId = AS_INSTANCE(constant)->class->id->chars;
+          int idLen = (int)strlen(AS_INSTANCE(constant)->class->id->chars);
 
-        case GC_INSTANCE_METHOD:
-          printFunction(file, AS_INSTANCE_METHOD(constant)->method->function);
-          break;
+          char* id = malloc(13 + idLen);
+          memcpy(id, "Instance of ", 12);
+          memcpy(id + 12, origId, idLen);
+          id[idLen + 13] = '\0';
 
-        case GC_LIST: {
-          GCList* list = AS_LIST(constant);
-          fprintf(file, "[");
-
-          for (int i = 0; i < list->elementC; i++) {
-            printConstant(file, list->elements[(list->elementC - 1) - i]);
-
-            if (i != list->elementC - 1)
-              fprintf(file, ",");
-          }
-
-          fprintf(file, "]");
-          break;
+          return id;
         }
 
+        case GC_INSTANCE_METHOD:
+          return functionToString(AS_INSTANCE_METHOD(constant)->method->function);
+
+        case GC_LIST:
+          return listToString(AS_LIST(constant));
+
+        case GC_MAP:
+          return mapToString(AS_MAP(constant));
+
         case GC_NATIVE:
-          fprintf(file, "<Senegal Native Function>");
-          break;
+          return "<Senegal Native Function>";
 
         case GC_STRING:
-          fprintf(file, "%s", AS_CSTRING(constant));
-          break;
+          return AS_CSTRING(constant);
 
         case GC_UPVALUE:
-          fprintf(file, "Upvalue");
-          break;
+          return "Upvalue";
       }
     }
 
     default:
       return;
   }
-
 #endif
+}
+
+
+void printConstant(FILE* file, Constant constant) {
+  fprintf(file, "%s", constantToString(constant));
 }
 
 // TODO(Calamity210): Correct equality check ifn NAN_TAGGING

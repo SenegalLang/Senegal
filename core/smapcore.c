@@ -48,6 +48,12 @@ static Constant mapLength(VM* vm, int arity, Constant* args) {
   return NUM_CONST(AS_MAP(args[-1])->table.count / 2);
 }
 
+Constant mapToString(VM* vm, int arity, Constant* args) {
+  char* mapString = constantToString(args[-1]);
+
+  return GC_OBJ_CONST(copyString(vm, NULL, mapString, strlen(mapString)));
+}
+
 void initMapClass(VM *vm) {
   vm->mapClass = newClass(vm, copyString(vm, NULL, "Map", 3), true);
 
@@ -59,4 +65,5 @@ void initMapClass(VM *vm) {
   defineClassNativeMethod(vm, "isNotEmpty", mapIsNotEmpty, vm->mapClass);
   defineClassNativeMethod(vm, "length", mapLength, vm->mapClass);
   defineClassNativeMethod(vm, "remove", mapRemove, vm->mapClass);
+  defineClassNativeMethod(vm, "toString", mapToString, vm->mapClass);
 }

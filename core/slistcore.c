@@ -116,6 +116,12 @@ static Constant listFilled(VM* vm, int arity, Constant* args) {
   return GC_OBJ_CONST(list);
 }
 
+Constant listToString(VM* vm, int arity, Constant* args) {
+  char* listString = constantToString(args[-1]);
+
+  return GC_OBJ_CONST(copyString(vm, NULL, listString, strlen(listString)));
+}
+
 void initListClass(VM *vm) {
   vm->listClass = newClass(vm, copyString(vm, NULL, "List", 4), true);
 
@@ -127,4 +133,5 @@ void initListClass(VM *vm) {
   defineClassNativeMethod(vm, "insertAt", listInsertAt, vm->listClass);
   defineClassNativeMethod(vm, "length", listLength, vm->listClass);
   defineClassNativeMethod(vm, "removeAt", listRemoveAt, vm->listClass);
+  defineClassNativeMethod(vm, "toString", listToString, vm->listClass);
 }

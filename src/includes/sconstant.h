@@ -98,6 +98,7 @@ bool areEqual(Constant a, Constant b);
 
 void initConstantPool(ConstantPool* cp);
 
+char* constantToString(Constant constant);
 void printConstant(FILE* file, Constant constant);
 
 typedef enum {
