@@ -7,7 +7,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-03")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 file(GLOB src "*/*.h" "*/*.c")
@@ -21,3 +21,11 @@ else()
 	set(SENEGAL_EXEC senegal)
 	target_link_libraries(senegal m)
 endif()
+
+add_custom_command(TARGET senegal
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR})
+
+add_custom_command(TARGET senegal
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/test)

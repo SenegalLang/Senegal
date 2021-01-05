@@ -50,6 +50,64 @@ static Constant listClear(VM* vm, int arity, Constant* args) {
   return NULL_CONST;
 }
 
+static Constant listContains(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "contains");
+
+  GCList* list = AS_LIST(args[-1]);
+  Constant match = args[0];
+
+  for (int i = 0; i < list->elementC; i++) {
+    Constant element = list->elements[i];
+
+    if (areEqual(match, element))
+      return BOOL_CONST(true);
+  }
+
+  return BOOL_CONST(false);
+}
+
+static Constant listIterate(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "iterate");
+
+  GCList* list = AS_LIST(args[-1]);
+  Constant iter = args[0];
+
+  if (IS_NULL(iter)) {
+    if (!list->elementC)
+      return NULL_CONST;
+
+    return NUM_CONST(0);
+  }
+
+  if (!IS_NUMBER(iter)) {
+    fprintf(stderr, "Invalid argument passed to iterate, expected num or null.");
+    exit(1);
+  }
+
+  double index = AS_NUMBER(iter);
+
+  // Stop iterating
+  if (index < 0 || index >= list->elementC - 1)
+    return NULL_CONST;
+
+  return NUM_CONST(index + 1);
+}
+
+static Constant listIteratorCurrent(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "iteratorCurrent");
+
+  GCList* list = AS_LIST(args[-1]);
+  Constant iter = args[0];
+
+  if (!IS_NUMBER(iter) || AS_NUMBER(iter) >= list->elementC) {
+    fprintf(stderr, "Invalid argument passed to iteratorCurrent, expected a num within range 0-%d.", list->elementC - 1);
+    exit(1);
+  }
+  uint32_t index = AS_NUMBER(iter);
+
+  return list->elements[list->elementC - 1 - index];
+}
+
 // TODO: Shift elements rather than replacing at index
 static Constant listInsertAt(VM* vm, int arity, Constant* args) {
   expect(2, arity, "insert");
@@ -130,6 +188,9 @@ void initListClass(VM *vm) {
 
   defineClassNativeMethod(vm, "add", listAdd, vm->listClass);
   defineClassNativeMethod(vm, "clear", listClear, vm->listClass);
+  defineClassNativeMethod(vm, "contains", listContains, vm->listClass);
+  defineClassNativeMethod(vm, "iterate", listIterate, vm->listClass);
+  defineClassNativeMethod(vm, "iteratorCurrent", listIteratorCurrent, vm->listClass);
   defineClassNativeMethod(vm, "insertAt", listInsertAt, vm->listClass);
   defineClassNativeMethod(vm, "length", listLength, vm->listClass);
   defineClassNativeMethod(vm, "removeAt", listRemoveAt, vm->listClass);

@@ -20,5 +20,18 @@ println(filledList); // output [3,1,1,25]
 filledList.removeAt(1);
 println(filledList); // output [3,1,25]
 
+println(filledList.contains(3)); // output true
+println(filledList.contains(33)); // output false
+
+var iterator = null;
+var cur = null;
+// output 3
+// output 1
+// output 25
+while ((iterator = filledList.iterate(iterator)) != null) {
+    cur = filledList.iteratorCurrent(iterator);
+    println(cur);
+}
+
 filledList.clear();
 println(filledList); // output []

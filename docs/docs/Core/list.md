@@ -38,9 +38,14 @@ Appends `element` to `this` list.
 `[0].add(1) // [0, 1]`
 
 ### clear()
-Removes all elements from `this` list
+Removes all elements from `this` list.
 
 `[0].clear() // []` 
+
+### contains(match)
+Returns true if `this` contains an element equivalent to `match`.
+
+`[1, 2, 7].contains(7) // true`
 
 ### insertAt(index, element)
 Inserts `element` at `index`.
