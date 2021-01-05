@@ -1273,6 +1273,8 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       deepestLoopStart = i->bytesCount;
       deepestLoopDepth = compiler->depth;
 
+      startScope(compiler);
+
       consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected while condition to be enclosed in parenthesis.");
       parseExpression(vm, parser, compiler, cc, lexer, i);
       consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected while condition to be followed by a closing parenthesis.");
@@ -1302,6 +1304,8 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
       deepestLoopStart = enclosingLoopStart;
       deepestLoopDepth = enclosingLoopDepth;
+
+      endScope(vm, parser, compiler, i);
       break;
     }
 
