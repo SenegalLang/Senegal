@@ -1,0 +1,13 @@
+var testCond = 'test';
+
+// output Success
+switch (testCond) {
+    case 'tests':
+        println('tests');
+
+    case 'test':
+        println('Success');
+
+    default:
+        println('Failure');
+}

@@ -1260,8 +1260,96 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       writeByte(vm, parser, &compiler->function->instructions, OPCODE_YIELD);
       break;
 
+    // TODO(Calamity210): This can be slow, optimize using a Table
+    /*
+     * Rather than comparing and jumping for each case,
+     * a much better option would be to create a map.
+     * The maps keys would be the case value and its value would be the start jmps for the case's body.
+     * This would allow us to check if the map contains the value given in the switch's condition and
+     * jump to it directly. If the correct case doesn't exist, jump to the default case.
+     *
+     * An issue that will arise is that the end jump will not be stored anywhere,
+     * for this we will enforce explicit breaks.
+     *
+     * */
     case SENEGAL_SWITCH: {
-      // TODO(Calamity210): Implement switch
+      // state: [NO_CASE, NO_DEFAULT, HAS_BOTH]
+      int state = 0;
+      int* caseJmps = ALLOCATE(vm, compiler, int, 0);
+      int caseCap = 0;
+      GROW_CAP(caseCap);
+      int caseCount = 0;
+      int prevCaseSkip = -1;
+
+#define ADD_CASE(jmp) \
+      do {            \
+        if (caseCap <= caseCount) { \
+          int oldCap = caseCap;     \
+          caseCap = GROW_CAP(oldCap); \
+          caseJmps = GROW_ARRAY(vm, compiler, int, caseJmps, oldCap, caseCap);\
+        }             \
+                      \
+        caseJmps[caseCount++] = jmp; \
+      } while(false)
+
+      advance(parser, lexer);
+
+      consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected switch condition to be enclosed in parenthesis.");
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected switch condition to be followed by a closing parenthesis.");
+      consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected opening brace.");
+
+
+      while (!match(parser, lexer, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+        if (match(parser, lexer, SENEGAL_CASE) || match(parser, lexer, SENEGAL_DEFAULT)) {
+          SenegalTokenType caseType = parser->previous.type;
+
+          if (state == 2)
+            error(parser, &parser->previous, "Senegal expected the default case to be the last case in a switch statement.");
+
+          if (state == 1) {
+            int jmp = writeJMP(vm, parser, i, OPCODE_JMP);
+            ADD_CASE(jmp);
+
+            patchJMP(parser, i, prevCaseSkip);
+            writeByte(vm, parser, i, OPCODE_POP);
+          }
+
+          if (caseType == SENEGAL_CASE) {
+            state = 1;
+
+            writeByte(vm, parser, i, OPCODE_DUP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+
+            consume(parser, lexer, SENEGAL_COLON, "Senegal expected ':' after 'case'.");
+
+            writeByte(vm, parser, i, OPCODE_EQUAL);
+            prevCaseSkip = writeJMP(vm, parser, i, OPCODE_JF);
+
+            writeByte(vm, parser, i, OPCODE_POP);
+          } else {
+            state = 2;
+            consume(parser, lexer, SENEGAL_COLON, "Senegal expected ':' after 'default'.");
+            prevCaseSkip = -1;
+          }
+        } else {
+          if (!state)
+            error(parser, &parser->previous, "Senegal expected to find 'case'.");
+
+          parseStatement(vm, compiler, cc, parser, lexer, i);
+        }
+      }
+
+      if (state == 1) {
+        patchJMP(parser, i, prevCaseSkip);
+        writeByte(vm, parser, i, OPCODE_POP);
+      }
+
+      for (int j = 0; j < caseCount; j++) {
+        patchJMP(parser, i, caseJmps[j]);
+      }
+
+      writeByte(vm, parser, i, OPCODE_POP);
       break;
     }
 

@@ -10,8 +10,7 @@ void writeInstructions(VM* vm, Instructions *instructions, uint8_t byte, int lin
     instructions->bytes = GROW_ARRAY(vm, NULL, uint8_t, instructions->bytes, oldCap, instructions->bytesCapacity);
   }
 
-  instructions->bytes[instructions->bytesCount] = byte;
-  instructions->bytesCount++;
+  instructions->bytes[instructions->bytesCount++] = byte;
 
   if (instructions->lineC > 0 && instructions->lines[instructions->lineC - 1].line == line)
     return;
