@@ -708,7 +708,7 @@ static Token syntheticToken(const char* text) {
 }
 
 static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal) {
-  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `class` keyword");
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `extends` keyword");
 
   Token classId = parser->previous;
   uint8_t idConst = idConstant(vm, parser, compiler, i, &parser->previous);
@@ -779,24 +779,49 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   cc = cc->parent;
 }
 
-void parseDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
+static void parseExtension(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `extension` keyword");
 
-  bool isFinal = match(parser, lexer, SENEGAL_FINAL);
+  ClassCompiler newCC;
+  newCC.id = parser->previous;
+  newCC.hasSuper = false;
+  newCC.parent = cc;
+  cc = &newCC;
 
-  if (match(parser, lexer, SENEGAL_CLASS))
-    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
-  else if (match(parser, lexer, SENEGAL_FUNCTION))
-    parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
-  else if (match(parser, lexer, SENEGAL_VAR))
-    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-  else if (match(parser, lexer, SENEGAL_CONST))
-    parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-  else
-    advance(parser, lexer);
+  parseVariableAccess(vm, parser, compiler, cc, lexer, i, newCC.id, false);
 
-  if (parser->panic)
-    sync(parser, lexer);
+  consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
+
+  while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+    bool isStatic = false;
+    if (match(parser, lexer, SENEGAL_STATIC))
+      isStatic = true;
+
+    if (match(parser, lexer, SENEGAL_FUNCTION)
+        || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(newCC.id.start, parser->current.start, newCC.id.length) == 0)))
+      parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+
+    else if (match(parser, lexer, SENEGAL_VAR))
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+
+    else if (match(parser, lexer,  SENEGAL_CONST)) {
+      // TODO(Calamity210): parse const
+    } else {
+      advance(parser, lexer);
+      error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body");
+    }
+  }
+
+  consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected `}` after class body");
+  writeByte(vm, parser, i, OPCODE_POP);
+
+  if (cc->hasSuper) {
+    endScope(vm, parser, compiler, i);
+  }
+
+  cc = cc->parent;
 }
+
 
 void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
@@ -804,6 +829,8 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
 
   if (match(parser, lexer, SENEGAL_CLASS))
     parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
+  else if (match(parser, lexer, SENEGAL_ENHANCE))
+    parseExtension(vm, compiler, cc, parser, lexer, i);
   else if (match(parser, lexer, SENEGAL_FUNCTION))
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, SENEGAL_VAR))

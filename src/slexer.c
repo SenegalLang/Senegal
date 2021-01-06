@@ -116,18 +116,6 @@ static SenegalTokenType collectKeyword(Lexer* lexer, int start, int length, cons
 static SenegalTokenType idToken(Lexer* lexer) {
 
   switch (lexer->start[0]) {
-    case 'a':
-      if (lexer->current - lexer->start > 1) {
-        switch (lexer->start[1]) {
-          case 's':
-            return collectKeyword(lexer, 2, 3, "ync", SENEGAL_ASYNC);
-
-          case 'w':
-            return collectKeyword(lexer, 2, 3, "ait", SENEGAL_AWAIT);
-        }
-      }
-      break;
-
     case 'b':
       return collectKeyword(lexer, 1, 4, "reak", SENEGAL_BREAK);
 
@@ -165,6 +153,9 @@ static SenegalTokenType idToken(Lexer* lexer) {
         switch (lexer->start[1]) {
           case 'l':
             return collectKeyword(lexer, 2, 2, "se", SENEGAL_ELSE);
+
+          case 'n':
+            return collectKeyword(lexer, 2, 5, "hance", SENEGAL_ENHANCE);
 
           case 'x':
             return collectKeyword(lexer, 2, 5, "tends", SENEGAL_EXTENDS);

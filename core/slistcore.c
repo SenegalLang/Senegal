@@ -130,7 +130,7 @@ static Constant listRemoveAt(VM* vm, int arity, Constant* args) {
   expect(1, arity, "removeAt");
 
   GCList* list = AS_LIST(args[-1]);
-  double index = AS_NUMBER(args[0]);
+  double index = list->elementC - AS_NUMBER(args[0]) - 1;
 
   if (index >= list->elementC) {
     printf("Out of range, maximum was %d but found %d", list->elementC - 1, (int)index);
@@ -151,7 +151,6 @@ static Constant listRemoveAt(VM* vm, int arity, Constant* args) {
 
   return NULL_CONST;
 }
-
 
 static Constant listLength(VM* vm, int arity, Constant* args) {
   expect(0, arity, "length");
