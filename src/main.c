@@ -112,6 +112,10 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:sock", 8)),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
+
+  tableInsert(vm, &vm->corePaths,
+              GC_OBJ_CONST(copyString(vm, NULL, "sgl:list", 8)),
+              NULL_CONST);
 }
 
 static void defineArgv(VM* vm, int argc, const char* argv[]) {
@@ -127,12 +131,6 @@ static void defineArgv(VM* vm, int argc, const char* argv[]) {
 
 int main(int argc, const char* argv[]) {
   setlocale(LC_ALL, "");
-
-  VM vm;
-
-  // setbuf(stdout, 0);
-  initVM(&vm);
-  addPaths(&vm);
 
   // Get senegal directory from PATH
   char* senegalPath = NULL;
@@ -169,6 +167,12 @@ int main(int argc, const char* argv[]) {
       senegalPath = cwd;
     }
   }
+
+  VM vm;
+
+  // setbuf(stdout, 0);
+  initVM(&vm, senegalPath);
+  addPaths(&vm);
 
   if (argc == 1) {
     repl(&vm, senegalPath);

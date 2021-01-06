@@ -170,8 +170,9 @@ struct sVM {
 };
 
 
-void initVM(VM* vm);
+void initVM(VM* vm, char* senegalPath);
 GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure);
+InterpretationResult run(register VM* vm);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 

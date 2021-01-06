@@ -1083,8 +1083,10 @@ void parseList(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Le
 
 void parseMap(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
 
-  if (match(parser, lexer, SENEGAL_RBRACE))
+  if (match(parser, lexer, SENEGAL_RBRACE)) {
     writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(newMap(vm)));
+    return;
+  }
 
   uint8_t entryCount = 0;
   do {

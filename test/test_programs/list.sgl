@@ -1,3 +1,5 @@
+import 'sgl:list'
+
 var list = [1, 2, 3, 4, 5, 7];
 
 println(list); // output [1,2,3,4,5,7]
@@ -35,3 +37,9 @@ while ((iterator = filledList.iterate(iterator)) != null) {
 
 filledList.clear();
 println(filledList); // output []
+
+// output 1
+// output 2
+// output 3
+function fn(e) => println(e);
+[1, 2, 3].forEach(fn);

@@ -73,7 +73,7 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 //  pop(vm);
 //}
 
-void initVM(VM* vm) {
+void initVM(VM* vm, char* senegalPath) {
   vm->coroutine = NULL;
   vm->coroutine = newCoroutine(vm, ROOT, NULL);
 
@@ -95,17 +95,17 @@ void initVM(VM* vm) {
 
   initBoolClass(vm);
   initCoroutineClass(vm);
-  initListClass(vm);
   initMapClass(vm);
   initNumClass(vm);
   initStringClass(vm);
+  initListClass(vm);
 
   defineGlobal(vm, "bool", GC_OBJ_CONST(vm->boolClass));
   defineGlobal(vm, "Coroutine", GC_OBJ_CONST(vm->coroutineClass));
-  defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
   defineGlobal(vm, "Map", GC_OBJ_CONST(vm->mapClass));
   defineGlobal(vm, "num", GC_OBJ_CONST(vm->numClass));
   defineGlobal(vm, "String", GC_OBJ_CONST(vm->stringClass));
+  defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
 }
 
 GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
@@ -418,7 +418,7 @@ static bool isFalse(Constant constant) {
   return IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)) || (IS_NUMBER(constant) && AS_NUMBER(constant) == 0);
 }
 
-static InterpretationResult run(register VM* vm) {
+InterpretationResult run(register VM* vm) {
 register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
 #define PEEK() (vm->coroutine->stackTop[-1])
@@ -1412,7 +1412,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     int arity = READ_BYTE();
 
     if (!invoke(vm, method, arity)) {
-      printf("%s method not found", method->chars);
+      throwRuntimeError(vm,"%s method not found", method->chars);
       return RUNTIME_ERROR;
     }
 

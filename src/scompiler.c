@@ -163,7 +163,6 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
   return function;
 }
 
-
 GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senegalPath, char* dir) {
   Lexer lexer;
   initLexer(&lexer, source);
@@ -182,7 +181,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senega
     char* importSource = copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars;
 
     // Core library
-    if (importSource[3] == ':') { // We make the assumption that a regular path would not contain :
+    if (importSource[3] == ':') { // We make the assumption that a regular path would not contain `:`
       Constant constant;
 
       if (!tableGetEntry(&vm->corePaths, GC_OBJ_CONST(copyString(vm, compiler, importSource, strlen(importSource))), &constant)) {
@@ -198,8 +197,8 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senega
 
         int libLen = strlen(importSource);
 
-        // path\lib\lib.sgl
-        char path[senegalPathLen + (libLen * 2) + 17];
+        // path\lib\imp\imp.sgl
+        char path[senegalPathLen + (libLen * 2) + 12];
 
         memcpy(path, senegalPath, senegalPathLen);
         memcpy(path + senegalPathLen, PATH_SEPARATOR, 1);
@@ -214,7 +213,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senega
 
         memcpy(path + senegalPathLen + (libLen * 2) + 7, ".sgl", 4);
 
-        path[senegalPathLen + (libLen * 2) + 16] = '\0';
+        path[senegalPathLen + (libLen * 2) + 11] = '\0';
 
         interpret(vm, readFileWithPath(path), senegalPath, tempDir);
       } else {

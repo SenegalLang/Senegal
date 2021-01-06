@@ -1,0 +1,143 @@
+enhance List {
+    // Appends all elements from `other` to the end of `this` List.
+    // TODO(Calamity210): Move to core
+    function addAll(other) {
+        var iterator;
+        while ((iterator = other.iterate(iterator)) != null) {
+            this.add(other.iteratorCurrent(iterator));
+        }
+    }
+
+    // Returns `this` as a map where the index is the key and the element is the value.
+    // TODO(Calamity210): Move to core
+    function asMap() {
+        var listMap = {};
+
+        for (var i = 0; i < this.length(); i++)
+            listMap.add(i, this[i]);
+
+        return listMap;
+    }
+
+    // Returns the element at `index`.
+    // TODO(Calamity210): Move to core
+    function at(index) => this[index];
+
+    // Returns true if test returns true for each element.
+    function checkEvery(test) {
+        var iterator;
+
+        while ((iterator = this.iterate(iterator)) != null) {
+            if (!test(this.iteratorCurrent(iterator)))
+                return false;
+        }
+
+        return true;
+    }
+
+    // Expands `this` by extracting the elements of nested lists out to the parent list.
+    // TODO(Calamity210): Move to core
+    function expand() {
+        var iterator;
+        var newList = [];
+
+        while ((iterator = this.iterate(iterator)) != null) {
+            var element = this.iteratorCurrent(iterator);
+
+            if (element.type == 'List')
+                newList.addAll(element);
+            else
+                newList.add(element);
+        }
+
+        this.clear();
+        this.addAll(newList);
+    }
+
+    // Fills from `start` (inclusive) to `end` (exclusive) with `fill`.
+    // TODO(Calamity210): Move to core
+    function fillRange(start, end, fill) {
+        for (var i = start; i < end; i++)
+            this[i] = fill;
+
+        return this;
+    }
+
+    // Returns the first element that satisfies `test`.
+    function firstWhere(test) {
+        var iterator;
+
+        while ((iterator = this.iterate(iterator)) != null) {
+            if (test(this.iteratorCurrent(iterator)))
+                return true;
+        }
+
+        return null;
+    }
+
+    // Calls `func` for each element in `this`.
+    function forEach(func) {
+        var iterator;
+        while ((iterator = this.iterate(iterator)) != null) {
+            func(this.iteratorCurrent(iterator));
+        }
+    }
+
+    // Returns a sublist of the given range.
+    // TODO(Calamity210): Move to core
+    function getRange(start, end) {
+        var newList = [];
+
+        for (var i = start; i < end; i++) {
+            newList.add(this[i]);
+        }
+
+        return newList;
+    }
+
+    // Returns the index of the `element` from `start`.
+    // TODO(Calamity210): Move to core
+    function indexOf(element, start) {
+        for (var i = start; i < start; i++)
+            if (this[i] == element)
+                return i;
+
+        return -1;
+    }
+
+    // Returns the index of the first element that satisfies `test` from `start`.
+    function indexWhere(test, start) {
+        for (var i = start; i < start; i++)
+            if (test(this[i]))
+                return i;
+
+        return -1;
+    }
+
+    // Returns a string of all elements joined by `separator`.
+    // TODO(Calamity210): Move to core
+    function join(separator) {
+        var string = this[0].toString() + separator;
+
+        for (var i = 1; i < this.length() - 1; i++)
+            string += this[i].toString() + separator;
+
+        string += this[this.length() - 1].toString();
+
+        return string;
+    }
+
+    // Reduces `this` to a single value by iteratively combining its elements using the given function.
+    function reduce(initial, combine) {
+        var value = initial;
+        var iterator;
+
+        while ((iterator = this.iterate(iterator)) != null) {
+            var element = this.iteratorCurrent(iterator);
+
+            value = combine(value, element);
+        }
+
+        return value;
+    }
+}
