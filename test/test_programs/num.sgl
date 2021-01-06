@@ -30,3 +30,7 @@ println(i += 4); // output 30
 println(i /= 2); // output 15
 println(i -= 5); // output 10
 println(i *= 5); // output 50
+
+println(i % 4); // output 2
+println(i %= 4); // output 2
+println(i); // output 2

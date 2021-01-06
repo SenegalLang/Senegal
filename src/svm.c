@@ -520,34 +520,36 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
   }
 
     CASE(OPCODE_AND):
-    BITWISE_OP(vm, NUM_CONST, &);
-    DISPATCH();
+      BITWISE_OP(vm, NUM_CONST, &);
+      DISPATCH();
 
     CASE(OPCODE_OR):
-    BITWISE_OP(vm, NUM_CONST, |);
-    DISPATCH();
+      BITWISE_OP(vm, NUM_CONST, |);
+      DISPATCH();
 
     CASE(OPCODE_XOR):
-    BITWISE_OP(vm, NUM_CONST, ^);
-    DISPATCH();
+      BITWISE_OP(vm, NUM_CONST, ^);
+      DISPATCH();
 
     CASE(OPCODE_LSHIFT):
-    BITWISE_OP(vm, NUM_CONST, <<);
-    DISPATCH();
+      BITWISE_OP(vm, NUM_CONST, <<);
+      DISPATCH();
 
     CASE(OPCODE_RSHIFT):
-    BITWISE_OP(vm, NUM_CONST, >>);
-    DISPATCH();
+      BITWISE_OP(vm, NUM_CONST, >>);
+      DISPATCH();
 
     CASE(OPCODE_BITNOT): {
-    throwRuntimeError(vm, "Senegal encountered a non-number as an operand for OPCODE_NEG.");
-    return RUNTIME_ERROR;
-  }
+      if (!IS_NUMBER(PEEK())){
+      throwRuntimeError(vm, "Senegal encountered a non-number as an operand for OPCODE_NEG.");
+      return RUNTIME_ERROR;
+    }
 
-    Constant c = NUM_CONST(~(int)AS_NUMBER(POP()));
-    PUSH(c);
-    DISPATCH();
+      Constant c = NUM_CONST(~(int)AS_NUMBER(POP()));
+      PUSH(c);
+      DISPATCH();
 
+    }
     CASE(OPCODE_INC): {
     if (!IS_NUMBER(PEEK())) {
       throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
@@ -634,9 +636,21 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     }
     DISPATCH();
 
+    CASE(OPCODE_MOD):
+      if (!IS_NUMBER(PEEK2()) || !IS_NUMBER(PEEK())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+        return RUNTIME_ERROR;
+      }
+
+      double b = AS_NUMBER(POP());
+      double a = AS_NUMBER(POP());
+      Constant c = NUM_CONST(fmod(a, b));
+      PUSH(c);
+      DISPATCH();
+
     CASE(OPCODE_DIV):
-    BINARY_OP(vm, NUM_CONST, /);
-    DISPATCH();
+      BINARY_OP(vm, NUM_CONST, /);
+      DISPATCH();
 
     CASE(OPCODE_EQUAL): {
     Constant b = POP();

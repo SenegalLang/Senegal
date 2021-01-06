@@ -554,6 +554,14 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
             writeByte(vm, parser, i, setOP);
             break;
 
+          case SENEGAL_MOD_EQUAL:
+            advance(parser, lexer);
+
+            writeByte(vm, parser, i, getOP);
+            parseExpression(vm, parser, compiler, cc, lexer, i);
+            writeByte(vm, parser, i, OPCODE_MOD);
+            writeByte(vm, parser, i, setOP);
+            break;
 
           case SENEGAL_SLASH_EQUAL:
             advance(parser, lexer);
@@ -638,6 +646,14 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
         writeShort(vm, parser, i, setOP, (uint8_t) id);
         break;
 
+      case SENEGAL_MOD_EQUAL:
+        advance(parser, lexer);
+
+        writeShort(vm, parser, i, getOP, (uint8_t) id);
+        parseExpression(vm, parser, compiler, cc, lexer, i);
+        writeByte(vm, parser, i, OPCODE_MOD);
+        writeShort(vm, parser, i, setOP, (uint8_t) id);
+        break;
 
       case SENEGAL_SLASH_EQUAL:
         advance(parser, lexer);
@@ -931,6 +947,10 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       }
 
       writeByte(vm, parser, i, OPCODE_MUL);
+      break;
+
+    case SENEGAL_MOD:
+      writeByte(vm, parser, i, OPCODE_MOD);
       break;
 
     case SENEGAL_SLASH:

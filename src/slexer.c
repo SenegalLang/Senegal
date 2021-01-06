@@ -509,6 +509,10 @@ Token getNextToken(Lexer *lexer) {
       return newToken(lexer, match(lexer, '+') ?
                              SENEGAL_PLUS_PLUS : match(lexer, '=') ? SENEGAL_PLUS_EQUAL : SENEGAL_PLUS);
 
+    case '%':
+      return newToken(lexer, match(lexer, '%') ?
+                             SENEGAL_PLUS_PLUS : match(lexer, '=') ? SENEGAL_MOD_EQUAL : SENEGAL_MOD);
+
     case '?':
       return newToken(lexer, SENEGAL_QUESTION);
 
