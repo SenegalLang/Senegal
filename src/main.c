@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
   if (argc == 1) {
     if (!senegalPath) {
       fprintf(stderr,
-              "Senegal not found in PATH, please provide the directory to the senegal executable with the `--path` flag.");
+              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 
     if (!senegalPath) {
       fprintf(stderr,
-              "Senegal not found in PATH, please provide the directory to the senegal executable with the `--path` flag.");
+              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 

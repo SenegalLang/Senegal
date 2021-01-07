@@ -37,31 +37,6 @@ Appends `element` to `this` list.
 
 `[0].add(1) // [0, 1]`
 
-### clear()
-Removes all elements from `this` list.
-
-`[0].clear() // []`
-
-### contains(match)
-Returns true if `this` contains an element equivalent to `match`.
-
-`[1, 2, 7].contains(7) // true`
-
-### insertAt(index, element)
-Inserts `element` at `index`.
-
-`[0].insertAt(0, 1) // [1]`
-
-### length()
-Returns the length of `this` list.
-
-`[0].length() // 1`
-
-### removeAt(index)
-Removes the element at `index`, reduces the length and shifts all trailing elements over by one
-
-## Extraneous Methods (Methods that require `sgl:list` to be imported)
-
 ### addAll(other)
 
 Appends all elements from `other` to the end of `this` List.
@@ -77,6 +52,16 @@ Returns the element at `index`.
 
 ### checkEvery(function test(e))
 Returns true if `test` returns true for each element.
+
+### clear()
+Removes all elements from `this` list.
+
+`[0].clear() // []`
+
+### contains(match)
+Returns true if `this` contains an element equivalent to `match`.
+
+`[1, 2, 7].contains(7) // true`
 
 ### expand()
 Expands `this` by extracting the elements of nested lists out to the parent list.
@@ -105,8 +90,21 @@ Returns the index of the `element` from `start`.
 ### indexWhere(function test(e), start)
 Returns the index of the first element that satisfies `test` from `start`.
 
+### insertAt(index, element)
+Inserts `element` at `index`.
+
+`[0].insertAt(0, 1) // [1]`
+
 ### join(separator)
 Returns a string of all elements joined by `separator`.
+
+### length()
+Returns the length of `this` list.
+
+`[0].length() // 1`
+
+### removeAt(index)
+Removes the element at `index`, reduces the length and shifts all trailing elements over by one.
 
 ### reduce(initial, function combine(value, element))
 Reduces `this` to a single value by iteratively combining its elements using the given function.
