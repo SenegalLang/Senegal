@@ -118,7 +118,7 @@ static void addPaths(VM* vm) {
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
 }
 
-static void defineArgv(VM* vm, int argc, const char* argv[]) {
+static void defineArgv(VM* vm, int argc, char* argv[]) {
   GCList* args = newList(vm, argc);
 
   for (int i = 0; i < argc; i++)
@@ -133,7 +133,7 @@ static void applyEnhancements(VM* vm, char* senegalPath) {
   interpret(vm, readFileWithPath(concat(senegalPath, "/libs/list/list.sgl")), senegalPath, senegalPath);
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
   setlocale(LC_ALL, "");
 
   VM vm;
@@ -171,16 +171,15 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  if (!senegalPath) {
-    char cwd[260]; // PATH_MAX
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-      senegalPath = cwd;
-    }
-  }
-
-  applyEnhancements(&vm, senegalPath);
-
   if (argc == 1) {
+    if (!senegalPath) {
+      fprintf(stderr,
+              "Senegal not found in PATH, please provide the directory to the senegal executable with the `--path` flag.");
+      exit(1);
+    }
+
+    applyEnhancements(&vm, senegalPath);
+
     repl(&vm, senegalPath);
   } else {
     int argsStart = 0;
@@ -194,11 +193,23 @@ int main(int argc, const char* argv[]) {
         return 0;
       } else if (!strcmp(argv[i], "--args")) {
         argsStart = i + 1;
+      } else if (!strcmp(argv[i], "--path")) {
+        if (!senegalPath)
+          senegalPath = argv[i+1];
+        i++;
       } else {
         fprintf(stderr, "%s", SENEGAL_HELP);
         return 64;
       }
     }
+
+    if (!senegalPath) {
+      fprintf(stderr,
+              "Senegal not found in PATH, please provide the directory to the senegal executable with the `--path` flag.");
+      exit(1);
+    }
+
+    applyEnhancements(&vm, senegalPath);
 
     defineArgv(&vm, argsStart == 0 ? argsStart : argc - argsStart, argv + argsStart);
     runFile(&vm, argv[1], senegalPath);

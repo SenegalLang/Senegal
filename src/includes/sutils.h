@@ -21,7 +21,9 @@
   "Usage: senegal [flags] | [senegal-file]\n\n" \
   "Global options:\n" \
   "-h, --help                 Print this usage information.\n" \
-  "    --version              Print the Senegal version.\n"
+  "    --version              Print the Senegal version.\n"    \
+  "    --args                 Arguments to pass to a Senegal Program\n" \
+  "    --path                 Manually pass the path to the senegal executable's directory (used only if senegal isn't in PATH).\n"
 
 #define SENEGAL_VERSION "Senegal 0.0.1"
 

@@ -101,7 +101,7 @@ Future _testBirbScriptWithExpectations(FileSystemEntity file) async {
 
   final process = await TestProcess.start(
       '${Directory.current.path}/senegal${Platform.isWindows ? '.exe' : ''}',
-      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}'],
+      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}', '--path', '/home/runner/work/Senegal/Senegal'],
       runInShell: true,
       workingDirectory: expectations.workingDir);
 
