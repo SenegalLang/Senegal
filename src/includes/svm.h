@@ -28,11 +28,13 @@ typedef enum {
 
 typedef struct {
     GCObject gc;
-    int arity;
-    Instructions instructions;
-    GCString* id;
 
+    GCString* id;
+    Instructions instructions;
+    int arity;
     int upvalueCount;
+
+    bool isExternal;
 } GCFunction;
 
 typedef struct sVM VM;
@@ -156,6 +158,7 @@ struct sVM {
     Table globals;
     Table strings;
     Table corePaths;
+    Table imports;
 
     GCClass* boolClass;
     GCClass* coroutineClass;
@@ -170,13 +173,13 @@ struct sVM {
 };
 
 
-void initVM(VM* vm, char* senegalPath);
+void initVM(VM* vm);
 GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure);
 InterpretationResult run(register VM* vm);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 
-InterpretationResult interpret(VM* vm, char* source, const char* senegalPath, char* dir);
+InterpretationResult interpret(VM* vm, char* source, char* senegalPath, char* dir);
 
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);

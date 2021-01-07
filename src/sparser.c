@@ -843,6 +843,11 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
 
   bool isFinal = match(parser, lexer, SENEGAL_FINAL);
 
+  if (isFinal) {
+    if (!check(parser, SENEGAL_CLASS))
+      error(parser, &parser->current, "Senegal expected 'class' after 'final'.");
+  }
+
   if (match(parser, lexer, SENEGAL_CLASS))
     parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
   else if (match(parser, lexer, SENEGAL_ENHANCE))

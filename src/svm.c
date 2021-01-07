@@ -73,7 +73,7 @@ static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
 //  pop(vm);
 //}
 
-void initVM(VM* vm, char* senegalPath) {
+void initVM(VM* vm) {
   vm->coroutine = NULL;
   vm->coroutine = newCoroutine(vm, ROOT, NULL);
 
@@ -87,7 +87,7 @@ void initVM(VM* vm, char* senegalPath) {
   initTable(&vm->globals);
   initTable(&vm->strings);
   initTable(&vm->corePaths);
-
+  initTable(&vm->imports);
 
   defineNativeFunc(vm, "assert", assertApi);
   defineNativeFunc(vm, "print", printApi);
@@ -1100,8 +1100,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       return RUNTIME_ERROR;
     }
 
-    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK());
-    POP();
+    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), POP());
     DISPATCH();
   }
 
@@ -1511,7 +1510,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 #undef BINARY_OP
 }
 
-InterpretationResult interpret(VM* vm, char* source, const char* senegalPath, char* dir) {
+InterpretationResult interpret(VM* vm, char* source, char* senegalPath, char* dir) {
   Compiler compiler;
   GCFunction* function = compile(vm, &compiler, source, senegalPath, dir);
 

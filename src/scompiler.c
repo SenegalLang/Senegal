@@ -6,6 +6,7 @@
 #include "includes/scompiler.h"
 #include "includes/sinstruction_utils.h"
 #include "includes/smemory.h"
+#include "includes/stable_utils.h"
 
 #if DEBUG_PRINT_CODE
 #include "includes/sdebug.h"
@@ -163,7 +164,57 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
   return function;
 }
 
-GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senegalPath, char* dir) {
+static void handleImport(VM* vm, Compiler* compiler, char* senegalPath, char* dir, char* importSource) {
+  // Core library
+  if (importSource[3] == ':') { // We make the assumption that a regular path would not contain `:`
+    Constant constant;
+
+    Constant c;
+    if (tableGetEntry(&vm->imports, GC_OBJ_CONST(copyString(vm, NULL, importSource, strlen(importSource))), &c))
+      return;
+
+    if (!tableGetEntry(&vm->corePaths, GC_OBJ_CONST(copyString(vm, compiler, importSource, strlen(importSource))), &constant))
+      fprintf(stderr, "`%s` is not a core senegal library", importSource);
+
+    // TODO: Test more thoroughly
+    if (IS_STRING(constant)) {
+      char* path = concat(senegalPath, AS_CSTRING(constant));
+
+      // Save the directory path as libs/
+      char* tempDir = concat(senegalPath, "libs/");
+      interpret(vm, readFileWithPath(path), senegalPath, tempDir);
+    } else {
+      AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
+    }
+
+  } else {
+    char* tempDir = strdup(dir);
+
+    // +2 for separator and terminator
+    char* filePath = (char*)malloc(strlen(dir) + strlen(importSource) + 2);
+    filePath[0] = '\0';
+
+    strcat(filePath, tempDir);
+    strcat(filePath, PATH_SEPARATOR);
+    strcat(filePath, importSource);
+
+    // PATH_MAX + 1
+    char absolutePath[4097];
+    realpath(filePath, absolutePath);
+
+    Constant c;
+    Constant importString = GC_OBJ_CONST(copyString(vm, NULL, absolutePath, strlen(absolutePath)));
+    if (!tableGetEntry(&vm->imports, importString, &c)) {
+      char* fpDup = strdup(filePath);
+      char* newDir = dirname(fpDup);
+
+      if (interpret(vm, readFileWithPath(filePath), senegalPath, newDir) == OK)
+        tableInsert(vm, &vm->imports, importString, NULL_CONST);
+    }
+  }
+}
+
+GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath, char* dir) {
   Lexer lexer;
   initLexer(&lexer, source);
 
@@ -180,62 +231,7 @@ GCFunction* compile(VM* vm, Compiler* compiler, char *source, const char* senega
     consume(&parser, &lexer, SENEGAL_STRING, "Senegal expected a path to import");
     char* importSource = copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars;
 
-    // Core library
-    if (importSource[3] == ':') { // We make the assumption that a regular path would not contain `:`
-      Constant constant;
-
-      if (!tableGetEntry(&vm->corePaths, GC_OBJ_CONST(copyString(vm, compiler, importSource, strlen(importSource))), &constant)) {
-        fprintf(stderr, "`%s` is not a core senegal library", importSource);
-      }
-
-      // TODO: Test more thoroughly
-      if (IS_NULL(constant)) {
-        int senegalPathLen = strlen(senegalPath);
-
-        // Skip "sgl:"
-        importSource += 4;
-
-        int libLen = strlen(importSource);
-
-        // path\lib\imp\imp.sgl
-        char path[senegalPathLen + (libLen * 2) + 12];
-
-        memcpy(path, senegalPath, senegalPathLen);
-        memcpy(path + senegalPathLen, PATH_SEPARATOR, 1);
-        memcpy(path + senegalPathLen + 1, "libs", 4);
-        memcpy(path + senegalPathLen + 5, PATH_SEPARATOR, 1);
-        memcpy(path + senegalPathLen + 6, importSource, libLen);
-        memcpy(path + senegalPathLen + libLen + 6, PATH_SEPARATOR, 1);
-        memcpy(path + senegalPathLen + libLen + 7, importSource, libLen);
-
-        // Save the directory path
-        char* tempDir = strdup(path);
-
-        memcpy(path + senegalPathLen + (libLen * 2) + 7, ".sgl", 4);
-
-        path[senegalPathLen + (libLen * 2) + 11] = '\0';
-
-        interpret(vm, readFileWithPath(path), senegalPath, tempDir);
-      } else {
-        AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
-      }
-
-    } else {
-      char* tempDir = strdup(dir);
-
-      // +2 for separator and terminator
-      char* filePath = (char*)malloc(strlen(dir) + strlen(importSource) + 2);
-      filePath[0] = '\0';
-      strcat(filePath, tempDir);
-      strcat(filePath, PATH_SEPARATOR);
-      strcat(filePath, importSource);
-
-
-      char* fpDup = strdup(filePath);
-      char* newDir = dirname(fpDup);
-
-      interpret(vm, readFileWithPath(filePath), senegalPath, newDir);
-    }
+   handleImport(vm, compiler, senegalPath, dir, importSource);
   }
 
   while (!match(&parser, &lexer, SENEGAL_EOF))

@@ -4,6 +4,14 @@
 #include "../src/includes/stable_utils.h"
 #include "../src/includes/sparser.h"
 
+static Constant peek(VM* vm) {
+  return vm->coroutine->stackTop[-1];
+}
+
+static Constant peek2(VM* vm) {
+  return vm->coroutine->stackTop[-2];
+}
+
 void expect(int expected, int actual, char *name) {
   if (actual != expected) {
     fprintf(stderr, "%s expected %d args, but found %d\n", name, expected, actual);
@@ -14,41 +22,41 @@ void expect(int expected, int actual, char *name) {
 void defineClassNativeMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, vm->coroutine->stack[0], vm->coroutine->stack[1]);
+  tableInsert(vm, &class->methods, peek2(vm), peek(vm));
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->fields, vm->coroutine->stack[0], field);
+  tableInsert(vm, &class->fields, peek(vm), field);
   pop(vm);
 }
 
 void defineClassNativeStaticMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->staticMethods, vm->coroutine->stack[0], vm->coroutine->stack[1]);
+  tableInsert(vm, &class->staticMethods, peek2(vm), peek(vm));
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->staticFields, vm->coroutine->stack[0], field);
+  tableInsert(vm, &class->staticFields, peek(vm), field);
   pop(vm);
 }
 
 void defineGlobal(VM* vm, const char* id, Constant field) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], field);
+  tableInsert(vm, &vm->globals, peek(vm), field);
   pop(vm);
 }
 
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, peek2(vm), peek(vm));
   pop(vm);
   pop(vm);
 }

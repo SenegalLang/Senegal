@@ -96,6 +96,10 @@ static void runFile(VM* vm, const char* path, char* senegalPath) {
     exit(70);
 }
 
+static GCString* newPathString(VM* vm, char* path) {
+  return copyString(vm, NULL, path, (int)strlen(path));
+}
+
 static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:math", 8)),
@@ -112,10 +116,6 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:sock", 8)),
               GC_OBJ_CONST(newNative(vm, initSocketLib)));
-
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:list", 8)),
-              NULL_CONST);
 }
 
 static void defineArgv(VM* vm, int argc, const char* argv[]) {
@@ -129,8 +129,18 @@ static void defineArgv(VM* vm, int argc, const char* argv[]) {
   defineGlobal(vm, "argv", GC_OBJ_CONST(args));
 }
 
+static void applyEnhancements(VM* vm, char* senegalPath) {
+  interpret(vm, readFileWithPath(concat(senegalPath, "/libs/list/list.sgl")), senegalPath, senegalPath);
+}
+
 int main(int argc, const char* argv[]) {
   setlocale(LC_ALL, "");
+
+  VM vm;
+
+  // setbuf(stdout, 0);
+  initVM(&vm);
+  addPaths(&vm);
 
   // Get senegal directory from PATH
   char* senegalPath = NULL;
@@ -168,11 +178,7 @@ int main(int argc, const char* argv[]) {
     }
   }
 
-  VM vm;
-
-  // setbuf(stdout, 0);
-  initVM(&vm, senegalPath);
-  addPaths(&vm);
+  applyEnhancements(&vm, senegalPath);
 
   if (argc == 1) {
     repl(&vm, senegalPath);

@@ -47,4 +47,19 @@ char* readFile(FILE* file);
 
 int removeCharFromIndex(const char *src, char *dst, int index);
 
+static inline char* concat(char* a, char* b) {
+    int aLen = (int)strlen(a);
+    int bLen = (int)strlen(b);
+    int length = aLen + bLen;
+
+    char* chars = malloc(length + 1);
+
+    memcpy(chars, a, aLen);
+    memcpy(chars + aLen, b, bLen);
+
+    chars[length] = '\0';
+
+    return chars;
+}
+
 #endif //SENEGAL_SUTILS_H
