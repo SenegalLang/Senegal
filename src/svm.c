@@ -1524,7 +1524,7 @@ InterpretationResult interpret(VM* vm, char* source, const char* senegalPath, ch
   pop(vm);
   push(vm, GC_OBJ_CONST(closure));
 
-  call(vm, AS_CLOSURE(GC_OBJ_CONST(closure)), 0);
+  call(vm, closure, 0);
 
   return run(vm);
 }
