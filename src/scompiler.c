@@ -28,15 +28,13 @@ void error(Parser* parser, Token* token, const char* message) {
 
   parser->panic = true;
 
-  fprintf(stderr, "<Line %d Error:", token->line);
-
-  if (token->type == SENEGAL_EOF) {
-    fprintf(stderr, "EOF>");
-  } else if (token->type != SENEGAL_ERROR) {
-    fprintf(stderr, "%.*s>", token->length, token->start);
-  }
+  fprintf(stderr, "< Error on line %d >", token->line);
 
   fprintf(stderr, " `%s`\n", message);
+  fprintf(stderr, "\t↳ in: %s\n", parser->currentFile);
+
+  fprintf(stderr, "\t\t↳ at: %.*s\n", token->length, token->start);
+
   parser->hasError = true;
 }
 
@@ -182,7 +180,7 @@ static void handleImport(VM* vm, Compiler* compiler, char* senegalPath, char* di
 
       // Save the directory path as libs/
       char* tempDir = concat(senegalPath, "libs/");
-      interpret(vm, readFileWithPath(path), senegalPath, tempDir);
+      interpret(vm, path, readFileWithPath(path), senegalPath, tempDir);
     } else {
       AS_NATIVE(constant)(vm, 0, vm->coroutine->stackTop);
     }
@@ -208,18 +206,18 @@ static void handleImport(VM* vm, Compiler* compiler, char* senegalPath, char* di
       char* fpDup = strdup(filePath);
       char* newDir = dirname(fpDup);
 
-      if (interpret(vm, readFileWithPath(filePath), senegalPath, newDir) == OK)
+      if (interpret(vm, filePath, readFileWithPath(filePath), senegalPath, newDir) == OK)
         tableInsert(vm, &vm->imports, importString, NULL_CONST);
     }
   }
 }
 
-GCFunction* compile(VM* vm, Compiler* compiler, char *source, char* senegalPath, char* dir) {
+GCFunction* compile(VM* vm, Compiler* compiler, char* file, char *source, char* senegalPath, char* dir) {
   Lexer lexer;
   initLexer(&lexer, source);
 
   Parser parser;
-  initParser(&parser);
+  initParser(&parser, file);
 
   ClassCompiler* cc = NULL;
 

@@ -1,3 +1,4 @@
 var bool = false;
 
-!bool = true; // error <Line 3 Error:=> `Invalid assignment target.`
+// error < Error on line 4 > `Invalid assignment target.`
+!bool = true;

@@ -17,9 +17,10 @@ ParseRule rules[] = {
   #undef RULE
 };
 
-void initParser(Parser *parser) {
+void initParser(Parser *parser, char* file) {
   parser->hasError = false;
   parser->panic = false;
+  parser->currentFile = file;
 }
 
 static bool check(Parser* parser, SenegalTokenType type) {
@@ -781,7 +782,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
     else {
       advance(parser, lexer);
-      error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body");
+      error(parser, &parser->previous, "Senegal class declarations only allow variable or function definitions in its body.");
     }
   }
 

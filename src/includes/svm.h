@@ -179,7 +179,7 @@ InterpretationResult run(register VM* vm);
 
 bool call(VM* vm, GCClosure* closure, int arity);
 
-InterpretationResult interpret(VM* vm, char* source, char* senegalPath, char* dir);
+InterpretationResult interpret(VM* vm, char* file, char* source, char* senegalPath, char* dir);
 
 void push(VM* vm, Constant constant);
 Constant pop(VM* vm);

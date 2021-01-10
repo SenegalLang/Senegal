@@ -69,11 +69,11 @@ static void repl(VM* vm, char* senegalPath) {
 
       }
 
-      interpret(vm, block, senegalPath, cwd);
+      interpret(vm, "REPL", block, senegalPath, cwd);
     } else if (strcmp(line, ".exit\n") == 0) {
       break;
     } else {
-      interpret(vm, line, senegalPath, cwd);
+      interpret(vm, "REPL", line, senegalPath, cwd);
     }
   }
 }
@@ -83,11 +83,11 @@ static char* getFileDir(const char* filePath) {
   return dirname(pathDup);
 }
 
-static void runFile(VM* vm, const char* path, char* senegalPath) {
+static void runFile(VM* vm, char* path, char* senegalPath) {
   char* source = readFileWithPath(path);
   char* dir = getFileDir(path);
 
-  InterpretationResult result = interpret(vm, source, senegalPath, dir);
+  InterpretationResult result = interpret(vm, path, source, senegalPath, dir);
 
   if (result == COMPILE_TIME_ERROR)
     exit(65);
@@ -130,7 +130,8 @@ static void defineArgv(VM* vm, int argc, char* argv[]) {
 }
 
 static void applyEnhancements(VM* vm, char* senegalPath) {
-  interpret(vm, readFileWithPath(concat(senegalPath, "/libs/list/list.sgl")), senegalPath, senegalPath);
+  char* path = concat(senegalPath, "/libs/list/list.sgl");
+  interpret(vm, path, readFileWithPath(path), senegalPath, senegalPath);
 }
 
 int main(int argc, char* argv[]) {

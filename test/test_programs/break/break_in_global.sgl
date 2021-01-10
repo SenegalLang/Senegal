@@ -1,2 +1,2 @@
+// error < Error on line 2 > `Senegal is unable to `break` outside loops.`
 break;
-// error <Line 1 Error:break> `Senegal is unable to `break` outside loops.`

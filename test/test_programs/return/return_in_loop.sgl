@@ -1,3 +1,4 @@
 for (var i = 0; i < 10; i++) {
-    return 0; // error <Line 2 Error:return> `Senegal can't return from a global scope.`
+    // error < Error on line 3 > `Senegal can't return from a global scope.`
+    return 0;
 }

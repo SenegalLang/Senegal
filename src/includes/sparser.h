@@ -11,6 +11,8 @@ typedef struct {
     Token previous;
     bool hasError;
     bool panic;
+
+    char* currentFile;
 } Parser;
 
 typedef enum {
@@ -58,7 +60,7 @@ typedef struct {
     Precedence precedence;
 } ParseRule;
 
-void initParser(Parser* parser);
+void initParser(Parser* parser, char* file);
 
 bool match(Parser* parser, Lexer* lexer, SenegalTokenType type);
 

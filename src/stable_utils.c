@@ -65,7 +65,32 @@ void tableInsertAll(VM* vm, Table* from, Table* to) {
     if (!IS_NULL(entry->key))
       tableInsert(vm, to, entry->key, entry->constant);
   }
+}
 
+bool tableContainsAll(Table* a, Table* b) {
+  for (int i = 0; i <= a->cap; i++) {
+    Entry* entry = &a->entries[i];
+
+    if (!IS_NULL(entry->key)) {
+      if (!tableFind(b->entries, b->cap, entry->key))
+        return false;
+    }
+  }
+
+  return true;
+}
+
+bool tableContainsAny(Table* a, Table* b) {
+  for (int i = 0; i <= a->cap; i++) {
+    Entry* entry = &a->entries[i];
+
+    if (!IS_NULL(entry->key)) {
+      if (tableFind(b->entries, b->cap, entry->key))
+        return true;
+    }
+  }
+
+  return false;
 }
 
 void markTable(VM* vm, Table *table) {

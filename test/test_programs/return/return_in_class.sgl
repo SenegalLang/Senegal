@@ -1,3 +1,4 @@
 class Foo {
-    return 0; // error <Line 2 Error:return> `Senegal class declarations only allow variable or function definitions in its body`
+    // error < Error on line 3 > `Senegal class declarations only allow variable or function definitions in its body.`
+    return 0;
 }

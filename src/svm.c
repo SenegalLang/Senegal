@@ -20,43 +20,6 @@
 #include "includes/sdebug.h"
 #endif
 
-static void resetStack(GCCoroutine* coroutine) {
-  coroutine->stackTop = coroutine->stack;
-  coroutine->frameCount = 0;
-  coroutine->openUpvalues = NULL;
-}
-
-static void throwRuntimeError(VM* vm, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  vfprintf(stderr, format, args);
-  va_end(args);
-
-  fputs("\n", stderr);
-
-  for (int i = vm->coroutine->frameCount - 1; i > 0; i--) {
-    CallFrame* frame = &vm->coroutine->frames[i];
-    GCFunction* function = frame->closure->function;
-
-    size_t instruction = frame->pc - function->instructions.bytes - 1;
-
-    fprintf(stderr, "<Line %d> ",
-            function->instructions.lines[instruction].line);
-    if (!function->id) {
-      fprintf(stderr, "Global Scope\n");
-    } else {
-      fprintf(stderr, "%s()\n", function->id->chars);
-    }
-  }
-
-  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
-  size_t instruction = frame->pc - frame->closure->function->instructions.bytes - 1;
-  int line = getLine(&frame->closure->function->instructions, instruction);
-  fprintf(stderr, "<Line %d> Global Scope\n", line);
-
-  resetStack(vm->coroutine);
-}
-
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
@@ -108,6 +71,12 @@ void initVM(VM* vm) {
   defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
 }
 
+static void resetStack(GCCoroutine* coroutine) {
+  coroutine->stackTop = coroutine->stack;
+  coroutine->frameCount = 0;
+  coroutine->openUpvalues = NULL;
+}
+
 GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
   GCCoroutine* coroutine = ALLOCATE_GC_OBJ(vm, GCCoroutine, GC_COROUTINE);
   coroutine->state = state;
@@ -127,6 +96,37 @@ GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
 
 static Constant peek(VM* vm, int topDelta) {
   return vm->coroutine->stackTop[- 1 - topDelta];
+}
+
+static void throwRuntimeError(VM* vm, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+
+  fputs("\n", stderr);
+
+  for (int i = vm->coroutine->frameCount - 1; i > 0; i--) {
+    CallFrame* frame = &vm->coroutine->frames[i];
+    GCFunction* function = frame->closure->function;
+
+    size_t instruction = frame->pc - function->instructions.bytes - 1;
+
+    fprintf(stderr, "<Line %d> ",
+            function->instructions.lines[instruction].line);
+    if (!function->id) {
+      fprintf(stderr, "Global Scope\n");
+    } else {
+      fprintf(stderr, "%s()\n", function->id->chars);
+    }
+  }
+
+  CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
+  size_t instruction = frame->pc - frame->closure->function->instructions.bytes - 1;
+  int line = getLine(&frame->closure->function->instructions, instruction);
+  fprintf(stderr, "<Line %d> Global Scope\n", line);
+
+  resetStack(vm->coroutine);
 }
 
 bool call(VM* vm, GCClosure* closure, int arity) {
@@ -847,60 +847,60 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
     CASE(OPCODE_SETFIELD): {
 
-    if (IS_CLASS(PEEK2())) {
-      GCClass *class = AS_CLASS(PEEK2());
+      if (IS_CLASS(PEEK2())) {
+        GCClass *class = AS_CLASS(PEEK2());
+        Constant key = READ_CONSTANT();
+
+        if (class->isFinal && frame->closure->function->id != class->id) {
+          throwRuntimeError(vm, "Cannot mutate fields of a final class");
+          return RUNTIME_ERROR;
+        }
+
+        Constant constant1;
+        if (!tableGetEntry(&class->staticFields, key, &constant1)) {
+          throwRuntimeError(vm, "Senegal cannot add fields to an instance", class->id->chars);
+          return RUNTIME_ERROR;
+        }
+
+        tableInsert(vm, &class->staticFields, key, PEEK());
+
+        Constant c = POP();
+
+        POP();
+        PUSH(c);
+
+        DISPATCH();
+      }
+
+      if (!IS_INSTANCE(PEEK2())) {
+        throwRuntimeError(vm, "Tried setting fields of non-class instance objects");
+        return RUNTIME_ERROR;
+      }
+
+      GCInstance *instance = AS_INSTANCE(PEEK2());
+
+      if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
+        throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
+        return RUNTIME_ERROR;
+      }
+
       Constant key = READ_CONSTANT();
 
-      if (class->isFinal && frame->closure->function->id != class->id) {
-        throwRuntimeError(vm, "Cannot mutate fields of a final class");
-        return RUNTIME_ERROR;
-      }
-
       Constant constant1;
-      if (!tableGetEntry(&class->staticFields, key, &constant1)) {
-        throwRuntimeError(vm, "Senegal cannot add fields to an instance", class->id->chars);
+      if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
+        throwRuntimeError(vm, "Senegal cannot add fields to an instance", instance->class->id->chars);
         return RUNTIME_ERROR;
       }
 
-      tableInsert(vm, &class->staticFields, key, PEEK());
+      tableInsert(vm, &instance->class->fields, key, PEEK());
 
-      Constant c = POP();
+      Constant constant = POP();
 
       POP();
+      Constant c = constant;
       PUSH(c);
 
       DISPATCH();
-    }
-
-    if (!IS_INSTANCE(PEEK2())) {
-      throwRuntimeError(vm, "Tried setting fields of non-class instance objects");
-      return RUNTIME_ERROR;
-    }
-
-    GCInstance *instance = AS_INSTANCE(PEEK2());
-
-    if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
-      throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
-      return RUNTIME_ERROR;
-    }
-
-    Constant key = READ_CONSTANT();
-
-    Constant constant1;
-    if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
-      throwRuntimeError(vm, "Senegal cannot add fields to an instance", instance->class->id->chars);
-      return RUNTIME_ERROR;
-    }
-
-    tableInsert(vm, &instance->class->fields, key, PEEK());
-
-    Constant constant = POP();
-
-    POP();
-    Constant c = constant;
-    PUSH(c);
-
-    DISPATCH();
   }
 
     CASE(OPCODE_GETFIELD): {
@@ -1454,6 +1454,8 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     }
 
     printConstant(stderr, *vm->coroutine->error);
+    fprintf(stderr, "\n");
+    throwRuntimeError(vm, "Senegal encountered an uncaught error.");
     return RUNTIME_ERROR;
   }
 
@@ -1503,6 +1505,12 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
   }
 
+#undef PEEK
+#undef PEEK2
+#undef PUSH
+#undef POP
+#undef POPN
+#undef UPDATE_FRAME
 #undef READ_BYTE
 #undef READ_SHORT
 #undef READ_CONSTANT
@@ -1510,9 +1518,9 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 #undef BINARY_OP
 }
 
-InterpretationResult interpret(VM* vm, char* source, char* senegalPath, char* dir) {
+InterpretationResult interpret(VM* vm, char* file, char* source, char* senegalPath, char* dir) {
   Compiler compiler;
-  GCFunction* function = compile(vm, &compiler, source, senegalPath, dir);
+  GCFunction* function = compile(vm, &compiler, file, source, senegalPath, dir);
 
   if (!function)
     return COMPILE_TIME_ERROR;

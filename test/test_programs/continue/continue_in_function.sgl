@@ -1,4 +1,4 @@
 function foo() {
+    // error < Error on line 3 > `Senegal is unable to `continue` outside loops.`
     continue;
-// error <Line 2 Error:continue> `Senegal is unable to `continue` outside loops.`
 }

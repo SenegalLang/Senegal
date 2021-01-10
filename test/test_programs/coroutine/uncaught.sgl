@@ -5,5 +5,7 @@ function foo() {
 
 var coroutine = Coroutine(foo);
 
-var unCaughtError = coroutine.call(); // error Uncaught Error
-println(unCaughtError);
+// error Uncaught Error
+// error Senegal encountered an uncaught error.
+// error <Line 2> Global Scope
+var unCaughtError = coroutine.call();

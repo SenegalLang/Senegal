@@ -126,6 +126,8 @@ static void freeGCObjects(VM *vm, Compiler* compiler) {
 void freeVM(VM* vm) {
   freeTable(vm, &vm->globals);
   freeTable(vm, &vm->strings);
+  freeTable(vm, &vm->corePaths);
+  freeTable(vm, &vm->imports);
 
   markGCObject(vm, (GCObject*)vm->boolClass);
   markGCObject(vm, (GCObject*)vm->listClass);

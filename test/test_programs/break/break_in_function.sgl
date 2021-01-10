@@ -1,4 +1,4 @@
 function foo() {
+    // error < Error on line 3 > `Senegal is unable to `break` outside loops.`
     break;
-    // error <Line 2 Error:break> `Senegal is unable to `break` outside loops.`
 }
