@@ -89,17 +89,17 @@ void main() {
       ..removeWhere((e) => e is Directory);
 
     files.forEach((file) {
-      if (!file.endsWith('sgl'))
+      if (!file.path.endsWith('sgl'))
         return;
 
       test.test(file.path, () async {
-        await _testBirbScriptWithExpectations(file);
+        await _testSglScriptWithExpectations(file);
       });
     });
   });
 }
 
-Future _testBirbScriptWithExpectations(FileSystemEntity file) async {
+Future _testSglScriptWithExpectations(FileSystemEntity file) async {
   final expectations = ExpectationsParser(file);
 
   final process = await TestProcess.start(
