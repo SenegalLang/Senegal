@@ -12,8 +12,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 file(GLOB src "*/*.h" "*/*.c")
 
-add_library(senegallib SHARED ${src} src/includes/sloadclib.h src/sloadclib.c test.c)
-add_executable(senegal ${src} src/includes/sloadclib.h src/sloadclib.c test.c)
+add_executable(senegal ${src} src/includes/sloadclib.h src/sloadclib.c)
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)
