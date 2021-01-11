@@ -125,6 +125,9 @@ static SenegalTokenType idToken(Lexer* lexer) {
           case 'a':
             return collectKeyword(lexer, 2, 2, "se", SENEGAL_CASE);
 
+          case 'i':
+            return collectKeyword(lexer, 2, 5, "mport", SENEGAL_CIMPORT);
+
           case 'l':
             return collectKeyword(lexer, 2, 3, "ass", SENEGAL_CLASS);
 

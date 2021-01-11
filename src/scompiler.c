@@ -7,6 +7,7 @@
 #include "includes/sinstruction_utils.h"
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
+#include "includes/sloadclib.h"
 
 #if DEBUG_PRINT_CODE
 #include "includes/sdebug.h"
@@ -162,6 +163,12 @@ GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructi
   return function;
 }
 
+// TODO: Correct and write tests for this
+static void handleCImport(VM* vm, char* importSource) {
+  Constant function = sysSym(vm, sysLoad(importSource, false), "initLib");
+  AS_NATIVE(function)(vm, 0, vm->coroutine->stackTop);
+}
+
 static void handleImport(VM* vm, Compiler* compiler, char* senegalPath, char* dir, char* importSource) {
   // Core library
   if (importSource[3] == ':') { // We make the assumption that a regular path would not contain `:`
@@ -224,6 +231,20 @@ GCFunction* compile(VM* vm, Compiler* compiler, char* file, char *source, char* 
   initCompiler(vm, &parser, NULL, compiler, PROGRAM, true);
 
   advance(&parser, &lexer);
+
+  while (match(&parser, &lexer, SENEGAL_CIMPORT)) {
+    consume(&parser, &lexer, SENEGAL_STRING, "Senegal expected a path to import");
+    char* importSource = copyString(vm, compiler, parser.previous.start + 1, parser.previous.length - 2)->chars;
+    importSource = concat(concat(dir, "/"), importSource);
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+    importSource = concat(importSource, ".dll");
+#else
+    importSource = concat(importSource, ".so");
+#endif
+
+    handleCImport(vm, importSource);
+  }
 
   while (match(&parser, &lexer, SENEGAL_IMPORT)) {
     consume(&parser, &lexer, SENEGAL_STRING, "Senegal expected a path to import");
