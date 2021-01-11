@@ -89,6 +89,9 @@ void main() {
       ..removeWhere((e) => e is Directory);
 
     files.forEach((file) {
+      if (!file.endsWith('sgl'))
+        return;
+
       test.test(file.path, () async {
         await _testBirbScriptWithExpectations(file);
       });

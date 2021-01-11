@@ -21,12 +21,15 @@ void* sysLoad(const char* path, int seeglb) {
 }
 
 Constant sysSym(VM* vm, void* lib, const char* sym) {
-  GCNative* c = newNative(vm, dlsym(lib, sym));
 
-  if (!c) {
+  void* func = dlsym(lib, sym);
+
+  if (!func) {
     fprintf(stderr, "%s\n", dlerror());
     exit(1);
   }
+
+  GCNative* c = newNative(vm, (NativeFunc)func);
 
   return GC_OBJ_CONST(c);
 }
