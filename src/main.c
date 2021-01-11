@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -144,21 +145,41 @@ int main(int argc, char* argv[]) {
   addPaths(&vm);
 
   // Get senegal directory from PATH
-  char* tmpSenegalPath = getenv("SENEGAL_HOME");
-  char* senegalPath;
+  char* senegalPath = NULL;
+  char *sysPath = getenv("PATH");
+  char *dir;
 
-  if (tmpSenegalPath && strlen(tmpSenegalPath) > 0) {
-    int pathLen = (int) strlen(tmpSenegalPath) - 4; // "/bin"
-    senegalPath = malloc(pathLen);
+#ifdef _WIN32
+  char *delim = ";";
+  int execLen = 12;
+  char *exec = "\\senegal.exe";
+#else
+  char* delim = ":";
+  int execLen = 8;
+  char* exec = "/senegal";
+#endif
 
-    memcpy(senegalPath, tmpSenegalPath, pathLen);
-    senegalPath[pathLen] = '\0';
+  // TODO(Calamity210): Improve by using a senegal specific environment variable
+  for (dir = strtok(sysPath, delim); dir; dir = strtok(NULL, delim)) {
+    int dirLen = (int)strlen(dir);
+    char execPath[dirLen + execLen + 1];
+
+    memcpy(execPath, dir, dirLen);
+    memcpy(execPath + dirLen, exec, execLen);
+    execPath[dirLen + execLen] = '\0';
+
+    if (!access(execPath, F_OK)) {
+      senegalPath = malloc(dirLen - 3);
+      memcpy(senegalPath, dir, dirLen - 4); // bin
+      senegalPath[dirLen] = '\0';
+      break;
+    }
   }
 
   if (argc == 1) {
-    if (senegalPath) {
+    if (!senegalPath) {
       fprintf(stderr,
-              "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
+              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 
@@ -189,7 +210,7 @@ int main(int argc, char* argv[]) {
 
     if (!senegalPath) {
       fprintf(stderr,
-              "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
+              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 
