@@ -17,16 +17,22 @@ add_executable(senegal ${src} src/includes/sloadclib.h src/sloadclib.c test/test
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)
+	set(SENEGAL_LIB libsenegallib.dll)
 	target_link_libraries(senegal ws2_32 senegallib)
 else()
 	set(SENEGAL_EXEC senegal)
+	set(SENEGAL_LIB libsenegallib.so)
 	target_link_libraries(senegal m dl senegallib)
 endif()
 
 add_custom_command(TARGET senegal
 		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR})
+		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/test)
 
 add_custom_command(TARGET senegal
 		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/test)
+		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/bin)
+
+add_custom_command(TARGET senegallib
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_LIB} ${CMAKE_SOURCE_DIR}/bin)

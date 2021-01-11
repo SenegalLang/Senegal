@@ -17,6 +17,8 @@ out/
 **/*.o
 **/senegal
 
+!/bin/**
+
 docs/node_modules/
 docs/build/
 

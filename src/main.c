@@ -144,38 +144,17 @@ int main(int argc, char* argv[]) {
   addPaths(&vm);
 
   // Get senegal directory from PATH
-  char* senegalPath = NULL;
-  char *sysPath = getenv("PATH");
-  char *dir;
+  char* tmpSenegalPath = getenv("SENEGAL_HOME");
+  int pathLen = (int)strlen(tmpSenegalPath) - 4; // "/bin"
 
-#ifdef _WIN32
-  char *delim = ";";
-  int execLen = 12;
-  char *exec = "\\senegal.exe";
-#else
-  char* delim = ":";
-    int execLen = 8;
-    char* exec = "/senegal";
-#endif
-
-  for (dir = strtok(sysPath, delim); dir; dir = strtok(NULL, delim)) {
-    int dirLen = (int)strlen(dir);
-    char execPath[dirLen + execLen + 1];
-
-    memcpy(execPath, dir, dirLen);
-    memcpy(execPath + dirLen, exec, execLen);
-    execPath[dirLen + execLen] = '\0';
-
-    if (!access(execPath, F_OK)) {
-      senegalPath = dir;
-      break;
-    }
-  }
+  char* senegalPath = malloc(pathLen);
+  memcpy(senegalPath, tmpSenegalPath, pathLen);
+  senegalPath[pathLen] = '\0';
 
   if (argc == 1) {
-    if (!senegalPath) {
+    if (tmpSenegalPath) {
       fprintf(stderr,
-              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
+              "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 
@@ -195,7 +174,7 @@ int main(int argc, char* argv[]) {
       } else if (!strcmp(argv[i], "--args")) {
         argsStart = i + 1;
       } else if (!strcmp(argv[i], "--path")) {
-        if (!senegalPath)
+        if (!tmpSenegalPath)
           senegalPath = argv[i+1];
         i++;
       } else {
@@ -204,9 +183,9 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (!senegalPath) {
+    if (!tmpSenegalPath) {
       fprintf(stderr,
-              "Senegal not found in PATH, please provide the directory to the senegal directory with the `--path` flag.");
+              "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
     }
 
