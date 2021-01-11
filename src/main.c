@@ -145,14 +145,18 @@ int main(int argc, char* argv[]) {
 
   // Get senegal directory from PATH
   char* tmpSenegalPath = getenv("SENEGAL_HOME");
-  int pathLen = (int)strlen(tmpSenegalPath) - 4; // "/bin"
+  char* senegalPath;
 
-  char* senegalPath = malloc(pathLen);
-  memcpy(senegalPath, tmpSenegalPath, pathLen);
-  senegalPath[pathLen] = '\0';
+  if (tmpSenegalPath && strlen(tmpSenegalPath) > 0) {
+    int pathLen = (int) strlen(tmpSenegalPath) - 4; // "/bin"
+    senegalPath = malloc(pathLen);
+
+    memcpy(senegalPath, tmpSenegalPath, pathLen);
+    senegalPath[pathLen] = '\0';
+  }
 
   if (argc == 1) {
-    if (tmpSenegalPath) {
+    if (senegalPath) {
       fprintf(stderr,
               "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
@@ -174,7 +178,7 @@ int main(int argc, char* argv[]) {
       } else if (!strcmp(argv[i], "--args")) {
         argsStart = i + 1;
       } else if (!strcmp(argv[i], "--path")) {
-        if (!tmpSenegalPath)
+        if (!senegalPath)
           senegalPath = argv[i+1];
         i++;
       } else {
@@ -183,7 +187,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (!tmpSenegalPath) {
+    if (!senegalPath) {
       fprintf(stderr,
               "SENEGAL_HOME not found, please provide the directory to the senegal directory with the `--path` flag.");
       exit(1);
