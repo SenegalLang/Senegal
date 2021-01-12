@@ -100,11 +100,16 @@ void main() {
 }
 
 Future _testSglScriptWithExpectations(FileSystemEntity file) async {
+  // TODO(Calamity210): Add test.dylib and enable this test
+  if (Platform.isMacOS && file.path.endsWith('cimport.sgl'))
+    return;
+
   final expectations = ExpectationsParser(file);
 
   final process = await TestProcess.start(
       '${Directory.current.path}/senegal${Platform.isWindows ? '.exe' : ''}',
-      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}', '--path', Directory.current.parent.path],
+      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}',
+        '--path', Directory.current.parent.path],
       runInShell: true,
       workingDirectory: expectations.workingDir);
 
