@@ -468,6 +468,9 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
   if (id != -1) {
     getOP = OPCODE_GETLOC;
     setOP = OPCODE_SETLOC;
+  } else if ((id = resolveUpvalue(parser, compiler, &name)) != -1) {
+    getOP = OPCODE_GETUPVAL;
+    setOP = OPCODE_SETUPVAL;
   } else {
     id = idConstant(vm, parser, compiler, i, &name);
     getOP = OPCODE_GETGLOB;
