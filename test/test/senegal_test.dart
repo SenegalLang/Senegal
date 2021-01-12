@@ -104,7 +104,7 @@ Future _testSglScriptWithExpectations(FileSystemEntity file) async {
 
   final process = await TestProcess.start(
       '${Directory.current.path}/senegal${Platform.isWindows ? '.exe' : ''}',
-      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}', '--path', Directory.current.parent],
+      ['.${expectations.workingDir == '../' ? '/test' : ''}${file.path.replaceFirst('.', '')}', '--path', Directory.current.parent.path],
       runInShell: true,
       workingDirectory: expectations.workingDir);
 
