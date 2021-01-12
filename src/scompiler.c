@@ -243,6 +243,8 @@ GCFunction* compile(VM* vm, Compiler* compiler, char* file, char *source, char* 
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     importSource = concat(importSource, ".dll");
+#elif __APPLE__
+    importSource = concat(importSource, ".dylib");
 #else
     importSource = concat(importSource, ".so");
 #endif
