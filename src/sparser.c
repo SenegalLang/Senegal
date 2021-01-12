@@ -12,9 +12,9 @@ int deepestLoopDepth = 0;
 static void markInitialized(Compiler* compiler);
 
 ParseRule rules[] = {
-  #define RULE(index, prefix, infix, prec) [index] = {prefix, infix, prec},
-    #include "includes/srules.h"
-  #undef RULE
+#define RULE(index, prefix, infix, prec) [index] = {prefix, infix, prec},
+#include "includes/srules.h"
+#undef RULE
 };
 
 void initParser(Parser *parser, char* file) {
@@ -772,13 +772,13 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
       isStatic = true;
 
     if (match(parser, lexer, SENEGAL_FUNCTION)
-    || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0)))
+        || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0)))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))
       parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
-    // TODO(Calamity210): parse const
+      // TODO(Calamity210): parse const
 
     else {
       advance(parser, lexer);
@@ -1315,18 +1315,18 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       writeByte(vm, parser, &compiler->function->instructions, OPCODE_YIELD);
       break;
 
-    // TODO(Calamity210): This can be slow, optimize using a Table
-    /*
-     * Rather than comparing and jumping for each case,
-     * a much better option would be to create a map.
-     * The maps keys would be the case value and its value would be the start jmps for the case's body.
-     * This would allow us to check if the map contains the value given in the switch's condition and
-     * jump to it directly. If the correct case doesn't exist, jump to the default case.
-     *
-     * An issue that will arise is that the end jump will not be stored anywhere,
-     * for this we will enforce explicit breaks.
-     *
-     * */
+      // TODO(Calamity210): This can be slow, optimize using a Table
+      /*
+       * Rather than comparing and jumping for each case,
+       * a much better option would be to create a map.
+       * The maps keys would be the case value and its value would be the start jmps for the case's body.
+       * This would allow us to check if the map contains the value given in the switch's condition and
+       * jump to it directly. If the correct case doesn't exist, jump to the default case.
+       *
+       * An issue that will arise is that the end jump will not be stored anywhere,
+       * for this we will enforce explicit breaks.
+       *
+       * */
     case SENEGAL_SWITCH: {
       // state: [NO_CASE, NO_DEFAULT, HAS_BOTH]
       int state = 0;

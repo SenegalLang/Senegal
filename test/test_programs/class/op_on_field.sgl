@@ -1,0 +1,9 @@
+class Test {
+    var i = 0;
+}
+
+var test = Test();
+
+test.i = test.i + 1;
+
+println(test.i);

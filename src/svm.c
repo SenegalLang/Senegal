@@ -822,7 +822,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       double index = AS_NUMBER(POP());
       GCList* list = AS_LIST(POP());
 
-      if (index >= list->elementC) {
+      if (index >= list->elementC || index < 0) {
         throwRuntimeError(vm, "Out of range: %d, valid range is %d", (int)index, list->elementC - 1);
         return RUNTIME_ERROR;
       }
@@ -873,7 +873,8 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       }
 
       if (!IS_INSTANCE(PEEK2())) {
-        throwRuntimeError(vm, "Tried setting fields of non-class instance objects");
+        printConstant(stderr, PEEK2());
+        throwRuntimeError(vm, "Tried setting fields of non-class instance object.");
         return RUNTIME_ERROR;
       }
 
@@ -888,6 +889,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
       Constant constant1;
       if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
+        printConstant(stderr, key);
         throwRuntimeError(vm, "Senegal cannot add fields to an instance", instance->class->id->chars);
         return RUNTIME_ERROR;
       }

@@ -117,6 +117,18 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_MUL:
       return noOperandInstruction("OPCODE_MUL", offset);
 
+    case OPCODE_AND:
+      return noOperandInstruction("OPCODE_AND", offset);
+
+    case OPCODE_OR:
+      return noOperandInstruction("OPCODE_OR", offset);
+
+    case OPCODE_XOR:
+      return noOperandInstruction("OPCODE_XOR", offset);
+
+    case OPCODE_LSHIFT:
+      return noOperandInstruction("OPCODE_LSHIFT", offset);
+
     case OPCODE_DIV:
       return noOperandInstruction("OPCODE_DIV", offset);
 
@@ -130,19 +142,19 @@ int disassembleInstruction(Instructions *instructions, int offset) {
       return loadInstruction("OPCODE_LOAD", instructions, offset);
 
     case OPCODE_LOADN1:
-      return loadNInstruction("OPCODE_LOADN1", instructions, -1, offset);
+      return loadInstruction("OPCODE_LOADN1", instructions, offset);
 
     case OPCODE_LOAD0:
-      return loadNInstruction("OPCODE_LOAD0", instructions, 0, offset);
+      return loadInstruction("OPCODE_LOAD0", instructions, offset);
 
     case OPCODE_LOAD1:
-      return loadNInstruction("OPCODE_LOAD1", instructions, 1, offset);
+      return loadInstruction("OPCODE_LOAD1", instructions, offset);
 
     case OPCODE_LOAD2:
-      return loadNInstruction("OPCODE_LOAD2", instructions, 2, offset);
+      return loadInstruction("OPCODE_LOAD2", instructions, offset);
 
     case OPCODE_LOAD3:
-      return loadNInstruction("OPCODE_LOAD3", instructions, 3, offset);
+      return loadInstruction("OPCODE_LOAD3", instructions, offset);
 
     case OPCODE_LLOAD:
       return lLoadInstruction("OPCODE_LLOAD", instructions, offset);
@@ -187,7 +199,7 @@ int disassembleInstruction(Instructions *instructions, int offset) {
       return noOperandInstruction("OPCODE_POP", offset);
 
     case OPCODE_POPN:
-      return loadInstruction("OPCODE_POPN", instructions, offset);
+      return noOperandInstruction("OPCODE_POPN", offset);
 
     case OPCODE_CALL:
       return byteInstruction("OPCODE_CALL", instructions, offset);
@@ -290,22 +302,22 @@ int disassembleInstruction(Instructions *instructions, int offset) {
       return byteInstruction("OPCODE_GETLOC", instructions, offset);
 
     case OPCODE_GETLOC0:
-      return loadNInstruction("OPCODE_GETLOC0", instructions, 0, offset);
+      return byteNInstruction("OPCODE_GETLOC0", instructions, 0, offset);
 
     case OPCODE_GETLOC1:
-      return loadNInstruction("OPCODE_GETLOC1", instructions, 1, offset);
+      return byteNInstruction("OPCODE_GETLOC1", instructions, 1, offset);
 
     case OPCODE_GETLOC2:
-      return loadNInstruction("OPCODE_GETLOC2", instructions, 2, offset);
+      return byteNInstruction("OPCODE_GETLOC2", instructions, 2, offset);
 
     case OPCODE_GETLOC3:
-      return loadNInstruction("OPCODE_GETLOC3", instructions, 3, offset);
+      return byteNInstruction("OPCODE_GETLOC3", instructions, 3, offset);
 
     case OPCODE_GETLOC4:
-      return loadNInstruction("OPCODE_GETLOC4", instructions, 4, offset);
+      return byteNInstruction("OPCODE_GETLOC4", instructions, 4, offset);
 
     case OPCODE_GETLOC5:
-      return loadNInstruction("OPCODE_GETLOC5", instructions, 5, offset);
+      return byteNInstruction("OPCODE_GETLOC5", instructions, 5, offset);
 
     case OPCODE_SETLOC:
       return loadInstruction("OPCODE_SETLOC", instructions, offset);

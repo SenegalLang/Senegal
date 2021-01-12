@@ -1,0 +1,9 @@
+function distance(x1, x2, y1, y2) {
+    var x = (x2 - x1) ** 2;
+    var y = (y2 - y1) ** 2;
+
+    println(x);
+    return (x + y) ** 0.5;
+}
+
+// distance(10, 20, 10, 20);
