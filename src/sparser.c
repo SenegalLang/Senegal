@@ -833,11 +833,6 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
       break;
 
     case SENEGAL_STAR:
-      if (AS_NUMBER(vm->coroutine->stackTop[0]) == 1) {
-        pop(vm);
-        break;
-      }
-
       writeByte(vm, parser, i, OPCODE_MUL);
       break;
 

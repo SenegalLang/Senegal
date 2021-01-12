@@ -1,0 +1,27 @@
+name: Senegal Tests Mac
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'test/senegal'
+  pull_request:
+    branches: [ master ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Install Dependencies
+        run: brew tap dart-lang/dart &&
+          brew install dart &&
+          brew install gcc
+
+      - uses: actions/checkout@v2
+
+      - name: Build and run tests
+        run: python utils/build.py $BUILD_TYPE --test --verbose
