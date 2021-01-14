@@ -16,8 +16,6 @@
 #include "../libs/includes/sfilelib.h"
 #include "../core/includes/sapi.h"
 
-#include "../libs/includes/ssocketlib.h"
-
 static void repl(VM* vm, char* senegalPath) {
   printf(SENEGAL_REPL);
 
@@ -113,10 +111,6 @@ static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:file", 8)),
               GC_OBJ_CONST(newNative(vm, initFileLib)));
-
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:sock", 8)),
-              GC_OBJ_CONST(newNative(vm, initSocketLib)));
 }
 
 static void defineArgv(VM* vm, int argc, char* argv[]) {
