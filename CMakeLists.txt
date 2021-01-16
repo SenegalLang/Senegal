@@ -12,7 +12,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 file(GLOB src "*/*.h" "*/*.c")
 
+# Generate a shared library if need be
 add_library(senegallib SHARED ${src} src/includes/sloadclib.h src/sloadclib.c)
+
 add_executable(senegal ${src} src/includes/sloadclib.h src/sloadclib.c test/test_programs/cimport/test_cimport.c)
 
 if (WIN32)
@@ -36,7 +38,3 @@ add_custom_command(TARGET senegal
 add_custom_command(TARGET senegal
 		POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_EXEC} ${CMAKE_SOURCE_DIR}/bin)
-
-add_custom_command(TARGET senegallib
-		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${SENEGAL_LIB} ${CMAKE_SOURCE_DIR}/bin)
