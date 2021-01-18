@@ -101,10 +101,6 @@ uint8_t newConstant(VM* vm, Parser* parser, Compiler* compiler, Instructions* i,
 void writeLoad(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, Constant c) {
   int index = addConstant(vm, compiler, i, c);
 
-  if (IS_NUMBER(c) && AS_NUMBER(c) == 100) {
-    printf("hi");
-  }
-
   if (index == -1)
     writeByte(vm, parser, i, OPCODE_LOADN1);
   else if (index == 0)
