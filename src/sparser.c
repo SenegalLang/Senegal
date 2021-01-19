@@ -356,9 +356,8 @@ static void endScope(VM* vm, Parser* parser, Compiler* compiler, Instructions* i
 }
 
 static void parseBlock(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
-  while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+  while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF))
     parseDeclarationOrStatement(vm, compiler, cc, parser, lexer, i);
-  }
 
   consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected block to be closed with `}`");
 }
@@ -657,18 +656,17 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
-    bool isStatic = false;
-    if (match(parser, lexer, SENEGAL_STATIC))
-      isStatic = true;
+    bool isStatic = match(parser, lexer, SENEGAL_STATIC);
 
     if (match(parser, lexer, SENEGAL_FUNCTION)
-        || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(classId.start, parser->current.start, classId.length) == 0)))
+        || (!isStatic
+        && (check(parser, SENEGAL_ID) && !strncmp(classId.start, parser->current.start, classId.length))))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))
       parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
-      // TODO(Calamity210): parse const
+    // TODO(Calamity210): parse const
 
     else {
       advance(parser, lexer);
@@ -1231,8 +1229,11 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
     case SENEGAL_LBRACE:
       advance(parser, lexer);
+
+      startScope(compiler);
       startScope(compiler);
       parseBlock(vm, compiler, cc, parser, lexer, i);
+      endScope(vm, parser, compiler, i);
       endScope(vm, parser, compiler, i);
       break;
 
@@ -1390,8 +1391,6 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       deepestLoopStart = i->bytesCount;
       deepestLoopDepth = compiler->depth;
 
-      startScope(compiler);
-
       consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected while condition to be enclosed in parenthesis.");
       parseExpression(vm, parser, compiler, cc, lexer, i);
       consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected while condition to be followed by a closing parenthesis.");
@@ -1422,7 +1421,6 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       deepestLoopStart = enclosingLoopStart;
       deepestLoopDepth = enclosingLoopDepth;
 
-      endScope(vm, parser, compiler, i);
       break;
     }
 

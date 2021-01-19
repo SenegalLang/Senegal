@@ -1,0 +1,7 @@
+class ReturningConstructor {
+    ReturningConstructor() {
+        return 10;
+    }
+}
+
+ReturningConstructor(); // error < Error on line 3 > `Senegal cannot return from a constructor.`

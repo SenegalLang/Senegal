@@ -1,0 +1,2 @@
+/* println("This should work"); */
+println("This worked"); // output This worked

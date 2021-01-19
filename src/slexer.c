@@ -91,8 +91,23 @@ static void skipWhitespaceAndComment(Lexer* lexer) {
         }
 
         else if (n == '*') {
-          while (peek(lexer) != '*' && peekNext(lexer) != '/' && !isAtEnd(lexer))
+          advance(lexer);
+
+          for (;;) {
+
+            if (isAtEnd(lexer)) {
+              fprintf(stderr, "Senegal encountered an unterminated comment.");
+              exit(1);
+            }
+
+            if ((peek(lexer) == '*' && peekNext(lexer) == '/'))
+              break;
+
             advance(lexer);
+          }
+
+          advance(lexer);
+          advance(lexer);
           break;
         }
 
@@ -472,7 +487,6 @@ Token getNextToken(Lexer *lexer) {
   switch (c) {
     case ':':
       return newToken(lexer, SENEGAL_COLON);
-
 
     case '(':
       return newToken(lexer, SENEGAL_LPAREN);
