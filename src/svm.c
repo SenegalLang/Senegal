@@ -122,6 +122,7 @@ static void throwRuntimeError(VM* vm, const char* format, ...) {
   }
 
   CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
+
   size_t instruction = frame->pc - frame->closure->function->instructions.bytes - 1;
   int line = getLine(&frame->closure->function->instructions, instruction);
   fprintf(stderr, "<Line %d> Global Scope\n", line);

@@ -96,7 +96,8 @@ bool tableContainsAny(Table* a, Table* b) {
 void markTable(VM* vm, Table *table) {
   for (int i = 0; i <= table->cap; i++) {
     Entry* entry = &table->entries[i];
-    markGCObject(vm, (GCObject*)&entry->key);
+
+    markConstant(vm, entry->key);
     markConstant(vm, entry->constant);
   }
 }

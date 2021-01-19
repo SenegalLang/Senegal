@@ -272,7 +272,7 @@ void markCompilerRoots(VM* vm, Compiler* compiler) {
   Compiler* compiler1 = compiler;
 
   // Walk the parents to mark them as well.
-  while (compiler1 != NULL) {
+  while (compiler1) {
     markGCObject(vm, (GCObject*)compiler1->function);
     compiler1 = compiler1->parent;
   }
