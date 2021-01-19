@@ -703,8 +703,12 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
   }
 
     CASE(OPCODE_DUP):
-    PUSH(PEEK());
-    DISPATCH();
+      PUSH(PEEK());
+      DISPATCH();
+
+    CASE(OPCODE_DUP2):
+      PUSH(PEEK2());
+      DISPATCH();
 
     CASE(OPCODE_POP):
     POP();
@@ -874,7 +878,6 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       }
 
       if (!IS_INSTANCE(PEEK2())) {
-        printConstant(stderr, PEEK2());
         throwRuntimeError(vm, "Tried setting fields of non-class instance object.");
         return RUNTIME_ERROR;
       }

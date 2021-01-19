@@ -460,6 +460,87 @@ static int resolveUpvalue(Parser* parser, Compiler* compiler, Token* id) {
   return -1;
 }
 
+static void parseOperator(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc,
+                          Lexer* lexer, Instructions* i, uint8_t getOP, uint8_t setOP, uint8_t id) {
+  switch (parser->current.type) {
+    case SENEGAL_EQUAL:
+      advance(parser, lexer);
+
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_PLUS_PLUS:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      writeByte(vm, parser, i, OPCODE_DUP);
+      writeByte(vm, parser, i, OPCODE_INC);
+      writeShort(vm, parser, i, setOP, id);
+      writeByte(vm, parser, i, OPCODE_POP);
+      break;
+
+    case SENEGAL_MINUS_MINUS:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      writeByte(vm, parser, i, OPCODE_DUP);
+      writeByte(vm, parser, i, OPCODE_DEC);
+      writeShort(vm, parser, i, setOP, id);
+      writeByte(vm, parser, i, OPCODE_POP);
+      break;
+
+    case SENEGAL_PLUS_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_ADD);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_MINUS_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_SUB);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_STAR_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_MUL);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_MOD_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_MOD);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_SLASH_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_DIV);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    default:
+      writeShort(vm, parser, i, getOP, id);
+      break;
+  }
+}
+
 static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, Token name, bool canAssign) {
   uint8_t getOP, setOP = 0;
 
@@ -477,87 +558,10 @@ static void parseVariableAccess(VM* vm, Parser *parser, Compiler* compiler, Clas
     setOP = OPCODE_SETGLOB;
   }
 
-  if (canAssign) {
-    switch (parser->current.type) {
-      case SENEGAL_EQUAL:
-        advance(parser, lexer);
-
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      case SENEGAL_PLUS_PLUS:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        writeByte(vm, parser, i, OPCODE_DUP);
-        writeByte(vm, parser, i, OPCODE_INC);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        writeByte(vm, parser, i, OPCODE_POP);
-        break;
-
-      case SENEGAL_MINUS_MINUS:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        writeByte(vm, parser, i, OPCODE_DUP);
-        writeByte(vm, parser, i, OPCODE_DEC);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        writeByte(vm, parser, i, OPCODE_POP);
-        break;
-
-      case SENEGAL_PLUS_EQUAL:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_ADD);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      case SENEGAL_MINUS_EQUAL:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_SUB);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      case SENEGAL_STAR_EQUAL:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_MUL);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      case SENEGAL_MOD_EQUAL:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_MOD);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      case SENEGAL_SLASH_EQUAL:
-        advance(parser, lexer);
-
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        parseExpression(vm, parser, compiler, cc, lexer, i);
-        writeByte(vm, parser, i, OPCODE_DIV);
-        writeShort(vm, parser, i, setOP, (uint8_t) id);
-        break;
-
-      default:
-        writeShort(vm, parser, i, getOP, (uint8_t) id);
-        break;
-    }
-  } else {
+  if (canAssign)
+    parseOperator(vm, parser, compiler, cc, lexer, i, getOP, setOP, id);
+  else
     writeShort(vm, parser, i, getOP, (uint8_t) id);
-  }
 }
 
 static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
@@ -873,23 +877,112 @@ void parseBinary(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, 
   }
 }
 
+
+static void parseFieldOperator(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc,
+                               Lexer* lexer, Instructions* i, uint8_t getOP, uint8_t setOP, uint8_t id) {
+  switch (parser->current.type) {
+    case SENEGAL_EQUAL:
+      advance(parser, lexer);
+
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_PLUS_PLUS:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeByte(vm, parser, i, OPCODE_INC);
+      writeShort(vm, parser, i, setOP, id);
+      writeByte(vm, parser, i, OPCODE_POP);
+      break;
+
+    case SENEGAL_MINUS_MINUS:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeByte(vm, parser, i, OPCODE_DEC);
+      writeShort(vm, parser, i, setOP, id);
+      writeByte(vm, parser, i, OPCODE_POP);
+      break;
+
+    case SENEGAL_PLUS_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_ADD);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_MINUS_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_SUB);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_STAR_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_MUL);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_MOD_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_MOD);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    case SENEGAL_SLASH_EQUAL:
+      advance(parser, lexer);
+
+      writeShort(vm, parser, i, getOP, id);
+      parseExpression(vm, parser, compiler, cc, lexer, i);
+      writeByte(vm, parser, i, OPCODE_DIV);
+      parseVariableAccess(vm, parser, compiler, cc, lexer, i, syntheticToken("this"), false);
+      writeByte(vm, parser, i, OPCODE_DUP2);
+      writeShort(vm, parser, i, setOP, id);
+      break;
+
+    default:
+      writeShort(vm, parser, i, getOP, id);
+      break;
+  }
+}
+
 void parseDot(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   consume(parser, lexer, SENEGAL_ID, "Senegal expected a property or method after `.`");
   uint8_t id = idConstant(vm, parser, compiler, i, &parser->previous);
 
-  if (canAssign && match(parser, lexer, SENEGAL_EQUAL)) {
-
-    parseExpression(vm, parser, compiler, cc, lexer, i);
-    writeShort(vm, parser, i, OPCODE_SETFIELD, id);
-
-  } else if (match(parser, lexer, SENEGAL_LPAREN)) {
+  if (match(parser, lexer, SENEGAL_LPAREN)) {
 
     uint8_t arity = argumentList(vm, parser, compiler, cc, lexer, i);
     writeShort(vm, parser, i, OPCODE_INVOKE, id);
     writeByte(vm, parser, i, arity);
 
   } else {
-    writeShort(vm, parser, i, OPCODE_GETFIELD, id);
+    parseFieldOperator(vm, parser, compiler, cc, lexer, i, OPCODE_GETFIELD, OPCODE_SETFIELD, id);
   }
 }
 

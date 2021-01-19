@@ -1,10 +1,35 @@
-class Test {
+class Foo {
     var i = 0;
+
+    Foo() {
+        println(this.i); // output 0
+
+        this.i++;
+        println(this.i); // output 1
+
+        this.i--;
+        println(this.i); // output 0
+
+        this.i += 10;
+        println(this.i); // output 10
+
+        this.i -= 5;
+        println(this.i); // output 5
+
+        this.i *= 5;
+        println(this.i); // output 25
+
+        this.i /= 5;
+        println(this.i); // output 5
+
+        this.i %= 2;
+        println(this.i); // output 1
+
+
+    }
 }
 
-var test = Test();
+var i = Foo();
 
-test.i = test.i + 1;
-
-// output 1
-println(test.i);
+i.i = i.i + 10;
+println(i.i); // output 11

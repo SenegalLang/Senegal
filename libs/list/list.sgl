@@ -1,12 +1,4 @@
 enhance List {
-    // Appends all elements from `other` to the end of `this` List.
-    // TODO(Calamity210): Move to core
-    function addAll(other) {
-        var iterator;
-        while ((iterator = other.iterate(iterator)) != null) {
-            this.add(other.iteratorCurrent(iterator));
-        }
-    }
 
     // Returns `this` as a map where the index is the key and the element is the value.
     // TODO(Calamity210): Move to core

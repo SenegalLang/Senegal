@@ -44,6 +44,24 @@ static Constant listAdd(VM* vm, int arity, Constant* args) {
   return NULL_CONST;
 }
 
+// Appends all elements from `other` to the end of `this` List.
+static Constant listAddAll(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "addAll");
+
+  GCList* list = AS_LIST(args[-1]);
+  GCList* other = AS_LIST(args[0]);
+
+  if (list->listCurrentCap > 0 && list->elementC == list->listCurrentCap) {
+    printf("List cannot grow beyond %d elements", list->elementC);
+    exit(1);
+  }
+
+  for (int i = other->elementC - 1; i >= 0; i--)
+    addToList(vm, &list, other->elements[i]);
+
+  return NULL_CONST;
+}
+
 static Constant listClear(VM* vm, int arity, Constant* args) {
   expect(0, arity, "clear");
   AS_LIST(args[-1])->elementC = 0;
@@ -187,6 +205,7 @@ void initListClass(VM *vm) {
   defineClassNativeStaticMethod(vm, "filled", listFilled, vm->listClass);
 
   defineClassNativeMethod(vm, "add", listAdd, vm->listClass);
+  defineClassNativeMethod(vm, "addAll", listAddAll, vm->listClass);
   defineClassNativeMethod(vm, "clear", listClear, vm->listClass);
   defineClassNativeMethod(vm, "contains", listContains, vm->listClass);
   defineClassNativeMethod(vm, "iterate", listIterate, vm->listClass);

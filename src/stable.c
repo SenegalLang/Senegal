@@ -81,7 +81,7 @@ void tableRemoveWhite(Table *table) {
   for (int i = 0; i <= table->cap; i++) {
     Entry* entry = &table->entries[i];
 
-    if (IS_NULL(entry->key) && IS_GC_OBJ(entry->key) && !AS_GC_OBJ(entry->key)->isMarked) {
+    if (!IS_NULL(entry->key) && IS_GC_OBJ(entry->key) && !AS_GC_OBJ(entry->key)->isMarked) {
       tableRemove(table, entry->key);
     }
   }

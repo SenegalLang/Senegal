@@ -1,0 +1,11 @@
+var list = [10];
+
+for (var i = 9; i > -1; i--) {
+    var tempList = list;
+
+    list = [i];
+    list.addAll(tempList);
+}
+
+// output [0,1,2,3,4,5,6,7,8,9,10]
+println(list);

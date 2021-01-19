@@ -12,14 +12,14 @@
 #define NAN_TAGGING 1
 #define COMPUTED_GOTO 1
 
+#define DEBUG_LOG_GC 0
+#define DEBUG_PRINT_CODE 0
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define USE_DL_DLL
 #else
 #define USE_DLOPEN
 #endif
-
-#define DEBUG_LOG_GC 0
-#define DEBUG_PRINT_CODE 0
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
