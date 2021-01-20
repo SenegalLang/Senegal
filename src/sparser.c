@@ -338,7 +338,7 @@ static void endScope(VM* vm, Parser* parser, Compiler* compiler, Instructions* i
 
   uint8_t popCount = 0;
 
-  while (compiler->depth > 0 && compiler->locals[compiler->localCount - 1].depth > compiler->depth) {
+  while (compiler->localCount > 0 && compiler->locals[compiler->localCount - 1].depth > compiler->depth) {
 
     if (compiler->locals[compiler->localCount - 1].isCaptured) {
       writeShort(vm, parser, i, OPCODE_POPN, popCount);
@@ -1231,9 +1231,7 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
       advance(parser, lexer);
 
       startScope(compiler);
-      startScope(compiler);
       parseBlock(vm, compiler, cc, parser, lexer, i);
-      endScope(vm, parser, compiler, i);
       endScope(vm, parser, compiler, i);
       break;
 
