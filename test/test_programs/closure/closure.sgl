@@ -4,3 +4,7 @@ var i = printFoo;
 
 println('bar'); // output bar
 i(); // output foo
+
+function call(c) => c();
+
+println(call(function() => 21;)); // output 21

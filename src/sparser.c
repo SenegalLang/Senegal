@@ -372,9 +372,8 @@ static void parseReturn(VM* vm, Parser* parser, Compiler* compiler, ClassCompile
   if (match(parser, lexer, SENEGAL_SEMI)) {
     writeRetByte(vm, compiler, parser, &compiler->function->instructions);
   } else {
-    if (compiler->type == CONSTRUCTOR) {
+    if (compiler->type == CONSTRUCTOR)
       error(parser, &parser->previous, "Senegal cannot return from a constructor.");
-    }
 
     parseExpression(vm, parser, compiler, cc, lexer, &compiler->function->instructions);
     consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after return statement.");
@@ -1007,6 +1006,10 @@ void parseFunctionCall(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler
     writeByte(vm, parser, i, OPCODE_CALL8);
   else
     writeShort(vm, parser, i, OPCODE_CALL, arity);
+}
+
+void parseClosure(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  parseFunction(vm, parser, compiler, cc, lexer, i, TYPE_FUNCTION);
 }
 
 void parseGroup(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
