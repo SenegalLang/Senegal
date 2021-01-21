@@ -1,0 +1,3 @@
+function add25(num) => num + 25;
+
+println(function (num) => num * 2; <| add25 <| 5); // output 60

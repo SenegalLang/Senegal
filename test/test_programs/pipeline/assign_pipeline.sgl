@@ -1,0 +1,3 @@
+var foo = function(num) => num ** 2; <| 5;
+
+println(foo); // output 25

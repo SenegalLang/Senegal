@@ -8,6 +8,7 @@ module.exports = {
         'tour',
         'cimport',
         'operators',
+        'pipeline',
             {
                 Core: [
                     'Core/bool',

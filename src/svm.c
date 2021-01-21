@@ -1311,6 +1311,18 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       arity = 8;
       goto callConst;
 
+    CASE(OPCODE_PIPELINE): {
+      callee = PEEK2();
+      arity = 1;
+
+      if (!IS_CLOSURE(callee)) {
+        throwRuntimeError(vm, "Senegal expected a closure before a pipeline operator.");
+        return RUNTIME_ERROR;
+      }
+
+      goto callConst;
+    }
+
     callConst:
     if (IS_GC_OBJ(callee))
       switch (GC_OBJ_TYPE(callee)) {

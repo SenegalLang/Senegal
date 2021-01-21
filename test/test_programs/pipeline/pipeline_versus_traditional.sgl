@@ -1,0 +1,10 @@
+function add2(n) => n + 2;
+function mul2(n) => n * 2;
+
+// without pipeline operator
+var a = add2(mul2(mul2(add2(mul2(4)))));
+
+var b = add2 <| mul2 <| mul2 <| add2 <| mul2 <| 4;
+
+println(a); // output 42
+println(b); // output 42

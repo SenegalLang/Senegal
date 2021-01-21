@@ -1,0 +1,5 @@
+function getAdd2(i) {
+    return function(num) => num + 2; <| i;
+}
+
+println(getAdd2(5)); // output 7

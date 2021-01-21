@@ -1099,6 +1099,11 @@ void parseOr(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexe
   patchJMP(parser, i, endJMP);
 }
 
+void parsePipeline(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
+  parseExpression(vm, parser, compiler, cc, lexer, i);
+  writeByte(vm, parser, i, OPCODE_PIPELINE);
+}
+
 void parseString(VM* vm, Parser *parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool canAssign) {
   writeLoad(vm, parser, compiler, i, GC_OBJ_CONST(
       copyString(vm, compiler, parser->previous.start + 1, parser->previous.length - 2)

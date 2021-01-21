@@ -17,3 +17,4 @@ Senegal supports the operators shown below:
 | Logical | && \|\| |
 | Ternary | condition ? expr : expr  |
 | Assignment | = += -= *= /= |
+| Pipeline | <| |

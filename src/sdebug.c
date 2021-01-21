@@ -231,6 +231,9 @@ int disassembleInstruction(Instructions *instructions, int offset) {
     case OPCODE_CALL8:
       return byteNInstruction("OPCODE_CALL8", instructions, 8, offset);
 
+    case OPCODE_PIPELINE:
+      return byteNInstruction("OPCODE_PIPELINE", instructions, 1, offset);
+
     case OPCODE_CLOSURE: {
       offset++;
       uint8_t constant = instructions->bytes[offset++];
