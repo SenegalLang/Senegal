@@ -6,6 +6,7 @@ module.exports = {
         items: [
         'overview',
         'tour',
+        'concurrency',
         'cimport',
         'operators',
         'pipeline',
