@@ -16,6 +16,7 @@ module.exports = {
                     'Core/coroutine',
                     'Core/list',
                     'Core/map',
+                    'Core/num',
                     'Core/string'
                 ]
             },

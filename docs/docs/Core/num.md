@@ -1,7 +1,7 @@
 ---
 id: num
-title: Num
-sidebar_label: Num
+title: num
+sidebar_label: num
 ---
 
 Any integer/floating-point number.
