@@ -50,6 +50,8 @@ static Constant numCeil(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numClamp(VM* vm, int arity, Constant* args) {
+  expect(2, arity, "clamp");
+
   double num = AS_NUMBER(args[-1]);
   double lowerbound = AS_NUMBER(args[0]);
   double upperbound = AS_NUMBER(args[1]);
@@ -63,12 +65,15 @@ static Constant numClamp(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numCompareTo(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "compareTo");
+
   double num = AS_NUMBER(args[-1]);
   double other = AS_NUMBER(args[0]);
 
   if (num < other)
     return NUM_CONST(-1);
-  else if (num > other)
+
+  if (num > other)
     return NUM_CONST(1);
 
   return NUM_CONST(0);
@@ -79,6 +84,8 @@ static Constant numFloor(VM* vm, int arity, Constant* args) {
 }
 
 static Constant numRemainder(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "remainder");
+
   double num = AS_NUMBER(args[-1]);
   double other = AS_NUMBER(args[0]);
 
@@ -92,19 +99,18 @@ static Constant numRemainder(VM* vm, int arity, Constant* args) {
 void initNumClass(VM *vm) {
   vm->numClass = newClass(vm, copyString(vm, NULL, "num", 3), true);
 
-  defineClassNativeMethod(vm, "asBool", numAsBool, vm->numClass);
-  defineClassNativeMethod(vm, "isFinite", numIsFinite, vm->numClass);
-  defineClassNativeMethod(vm, "isInfinite", numIsInfinite, vm->numClass);
-  defineClassNativeMethod(vm, "toString", numToString, vm->numClass);
-  defineClassNativeMethod(vm, "isNaN", numIsNan, vm->numClass);
-  defineClassNativeMethod(vm, "isNeg", numIsNeg, vm->numClass);
-
   defineClassNativeMethod(vm, "abs", numAbs, vm->numClass);
+  defineClassNativeMethod(vm, "asBool", numAsBool, vm->numClass);
   defineClassNativeMethod(vm, "ceil", numCeil, vm->numClass);
   defineClassNativeMethod(vm, "clamp", numClamp, vm->numClass);
   defineClassNativeMethod(vm, "compareTo", numCompareTo, vm->numClass);
   defineClassNativeMethod(vm, "floor", numFloor, vm->numClass);
+  defineClassNativeMethod(vm, "isFinite", numIsFinite, vm->numClass);
+  defineClassNativeMethod(vm, "isInfinite", numIsInfinite, vm->numClass);
+  defineClassNativeMethod(vm, "isNaN", numIsNan, vm->numClass);
+  defineClassNativeMethod(vm, "isNeg", numIsNeg, vm->numClass);
   defineClassNativeMethod(vm, "remainder", numRemainder, vm->numClass);
+  defineClassNativeMethod(vm, "toString", numToString, vm->numClass);
 
   defineClassNativeStaticField(vm, "nan", NUM_CONST(NAN), vm->numClass);
   defineClassNativeStaticField(vm, "infinity", NUM_CONST(INF), vm->numClass);
