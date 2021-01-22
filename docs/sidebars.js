@@ -8,6 +8,7 @@ module.exports = {
         'tour',
         'concurrency',
         'cimport',
+        'enhance',
         'operators',
         'pipeline',
             {
