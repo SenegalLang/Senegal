@@ -48,16 +48,27 @@ static Constant sglCloseFile(VM* vm, int arity, Constant* args) {
   return NUM_CONST(fclose(AS_FILE(args[0])->file));
 }
 
+static Constant sglExistsFile(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "exists(path)");
+
+  return BOOL_CONST(!access(AS_CSTRING(args[0]), F_OK));
+}
+
 static Constant sglFlushFile(VM* vm, int arity, Constant* args) {
   expect(1, arity, "flush(file)");
 
   return NUM_CONST(fflush(AS_FILE(args[0])->file));
 }
 
-static Constant sglWideFile(VM* vm, int arity, Constant* args) {
-  expect(2, arity, "setWide(file, int)");
+static Constant sglSizeFile(VM* vm, int arity, Constant* args) {
+  expect(1, arity, "size(file)");
 
-  return NUM_CONST(fwide(AS_FILE(args[0])->file, AS_NUMBER(args[1])));
+  FILE* file = AS_FILE(args[0])->file;
+  fseek(file, 0L, SEEK_END);
+  size_t fileSize = ftell(file);
+  rewind(file);
+
+  return NUM_CONST(fileSize);
 }
 
 // FILE IO
@@ -100,15 +111,16 @@ Constant initFileLib(VM* vm, int arity, Constant* args) {
   fileClass = newClass(vm, copyString(vm, NULL, "File", 4), true);
 
   // File access
-  defineGlobalFunc(vm, "open", sglOpenFile);
-  defineGlobalFunc(vm, "close", sglCloseFile);
-  defineGlobalFunc(vm, "flush", sglFlushFile);
-  defineGlobalFunc(vm, "setWide", sglWideFile);
+  defineClassNativeStaticMethod(vm, "open", sglOpenFile, fileClass);
+  defineClassNativeStaticMethod(vm, "close", sglCloseFile, fileClass);
+  defineClassNativeStaticMethod(vm, "exists", sglExistsFile, fileClass);
+  defineClassNativeStaticMethod(vm, "flush", sglFlushFile, fileClass);
+  defineClassNativeStaticMethod(vm, "size", sglSizeFile, fileClass);
 
   // File IO
-  defineGlobalFunc(vm, "read", sglReadFile);
-  defineGlobalFunc(vm, "writeBytes", sglWriteBytesFile);
-  defineGlobalFunc(vm, "writeString", sglWriteStringFile);
+  defineClassNativeStaticMethod(vm, "read", sglReadFile, fileClass);
+  defineClassNativeStaticMethod(vm, "writeBytes", sglWriteBytesFile, fileClass);
+  defineClassNativeStaticMethod(vm, "writeString", sglWriteStringFile, fileClass);
 
   // Directory
   char cwd[260]; // PATH_MAX
@@ -116,5 +128,6 @@ Constant initFileLib(VM* vm, int arity, Constant* args) {
     defineClassNativeStaticField(vm, "current", GC_OBJ_CONST(copyString(vm, NULL, cwd, strlen(cwd))), directoryClass);
   }
 
+  defineGlobal(vm, "File", GC_OBJ_CONST(fileClass));
   defineGlobal(vm, "Directory", GC_OBJ_CONST(directoryClass));
 }

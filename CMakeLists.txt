@@ -13,9 +13,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 file(GLOB src "*/*.h" "*/*.c")
 
 # Generate a shared library if need be
-add_library(senegallib SHARED ${src} src/includes/sloadclib.h src/sloadclib.c)
+add_library(senegallib SHARED ${src})
 
-add_executable(senegal ${src} src/includes/sloadclib.h src/sloadclib.c test/test_programs/cimport/test_cimport.c)
+add_executable(senegal ${src})
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)

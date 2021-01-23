@@ -1,7 +1,9 @@
 import 'sgl:file'
 
-var file = open(Directory.current + '/test_programs/file/file_read_test.sgl', 'rb');
+println(File.exists(Directory.current + '/test_programs/file/file_read_test.sgl')); // output true
 
-var content = read(file);
+var file = File.open(Directory.current + '/test_programs/file/file_read_test.sgl', 'rb');
+
+var content = File.read(file);
 
 println(content); // output var string = "foo";
