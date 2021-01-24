@@ -4,6 +4,7 @@
 #include "sconstant.h"
 
 typedef struct {
+    bool isFinal;
     Constant key;
     Constant constant;
 } Entry;

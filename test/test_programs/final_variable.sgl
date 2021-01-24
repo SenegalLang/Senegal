@@ -1,0 +1,2 @@
+final var finalVariable = "test";
+finalVariable = "foo"; // error Senegal attempted to reassign a final variable: finalVariable

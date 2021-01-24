@@ -214,7 +214,7 @@ static void handleImport(VM* vm, Compiler* compiler, char* senegalPath, char* di
       char* newDir = dirname(fpDup);
 
       if (interpret(vm, filePath, readFileWithPath(filePath), senegalPath, newDir) == OK)
-        tableInsert(vm, &vm->imports, importString, NULL_CONST);
+        tableInsert(vm, &vm->imports, importString, NULL_CONST, false);
     }
   }
 }

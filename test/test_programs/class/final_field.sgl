@@ -1,0 +1,7 @@
+class Foo {
+    final var field = 10;
+}
+
+var foo = Foo();
+
+foo.field = 25; // error Senegal attempted to reassign a final variable: field

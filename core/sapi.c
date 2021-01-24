@@ -22,41 +22,41 @@ void expect(int expected, int actual, char *name) {
 void defineClassNativeMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->methods, peek2(vm), peek(vm));
+  tableInsert(vm, &class->methods, peek2(vm), peek(vm), false);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->fields, peek(vm), field);
+  tableInsert(vm, &class->fields, peek(vm), field, false);
   pop(vm);
 }
 
 void defineClassNativeStaticMethod(VM* vm, const char* id, NativeFunc function, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &class->staticMethods, peek2(vm), peek(vm));
+  tableInsert(vm, &class->staticMethods, peek2(vm), peek(vm), false);
   pop(vm);
   pop(vm);
 }
 
 void defineClassNativeStaticField(VM* vm, const char* id, Constant field, GCClass* class) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &class->staticFields, peek(vm), field);
+  tableInsert(vm, &class->staticFields, peek(vm), field, false);
   pop(vm);
 }
 
 void defineGlobal(VM* vm, const char* id, Constant field) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
-  tableInsert(vm, &vm->globals, peek(vm), field);
+  tableInsert(vm, &vm->globals, peek(vm), field, false);
   pop(vm);
 }
 
 void defineGlobalFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, peek2(vm), peek(vm));
+  tableInsert(vm, &vm->globals, peek2(vm), peek(vm), false);
   pop(vm);
   pop(vm);
 }

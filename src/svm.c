@@ -23,7 +23,7 @@
 static void defineNativeFunc(VM* vm, const char* id, NativeFunc function) {
   push(vm, GC_OBJ_CONST(copyString(vm, NULL, id, (int)strlen(id))));
   push(vm, GC_OBJ_CONST(newNative(vm, function)));
-  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1]);
+  tableInsert(vm, &vm->globals, vm->coroutine->stack[0], vm->coroutine->stack[1], false);
   pop(vm);
   pop(vm);
 }
@@ -246,28 +246,28 @@ static void closeUpvalues(VM* vm, const Constant* last) {
 static void defineMethod(VM* vm, GCString* id) {
   Constant method = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->methods, GC_OBJ_CONST(id), method);
+  tableInsert(vm, &class->methods, GC_OBJ_CONST(id), method, false);
   pop(vm);
 }
 
-static void defineField(VM* vm, GCString* id) {
+static void defineField(VM* vm, GCString* id, bool isFinal) {
   Constant field = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->fields, GC_OBJ_CONST(id), field);
+  tableInsert(vm, &class->fields, GC_OBJ_CONST(id), field, isFinal);
   pop(vm);
 }
 
 static void defineStaticMethod(VM* vm, GCString* id) {
   Constant method = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->staticMethods, GC_OBJ_CONST(id), method);
+  tableInsert(vm, &class->staticMethods, GC_OBJ_CONST(id), method, false);
   pop(vm);
 }
 
-static void defineStaticField(VM* vm, GCString* id) {
+static void defineStaticField(VM* vm, GCString* id, bool isFinal) {
   Constant field = peek(vm, 0);
   GCClass* class = AS_CLASS(peek(vm, 1));
-  tableInsert(vm, &class->staticFields, GC_OBJ_CONST(id), field);
+  tableInsert(vm, &class->staticFields, GC_OBJ_CONST(id), field, isFinal);
   pop(vm);
 }
 
@@ -419,6 +419,27 @@ static bool isFalse(Constant constant) {
   return IS_NULL(constant) || (IS_BOOL(constant) && !AS_BOOL(constant)) || (IS_NUMBER(constant) && AS_NUMBER(constant) == 0);
 }
 
+static bool setTableEntry(VM* vm, Table* table, GCString* id, Constant constant) {
+  Constant key = GC_OBJ_CONST(id);
+  Entry* entry = tableFind(table->entries, table->cap, key);
+
+  if (IS_NULL(entry->key)) {
+    throwRuntimeError(vm, "Senegal attempted to reassign an undefined variable: %s", id->chars);
+    return false;
+  }
+
+  if (entry->isFinal) {
+    throwRuntimeError(vm, "Senegal attempted to reassign a final variable: %s", id->chars);
+    return false;
+  }
+
+  entry->key = key;
+  entry->constant = constant;
+  entry->isFinal = false;
+
+  return true;
+}
+
 InterpretationResult run(register VM* vm) {
 register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1];
 
@@ -509,16 +530,16 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
   // === Labels ===
   RUN {
     CASE(OPCODE_TRUE): {
-    Constant c = BOOL_CONST(true);
-    PUSH(c);
-    DISPATCH();
-  }
+      Constant c = BOOL_CONST(true);
+      PUSH(c);
+      DISPATCH();
+    }
 
     CASE(OPCODE_FALSE): {
-    Constant c = BOOL_CONST(false);
-    PUSH(c);
-    DISPATCH();
-  }
+      Constant c = BOOL_CONST(false);
+      PUSH(c);
+      DISPATCH();
+    }
 
     CASE(OPCODE_AND):
       BITWISE_OP(vm, NUM_CONST, &);
@@ -544,74 +565,74 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       if (!IS_NUMBER(PEEK())){
       throwRuntimeError(vm, "Senegal encountered a non-number as an operand for OPCODE_NEG.");
       return RUNTIME_ERROR;
-    }
+      }
 
       Constant c = NUM_CONST(~(int)AS_NUMBER(POP()));
       PUSH(c);
       DISPATCH();
-
     }
+
     CASE(OPCODE_INC): {
-    if (!IS_NUMBER(PEEK())) {
-      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
-      return RUNTIME_ERROR;
-    }
-
-    double num = AS_NUMBER(POP());
-
-    Constant c = NUM_CONST( num + 1);
-    PUSH(c);
-    DISPATCH();
-  }
-
-    CASE(OPCODE_DEC): {
-    if (!IS_NUMBER(PEEK())) {
-      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
-      return RUNTIME_ERROR;
-    }
-
-    double num = AS_NUMBER(POP());
-
-    Constant c = NUM_CONST(num - 1);
-    PUSH(c);
-    DISPATCH();
-  }
-
-    CASE(OPCODE_POW): {
-    if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) {
-      throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
-      return RUNTIME_ERROR;
-    }
-
-    double b = AS_NUMBER(POP());
-    double a = AS_NUMBER(POP());
-    Constant c = NUM_CONST(pow(a, b));
-
-    PUSH(c);
-    DISPATCH();
-  }
-
-    CASE(OPCODE_ADD): {
-      bool isFirstString = IS_STRING(PEEK());
-
-      if (isFirstString != IS_STRING(PEEK2())) {
-        throwRuntimeError(vm, "Incorrect operands for string concatenation.");
+      if (!IS_NUMBER(PEEK())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
         return RUNTIME_ERROR;
       }
 
-      if (isFirstString)
-        CONCAT_STRINGS();
-      else
-        BINARY_OP(vm, NUM_CONST, +);
+      double num = AS_NUMBER(POP());
 
+      Constant c = NUM_CONST( num + 1);
+      PUSH(c);
       DISPATCH();
     }
 
-    CASE(OPCODE_SUB):
+    CASE(OPCODE_DEC): {
+      if (!IS_NUMBER(PEEK())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+        return RUNTIME_ERROR;
+      }
+
+      double num = AS_NUMBER(POP());
+
+      Constant c = NUM_CONST(num - 1);
+      PUSH(c);
+      DISPATCH();
+    }
+
+    CASE(OPCODE_POW): {
+      if (!IS_NUMBER(PEEK()) || !IS_NUMBER(PEEK2())) {
+        throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
+        return RUNTIME_ERROR;
+      }
+
+      double b = AS_NUMBER(POP());
+      double a = AS_NUMBER(POP());
+      Constant c = NUM_CONST(pow(a, b));
+
+      PUSH(c);
+      DISPATCH();
+    }
+
+  CASE(OPCODE_ADD): {
+    bool isFirstString = IS_STRING(PEEK());
+
+    if (isFirstString != IS_STRING(PEEK2())) {
+      throwRuntimeError(vm, "Incorrect operands for string concatenation.");
+      return RUNTIME_ERROR;
+    }
+
+    if (isFirstString)
+      CONCAT_STRINGS();
+    else
+      BINARY_OP(vm, NUM_CONST, +);
+
+    DISPATCH();
+  }
+
+  CASE(OPCODE_SUB):
     BINARY_OP(vm, NUM_CONST, -);
     DISPATCH();
 
-    CASE(OPCODE_MUL):
+  CASE(OPCODE_MUL):
     if (IS_NUMBER(PEEK2()) && IS_NUMBER(PEEK())) {
       BINARY_OP(vm, NUM_CONST, *);
     } else if (IS_STRING(PEEK2()) && IS_NUMBER(PEEK())) {
@@ -637,7 +658,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     }
     DISPATCH();
 
-    CASE(OPCODE_MOD):
+  CASE(OPCODE_MOD):
       if (!IS_NUMBER(PEEK2()) || !IS_NUMBER(PEEK())) {
         throwRuntimeError(vm, "Senegal binary operations require numerical operands.");
         return RUNTIME_ERROR;
@@ -654,11 +675,11 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       DISPATCH();
 
     CASE(OPCODE_EQUAL): {
-    Constant b = POP();
-    Constant c = BOOL_CONST(areEqual(POP(), b));
-    PUSH(c);
-    DISPATCH();
-  }
+      Constant b = POP();
+      Constant c = BOOL_CONST(areEqual(POP(), b));
+      PUSH(c);
+      DISPATCH();
+    }
 
     CASE(OPCODE_NOTEQ): {
     Constant b = POP();
@@ -756,7 +777,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       Constant value = POP();
       Constant key = POP();
 
-      tableInsert(vm, &map->table, key, value);
+      tableInsert(vm, &map->table, key, value, false);
     }
 
     PUSH(GC_OBJ_CONST(map));
@@ -817,7 +838,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       Constant key = POP();
       GCMap* map = AS_MAP(POP());
 
-      tableInsert(vm, &map->table, key, newValue);
+      tableInsert(vm, &map->table, key, newValue, false);
     } else if (IS_LIST(PEEK2())) {
       if (!IS_NUMBER(PEEK())) {
         throwRuntimeError(vm, "Index must be a numerical value");
@@ -854,20 +875,15 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
       if (IS_CLASS(PEEK2())) {
         GCClass *class = AS_CLASS(PEEK2());
-        Constant key = READ_CONSTANT();
+        GCString* id = READ_STRING();
 
         if (class->isFinal && frame->closure->function->id != class->id) {
-          throwRuntimeError(vm, "Cannot mutate fields of a final class");
+          throwRuntimeError(vm, "Cannot mutate fields of a final class: %s.", class->id->chars);
           return RUNTIME_ERROR;
         }
 
-        Constant constant1;
-        if (!tableGetEntry(&class->staticFields, key, &constant1)) {
-          throwRuntimeError(vm, "Senegal cannot add fields to an instance", class->id->chars);
+        if (!setTableEntry(vm, &class->staticFields, id, PEEK()))
           return RUNTIME_ERROR;
-        }
-
-        tableInsert(vm, &class->staticFields, key, PEEK());
 
         Constant c = POP();
 
@@ -885,20 +901,14 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       GCInstance *instance = AS_INSTANCE(PEEK2());
 
       if (instance->class->isFinal && frame->closure->function->id != instance->class->id) {
-        throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s", instance->class->id->chars);
+        throwRuntimeError(vm, "Senegal cannot mutate fields of a final class: %s.", instance->class->id->chars);
         return RUNTIME_ERROR;
       }
 
-      Constant key = READ_CONSTANT();
+      GCString* id = READ_STRING();
 
-      Constant constant1;
-      if (!tableGetEntry(&instance->class->fields, key, &constant1)) {
-        printConstant(stderr, key);
-        throwRuntimeError(vm, "Senegal cannot add fields to an instance", instance->class->id->chars);
+      if (!setTableEntry(vm, &instance->class->fields, id, PEEK()))
         return RUNTIME_ERROR;
-      }
-
-      tableInsert(vm, &instance->class->fields, key, PEEK());
 
       Constant constant = POP();
 
@@ -1048,29 +1058,32 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     defineStaticMethod(vm, READ_STRING());
     DISPATCH();
 
-    CASE(OPCODE_NEWFIELD):
-    defineField(vm, READ_STRING());
-    DISPATCH();
-
-    CASE(OPCODE_NEWSTATICFIELD):
-    defineStaticField(vm, READ_STRING());
-    DISPATCH();
-
-    CASE(OPCODE_INHERIT): {
-    Constant super = PEEK2();
-
-    if (!IS_CLASS(super)) {
-      throwRuntimeError(vm, "Senegal classes can only inherit from another class");
-      return RUNTIME_ERROR;
+    CASE(OPCODE_NEWFIELD): {
+      bool isFinal = AS_BOOL(POP());
+      defineField(vm, READ_STRING(), isFinal);
+      DISPATCH();
     }
 
-    GCClass* sub = AS_CLASS(PEEK());
+    CASE(OPCODE_NEWSTATICFIELD): {
+      bool isFinal = AS_BOOL(POP());
+      defineStaticField(vm, READ_STRING(), isFinal);
+      DISPATCH();
+    }
+    CASE(OPCODE_INHERIT): {
+      Constant super = PEEK2();
 
-    tableInsertAll(vm, &AS_CLASS(super)->fields, &sub->fields);
-    tableInsertAll(vm, &AS_CLASS(super)->methods, &sub->methods);
+      if (!IS_CLASS(super)) {
+        throwRuntimeError(vm, "Senegal classes can only inherit from another class");
+        return RUNTIME_ERROR;
+      }
 
-    POP();
-    DISPATCH();
+      GCClass* sub = AS_CLASS(PEEK());
+
+      tableInsertAll(vm, &AS_CLASS(super)->fields, &sub->fields);
+      tableInsertAll(vm, &AS_CLASS(super)->methods, &sub->methods);
+
+      POP();
+      DISPATCH();
   }
 
     CASE(OPCODE_GETSUPER): {
@@ -1099,6 +1112,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
     CASE(OPCODE_NEWGLOB): {
     GCString *id = READ_STRING();
+    bool isFinal = AS_BOOL(POP());
     Constant constant;
 
     if (tableGetEntry(&vm->globals, GC_OBJ_CONST(id), &constant)) {
@@ -1106,7 +1120,7 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
       return RUNTIME_ERROR;
     }
 
-    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), POP());
+    tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), POP(), isFinal);
     DISPATCH();
   }
 
@@ -1124,29 +1138,25 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
   }
 
     CASE(OPCODE_SETGLOB): {
-    GCString *id = READ_STRING();
+      GCString *id = READ_STRING();
 
-    if (tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), PEEK())) {
-      tableRemove(&vm->globals, GC_OBJ_CONST(id));
-      throwRuntimeError(vm, "Senegal attempted to reassign an undefined variable: %s", id->chars);
-      return RUNTIME_ERROR;
+      if (!setTableEntry(vm, &vm->globals, id, PEEK()))
+        return RUNTIME_ERROR;
+
+      DISPATCH();
     }
 
-    DISPATCH();
-  }
-
-    CASE(OPCODE_GETLOC): {
-    PUSH(frame->constants[READ_BYTE()]);
-    DISPATCH();
-  }
+    CASE(OPCODE_GETLOC):
+      PUSH(frame->constants[READ_BYTE()]);
+      DISPATCH();
 
     CASE(OPCODE_GETLOC0):
-    PUSH(frame->constants[0]);
-    DISPATCH();
+      PUSH(frame->constants[0]);
+      DISPATCH();
 
     CASE(OPCODE_GETLOC1):
-    PUSH(frame->constants[1]);
-    DISPATCH();
+      PUSH(frame->constants[1]);
+      DISPATCH();
 
     CASE(OPCODE_GETLOC2):
     PUSH(frame->constants[2]);

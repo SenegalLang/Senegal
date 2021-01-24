@@ -36,7 +36,7 @@ static void adjustCap(VM* vm, Table* table, int cap) {
   table->cap = cap;
 }
 
-bool tableInsert(VM* vm, Table* table, Constant key, Constant c) {
+bool tableInsert(VM* vm, Table* table, Constant key, Constant c, bool isFinal) {
   if (table->count >= (table->cap + 1) * MAX_TABLE_LOAD) {
     int cap = GROW_CAP(table->cap + 1) - 1;
     adjustCap(vm, table, cap);
@@ -54,6 +54,7 @@ bool tableInsert(VM* vm, Table* table, Constant key, Constant c) {
 
   entry->key = key;
   entry->constant = c;
+  entry->isFinal = isFinal;
 
   return isNew;
 }
@@ -63,7 +64,7 @@ void tableInsertAll(VM* vm, Table* from, Table* to) {
     Entry* entry = &from->entries[i];
 
     if (!IS_NULL(entry->key))
-      tableInsert(vm, to, entry->key, entry->constant);
+      tableInsert(vm, to, entry->key, entry->constant, false);
   }
 }
 

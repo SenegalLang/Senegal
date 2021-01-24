@@ -102,15 +102,15 @@ static GCString* newPathString(VM* vm, char* path) {
 static void addPaths(VM* vm) {
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:math", 8)),
-              GC_OBJ_CONST(newNative(vm, initMathLib)));
+              GC_OBJ_CONST(newNative(vm, initMathLib)), true);
 
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:io", 6)),
-              GC_OBJ_CONST(newNative(vm, initIoLib)));
+              GC_OBJ_CONST(newNative(vm, initIoLib)), true);
 
   tableInsert(vm, &vm->corePaths,
               GC_OBJ_CONST(copyString(vm, NULL, "sgl:file", 8)),
-              GC_OBJ_CONST(newNative(vm, initFileLib)));
+              GC_OBJ_CONST(newNative(vm, initFileLib)), true);
 }
 
 static void defineArgv(VM* vm, int argc, char* argv[]) {

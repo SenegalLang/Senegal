@@ -170,7 +170,7 @@ static Constant parseConstants(VM* vm, Parser* parser, Compiler* compiler, Class
 
         Constant entry = parseConstants(vm, parser, compiler, cc, lexer);
 
-        tableInsert(vm, &map->table, key, entry);
+        tableInsert(vm, &map->table, key, entry, false);
       } while (match(parser, lexer, SENEGAL_COMMA));
 
       consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected map to be closed with `}`");
@@ -270,16 +270,18 @@ static uint8_t parseVariable(VM* vm, Parser* parser, Compiler* compiler, Lexer* 
   return idConstant(vm, parser, compiler, i, &parser->previous);
 }
 
-static void defineVariable(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, uint8_t global) {
+static void defineVariable(VM* vm, Parser* parser, Compiler* compiler, Instructions* i, uint8_t global, bool isFinal) {
   if(compiler->depth > 0) {
     markInitialized(compiler);
     return;
   }
 
+  writeByte(vm, parser, i, isFinal ? OPCODE_TRUE : OPCODE_FALSE);
   writeShort(vm, parser, i, OPCODE_NEWGLOB, global);
 }
 
-static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer,
+                                     Instructions* i, bool isFinal) {
   uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
 
   if (match(parser, lexer, SENEGAL_EQUAL))
@@ -288,10 +290,11 @@ static void parseVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler,
     writeByte(vm, parser, i, OPCODE_NULL);
 
   consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
-  defineVariable(vm, parser, compiler, i, global);
+  defineVariable(vm, parser, compiler, i, global, isFinal);
 }
 
-static void parseConstVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i) {
+static void parseConstVariableDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer,
+                                          Instructions* i) {
 
   consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier.");
 
@@ -311,12 +314,13 @@ static void parseConstVariableDeclaration(VM* vm, Parser* parser, Compiler* comp
 
   value = parseConstants(vm, parser, compiler, cc, lexer);
 
-  tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), value);
+  tableInsert(vm, &vm->globals, GC_OBJ_CONST(id), value, true);
 
   consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
 }
 
-static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
+static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i,
+                                  bool isStatic, bool isFinal) {
   uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
 
   if (match(parser, lexer, SENEGAL_EQUAL))
@@ -325,6 +329,8 @@ static void parseFieldDeclaration(VM* vm, Parser* parser, Compiler* compiler, Cl
     writeByte(vm, parser, i, OPCODE_NULL);
 
   consume(parser, lexer, SENEGAL_SEMI, "Senegal expected `;` after variable declaration.");
+
+  writeByte(vm, parser, i, isFinal ? OPCODE_TRUE : OPCODE_FALSE);
   writeShort(vm, parser, i, isStatic ? OPCODE_NEWSTATICFIELD : OPCODE_NEWFIELD, global);
 }
 
@@ -395,8 +401,10 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
         error(parser, &parser->current, "Senegal functions cannot have more than 255 parameters");
       }
 
+      bool isFinal = match(parser, lexer, SENEGAL_FINAL);
+
       uint8_t paramConstant = parseVariable(vm, parser, &compiler, lexer, &compiler.function->instructions, "Senegal expected a parameter name.");
-      defineVariable(vm, parser, &compiler, &compiler.function->instructions, paramConstant);
+      defineVariable(vm, parser, &compiler, &compiler.function->instructions, paramConstant, isFinal);
     } while (match(parser, lexer, SENEGAL_COMMA));
   }
 
@@ -568,7 +576,7 @@ static void parseFunctionDeclaration(VM* vm, Parser* parser, Compiler* compiler,
   markInitialized(compiler);
 
   parseFunction(vm, parser, compiler, cc, lexer, i, TYPE_FUNCTION);
-  defineVariable(vm, parser, compiler, i, global);
+  defineVariable(vm, parser, compiler, i, global, true);
 }
 
 static void parseMethodDeclaration(VM* vm, Parser* parser, Compiler* compiler, ClassCompiler* cc, Lexer* lexer, Instructions* i, bool isStatic) {
@@ -625,7 +633,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   else
     writeShort(vm, parser, i, OPCODE_NEWCLASS, idConst);
 
-  defineVariable(vm, parser, compiler, i, idConst);
+  defineVariable(vm, parser, compiler, i, idConst, true);
 
   ClassCompiler newCC;
   newCC.id = parser->previous;
@@ -643,7 +651,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
 
     startScope(compiler);
     addLocal(parser, compiler, syntheticToken("super"));
-    defineVariable(vm, parser, compiler, i, 0);
+    defineVariable(vm, parser, compiler, i, 0, true);
 
     parseVariableAccess(vm, parser, compiler, cc, lexer, i, classId, false);
     writeByte(vm, parser, i, OPCODE_INHERIT);
@@ -655,6 +663,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
+    bool isFinalField = match(parser, lexer, SENEGAL_FINAL);
     bool isStatic = match(parser, lexer, SENEGAL_STATIC);
 
     if (match(parser, lexer, SENEGAL_FUNCTION)
@@ -663,7 +672,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))
-      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic, isFinalField);
 
     // TODO(Calamity210): parse const
 
@@ -697,16 +706,15 @@ static void parseExtension(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser
   consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after class identifier");
 
   while (!check(parser, SENEGAL_RBRACE) && !check(parser, SENEGAL_EOF)) {
-    bool isStatic = false;
-    if (match(parser, lexer, SENEGAL_STATIC))
-      isStatic = true;
+    bool isFinal = match(parser, lexer, SENEGAL_FINAL);
+    bool isStatic = match(parser, lexer, SENEGAL_STATIC);
 
     if (match(parser, lexer, SENEGAL_FUNCTION)
         || (!isStatic && (check(parser, SENEGAL_ID) && strncmp(newCC.id.start, parser->current.start, newCC.id.length) == 0)))
       parseMethodDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
 
     else if (match(parser, lexer, SENEGAL_VAR))
-      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic);
+      parseFieldDeclaration(vm, parser, compiler, cc, lexer, i, isStatic, isFinal);
 
     else if (match(parser, lexer,  SENEGAL_CONST)) {
       // TODO(Calamity210): parse const
@@ -732,8 +740,8 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
   bool isFinal = match(parser, lexer, SENEGAL_FINAL);
 
   if (isFinal) {
-    if (!check(parser, SENEGAL_CLASS))
-      error(parser, &parser->current, "Senegal expected 'class' after 'final'.");
+    if (!check(parser, SENEGAL_CLASS) && !check(parser, SENEGAL_VAR))
+      error(parser, &parser->current, "Senegal did not expect 'final'.");
   }
 
   if (match(parser, lexer, SENEGAL_CLASS))
@@ -743,7 +751,7 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
   else if (match(parser, lexer, SENEGAL_FUNCTION))
     parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
   else if (match(parser, lexer, SENEGAL_VAR))
-    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i, isFinal);
   else if (match(parser, lexer, SENEGAL_CONST))
     parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
   else
@@ -1437,9 +1445,11 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
 
       consume(parser, lexer, SENEGAL_LPAREN, "Senegal expected for statement to be enclosed in parenthesis.");
 
+      bool isFinal = match(parser, lexer, SENEGAL_FINAL);
+
       // Initializer
       if (match(parser, lexer, SENEGAL_VAR))
-        parseVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+        parseVariableDeclaration(vm, parser, compiler, cc, lexer, i, isFinal);
       else if (match(parser, lexer, SENEGAL_CONST))
         parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
       else if (!match(parser, lexer, SENEGAL_SEMI))
@@ -1528,7 +1538,7 @@ static GCString* allocateString(VM* vm, char* chars, int length, uint32_t hash) 
 
   push(vm, GC_OBJ_CONST(string));
 
-  tableInsert(vm, &vm->strings, GC_OBJ_CONST(string), NULL_CONST);
+  tableInsert(vm, &vm->strings, GC_OBJ_CONST(string), NULL_CONST, true);
 
   pop(vm);
 
