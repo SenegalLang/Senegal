@@ -1,0 +1,9 @@
+switch (9) {
+    case 0:
+    case 1:
+    case 9:
+        println("nine"); // output 9
+
+    default:
+        println("other num");
+}
