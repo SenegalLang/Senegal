@@ -1,0 +1,16 @@
+var i = 2;
+
+enum TestEnum {
+A, B, C, D, E, F
+}
+
+switch (i) {
+    case TestEnum.A:
+        println(1);
+
+    case TestEnum.C:
+        println(2); // output 2
+
+    default:
+        println(3);
+}

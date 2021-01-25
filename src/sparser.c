@@ -621,7 +621,7 @@ static Token syntheticToken(const char* text) {
 }
 
 static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i, bool isFinal) {
-  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `extends` keyword");
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `class` keyword");
 
   Token classId = parser->previous;
   uint8_t idConst = idConstant(vm, parser, compiler, i, &parser->previous);
@@ -692,6 +692,42 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   cc = cc->parent;
 }
 
+static void parseEnum(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
+
+  consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `enum` keyword");
+
+  Token enumId = parser->previous;
+  uint8_t idConst = idConstant(vm, parser, compiler, i, &parser->previous);
+
+  declareVariable(parser, compiler);
+  writeShort(vm, parser, i, OPCODE_NEWFINALCLASS, idConst);
+
+  defineVariable(vm, parser, compiler, i, idConst, true);
+  parseVariableAccess(vm, parser, compiler, cc, lexer, i, enumId, false);
+
+  consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` after enum identifier");
+
+  int enumIndex = 0;
+  do {
+    if (check(parser, SENEGAL_ID)) {
+      uint8_t global = parseVariable(vm, parser, compiler, lexer, i, "Senegal expected an identifier.");
+
+      writeLoad(vm, parser, compiler, i, NUM_CONST(enumIndex));
+      writeByte(vm, parser, i, OPCODE_FALSE);
+      writeShort(vm, parser, i,  OPCODE_NEWSTATICFIELD, global);
+    } else {
+      advance(parser, lexer);
+      error(parser, &parser->previous, "Expected an identifier in enum body.");
+      break;
+    }
+
+    enumIndex++;
+  } while (match(parser, lexer, SENEGAL_COMMA));
+
+  consume(parser, lexer, SENEGAL_RBRACE, "Senegal expected `}` after enum body");
+  writeByte(vm, parser, i, OPCODE_POP);
+}
+
 static void parseExtension(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
   consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `extension` keyword");
 
@@ -744,18 +780,42 @@ void parseDeclarationOrStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, 
       error(parser, &parser->current, "Senegal did not expect 'final'.");
   }
 
-  if (match(parser, lexer, SENEGAL_CLASS))
-    parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
-  else if (match(parser, lexer, SENEGAL_ENHANCE))
-    parseExtension(vm, compiler, cc, parser, lexer, i);
-  else if (match(parser, lexer, SENEGAL_FUNCTION))
-    parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
-  else if (match(parser, lexer, SENEGAL_VAR))
-    parseVariableDeclaration(vm, parser, compiler, cc, lexer, i, isFinal);
-  else if (match(parser, lexer, SENEGAL_CONST))
-    parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
-  else
-    parseStatement(vm, compiler, cc, parser, lexer, i);
+  switch (parser->current.type) {
+    case SENEGAL_CLASS:
+      advance(parser, lexer);
+      parseClassDeclaration(vm, compiler, cc, parser, lexer, i, isFinal);
+      break;
+
+    case SENEGAL_CONST:
+      advance(parser, lexer);
+      parseConstVariableDeclaration(vm, parser, compiler, cc, lexer, i);
+      break;
+
+    case SENEGAL_ENHANCE:
+      advance(parser, lexer);
+      parseExtension(vm, compiler, cc, parser, lexer, i);
+      break;
+
+    case SENEGAL_ENUM: {
+      advance(parser, lexer);
+      parseEnum(vm, compiler, cc, parser, lexer, i);
+      break;
+    }
+
+    case SENEGAL_FUNCTION:
+      advance(parser, lexer);
+      parseFunctionDeclaration(vm, parser, compiler, cc, lexer, i);
+      break;
+
+    case SENEGAL_VAR:
+      advance(parser, lexer);
+      parseVariableDeclaration(vm, parser, compiler, cc, lexer, i, isFinal);
+      break;
+
+    default:
+      parseStatement(vm, compiler, cc, parser, lexer, i);
+      break;
+  }
 
   if (parser->panic)
     sync(parser, lexer);

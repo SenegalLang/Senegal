@@ -1,0 +1,5 @@
+enum TestEnum {
+A, B, C, D, E, F
+}
+
+println(TestEnum.E); // output 4
