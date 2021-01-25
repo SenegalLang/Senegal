@@ -192,6 +192,7 @@ int main(int argc, char* argv[]) {
         return 0;
       } else if (!strcmp(argv[i], "--args")) {
         argsStart = i + 1;
+        break;
       } else if (!strcmp(argv[i], "--path")) {
         if (!senegalPath)
           senegalPath = argv[i+1];
