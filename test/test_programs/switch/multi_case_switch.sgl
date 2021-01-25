@@ -1,8 +1,8 @@
 switch (9) {
-    case 0:
+    case 0: // why? idk
     case 1:
     case 9:
-        println("nine"); // output 9
+        println("nine"); // output nine
 
     default:
         println("other num");
