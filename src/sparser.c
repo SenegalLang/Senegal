@@ -692,6 +692,7 @@ static void parseClassDeclaration(VM* vm, Compiler* compiler, ClassCompiler* cc,
   cc = cc->parent;
 }
 
+// TODO(Calamity210): Create enum object rather than creating static fields on a class
 static void parseEnum(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parser, Lexer* lexer, Instructions* i) {
 
   consume(parser, lexer, SENEGAL_ID, "Senegal expected an identifier after `enum` keyword");
