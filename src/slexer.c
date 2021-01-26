@@ -534,8 +534,7 @@ Token getNextToken(Lexer *lexer) {
                              SENEGAL_PLUS_PLUS : match(lexer, '=') ? SENEGAL_PLUS_EQUAL : SENEGAL_PLUS);
 
     case '%':
-      return newToken(lexer, match(lexer, '%') ?
-                             SENEGAL_PLUS_PLUS : match(lexer, '=') ? SENEGAL_MOD_EQUAL : SENEGAL_MOD);
+      return newToken(lexer, match(lexer, '=') ? SENEGAL_MOD_EQUAL : SENEGAL_MOD);
 
     case '?':
       return newToken(lexer, SENEGAL_QUESTION);
@@ -561,10 +560,12 @@ Token getNextToken(Lexer *lexer) {
                              SENEGAL_EQUAL_EQUAL : match(lexer, '>') ? SENEGAL_EQUAL_GREATER : SENEGAL_EQUAL);
 
     case '<':
-      return newToken(lexer, match(lexer, '=') ? SENEGAL_LESSER_EQUAL : match(lexer, '|') ? SENEGAL_PIPELINE : SENEGAL_LESSER);
+      return newToken(lexer, match(lexer, '<') ? SENEGAL_LESSER_LESSER :
+                      match(lexer, '=') ? SENEGAL_LESSER_EQUAL :
+                      match(lexer, '|') ? SENEGAL_PIPELINE : SENEGAL_LESSER);
 
     case '>':
-      return newToken(lexer, match(lexer, '=') ? SENEGAL_GREATER_EQUAL : SENEGAL_GREATER);
+      return newToken(lexer, match(lexer, '>') ? SENEGAL_GREATER_GREATER : match(lexer, '=') ? SENEGAL_GREATER_EQUAL : SENEGAL_GREATER);
 
     case '|':
       return newToken(lexer, match(lexer, '|') ? SENEGAL_PIPE_PIPE : SENEGAL_PIPE);
