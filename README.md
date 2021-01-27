@@ -14,6 +14,27 @@
 </code>
 </pre>
 
+[![Build Status][build-badge]][build]
+[![docs master][docs-master-badge]][docs-master]
+[![MIT/Apache][licence-badge]][license]
+[![Join us on Discord][discord-badge]][discord]
+![Lines of Code][lines-of-code-badge]
+
+[build-badge]: https://img.shields.io/github/workflow/status/SenegalLang/Senegal/Senegal%20Tests%20Linux
+[build]: https://github.com/SenegalLang/Senegal/actions
+
+[docs-master-badge]: https://img.shields.io/badge/docs-master-blue.svg
+[docs-master]: https://lang-senegal.web.app/
+
+[licence-badge]: https://img.shields.io/badge/license-MIT-blue
+[license]: LICENSE
+
+[discord-badge]: https://img.shields.io/discord/733507194560970783.svg?logo=discord
+[discord]: https://discord.gg/9dq6YB2
+
+[lines-of-code-badge]: https://tokei.rs/b1/github/SenegalLang/Senegal?category=code
+
+
 Senegal is a powerful, small-but-fast, concurrent, class-based, and dynamically-typed programming language with a modern syntax.
 
 ## Sample Senegal Program
