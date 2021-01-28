@@ -98,12 +98,12 @@ static Constant sglWriteBytesFile(VM* vm, int arity, Constant* args) {
 }
 
 static Constant sglWriteStringFile(VM* vm, int arity, Constant* args) {
-  expect(2, arity, "writeBytes(file, String)");
+  expect(2, arity, "writeString(file, String)");
 
   GCFile* file = AS_FILE(args[0]);
   char* buffer = AS_CSTRING(args[1]);
 
-  return NUM_CONST(fwrite(buffer, sizeof(buffer[0]), strlen(buffer), file->file));
+  return NUM_CONST(fprintf(file->file, "%s", buffer));
 }
 
 Constant initFileLib(VM* vm, int arity, Constant* args) {

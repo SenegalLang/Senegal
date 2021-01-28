@@ -56,7 +56,6 @@ char* readFile(FILE* file) {
 
   buffer[bytesRead] = '\0';
 
-  fclose(file);
   return buffer;
 }
 
