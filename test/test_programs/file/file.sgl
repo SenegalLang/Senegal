@@ -2,9 +2,15 @@ import 'sgl:file'
 
 println(File.exists(Directory.current + '/test_programs/file/file_read_test.sgl')); // output true
 
-var file = File.open(Directory.current + '/test_programs/file/file_read_test.sgl', 'r+');
-File.write(file, ';');
+var file = File.open(Directory.current + '/test_programs/file/file_read_test.sgl', 'a+');
+File.writeString(file, ' 1 + 1;');
 
 var content = File.read(file);
 
-println(content); // output var string = "foo";
+println(content); // output var string = "foo"; 1 + 1;
+
+File.close(file);
+
+file = File.open(Directory.current + '/test_programs/file/file_read_test.sgl', 'w');
+File.writeString(file, 'var string = "foo";');
+File.close(file);
