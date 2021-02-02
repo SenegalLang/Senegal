@@ -1432,6 +1432,7 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
             prevCaseSkip = writeJMP(vm, parser, i, OPCODE_JF);
 
             writeByte(vm, parser, i, OPCODE_POP);
+            writeByte(vm, parser, i, OPCODE_POP);
           } else {
             state = 2;
             consume(parser, lexer, SENEGAL_COLON, "Senegal expected ':' after 'default'.");
@@ -1450,9 +1451,8 @@ void parseStatement(VM* vm, Compiler* compiler, ClassCompiler* cc, Parser* parse
         writeByte(vm, parser, i, OPCODE_POP);
       }
 
-      for (int j = 0; j < caseCount; j++) {
+      for (int j = 0; j < caseCount; j++)
         patchJMP(parser, i, caseJmps[j]);
-      }
 
       writeByte(vm, parser, i, OPCODE_POP);
       break;

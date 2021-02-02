@@ -1,0 +1,9 @@
+switch (3) {
+    case 2:
+        println(234);
+
+    case 3: {
+        var i = 2;
+        println(i); // output 2
+    }
+}

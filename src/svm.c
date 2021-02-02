@@ -676,8 +676,9 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
     CASE(OPCODE_EQUAL): {
       Constant b = POP();
-      Constant c = BOOL_CONST(areEqual(POP(), b));
-      PUSH(c);
+      Constant c = POP();
+      Constant res = BOOL_CONST(areEqual(c, b));
+      PUSH(res);
       DISPATCH();
     }
 
@@ -1507,8 +1508,8 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
 
   CASE(OPCODE_RET): {
     Constant result = POP();
-    vm->coroutine->frameCount--;
 
+    vm->coroutine->frameCount--;
     closeUpvalues(vm, frame->constants);
 
     if (vm->coroutine->frameCount == 0) {

@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     if (!access(execPath, F_OK)) {
       senegalPath = malloc(dirLen - 3);
       memcpy(senegalPath, dir, dirLen - 4); // bin
-      senegalPath[dirLen] = '\0';
+      senegalPath[dirLen - 4] = '\0';
       break;
     }
   }
