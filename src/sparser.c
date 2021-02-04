@@ -411,7 +411,23 @@ static void parseFunction(VM* vm, Parser* parser, Compiler* oldCompiler, ClassCo
   consume(parser, lexer, SENEGAL_RPAREN, "Senegal expected `)` after function arguments.");
 
   if (check(parser, SENEGAL_EQUAL_GREATER)) {
-    parseReturn(vm, parser, &compiler, cc, lexer);
+    advance(parser, lexer);
+
+    if (compiler.type == PROGRAM) {
+      error(parser, &parser->previous, "Senegal can't return from a global scope.");
+    }
+
+    if (match(parser, lexer, SENEGAL_SEMI)) {
+      writeRetByte(vm, &compiler, parser, &compiler.function->instructions);
+    } else {
+      if (compiler.type == CONSTRUCTOR)
+        error(parser, &parser->previous, "Senegal cannot return from a constructor.");
+
+      parseExpression(vm, parser, &compiler, cc, lexer, &compiler.function->instructions);
+
+      match(parser, lexer, SENEGAL_SEMI);
+      writeByte(vm, parser, &compiler.function->instructions, OPCODE_RET);
+    }
   } else {
     consume(parser, lexer, SENEGAL_LBRACE, "Senegal expected `{` before function body.");
     parseBlock(vm, &compiler, cc, parser, lexer, &compiler.function->instructions);
