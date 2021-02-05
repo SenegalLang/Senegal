@@ -9,28 +9,29 @@ module.exports = {
         'concurrency',
         'cimport',
         'enhance',
+        'keywords',
         'operators',
         'pipeline',
-            {
-                Core: [
-                    'Core/bool',
-                    'Core/coroutine',
-                    'Core/list',
-                    'Core/map',
-                    'Core/num',
-                    'Core/string'
-                ]
-            },
-        ],
-      },
         {
-         type: 'category',
-         label: 'Contribute',
-         items: [
-            'Contribute/style',
-            'Contribute/tree_hygiene',
-            'Contribute/contributing',
-         ],
+            Core: [
+                'Core/bool',
+                'Core/coroutine',
+                'Core/list',
+                'Core/map',
+                'Core/num',
+                'Core/string'
+            ]
         },
+    ],
+  },
+    {
+     type: 'category',
+     label: 'Contribute',
+     items: [
+        'Contribute/style',
+        'Contribute/tree_hygiene',
+        'Contribute/contributing',
+     ],
+    },
     ]
 };

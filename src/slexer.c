@@ -305,7 +305,6 @@ static Token collectNumber(Lexer* lexer) {
     return newToken(lexer, SENEGAL_HEX);
   }
 
-
   while (isdigit((peek(lexer))))
     advance(lexer);
 
