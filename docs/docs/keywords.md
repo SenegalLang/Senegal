@@ -66,7 +66,7 @@ println(ClassWithInstanceVariables().variable2); // 10
 ### Methods
 ```js
 class ClassWithMethods {
-    function ClassWithMethods() {
+    function printClassName() {
         println('ClassWithMethods');
     }
 }
