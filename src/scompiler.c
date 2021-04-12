@@ -153,14 +153,10 @@ void initCompiler(VM* vm, Parser* parser,Compiler* old, Compiler* compiler, Func
 // setting the compiler to its parent and returning the compiler's function.
 GCFunction* endCompilation(VM* vm, Compiler* compiler, Parser* parser, Instructions* instructions) {
   writeRetByte(vm, compiler, parser, instructions);
+
   GCFunction* function = compiler->function;
-
-#if DEBUG_PRINT_CODE
-  if (!parser->hasError)
-    disassembleInstructions(&compiler->function->instructions, function->id != NULL ? function->id->chars : "global");
-#endif
-
   compiler = compiler->parent;
+
   return function;
 }
 

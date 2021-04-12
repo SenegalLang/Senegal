@@ -1434,11 +1434,9 @@ register CallFrame* frame = &vm->coroutine->frames[vm->coroutine->frameCount - 1
     DISPATCH();
   }
 
-  CASE(OPCODE_NULL): {
-    Constant c = NULL_CONST;
-    PUSH(c);
+  CASE(OPCODE_NULL):
+    PUSH(NULL_CONST);
     DISPATCH();
-  }
 
   CASE(OPCODE_SUSPEND):
     return OK;

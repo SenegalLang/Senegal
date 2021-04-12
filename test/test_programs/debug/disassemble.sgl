@@ -1,0 +1,18 @@
+import 'sgl:debug'
+
+function foo() {
+    var x = 0;
+    var y = 1;
+
+    return x;
+}
+
+disassemble(foo);
+// ignore
+// ignore
+// ignore
+// ignore
+// ignore
+// ignore
+// ignore
+// ignore

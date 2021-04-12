@@ -15,7 +15,7 @@ file(GLOB src "*/*.h" "*/*.c")
 # Generate a shared library if need be
 add_library(senegallib SHARED ${src})
 
-add_executable(senegal ${src} src/includes/sgcobject.h)
+add_executable(senegal ${src} src/includes/sgcobject.h libs/includes/sdebuglib.h libs/sdebuglib.c)
 
 if (WIN32)
 	set(SENEGAL_EXEC senegal.exe)

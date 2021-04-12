@@ -16,6 +16,7 @@
 #include "../libs/includes/sfilelib.h"
 #include "../core/includes/sapi.h"
 #include "includes/sgcobject_utils.h"
+#include "../libs/includes/sdebuglib.h"
 
 static void repl(VM* vm, char* senegalPath) {
   printf(SENEGAL_REPL);
@@ -100,18 +101,17 @@ static GCString* newPathString(VM* vm, char* path) {
   return copyString(vm, NULL, path, (int)strlen(path));
 }
 
+static void addNativeLib(VM* vm, char* name, NativeFunc func) {
+  tableInsert(vm, &vm->corePaths,
+              GC_OBJ_CONST(copyString(vm, NULL, name, strlen(name))),
+              GC_OBJ_CONST(newNative(vm, func)), true);
+}
+
 static void addPaths(VM* vm) {
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:math", 8)),
-              GC_OBJ_CONST(newNative(vm, initMathLib)), true);
-
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:io", 6)),
-              GC_OBJ_CONST(newNative(vm, initIoLib)), true);
-
-  tableInsert(vm, &vm->corePaths,
-              GC_OBJ_CONST(copyString(vm, NULL, "sgl:file", 8)),
-              GC_OBJ_CONST(newNative(vm, initFileLib)), true);
+  addNativeLib(vm, "sgl:math", initMathLib);
+  addNativeLib(vm, "sgl:io", initIoLib);
+  addNativeLib(vm, "sgl:file", initFileLib);
+  addNativeLib(vm, "sgl:debug", initDebugLib);
 }
 
 static void defineArgv(VM* vm, int argc, char* argv[]) {
