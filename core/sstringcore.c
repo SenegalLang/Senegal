@@ -3,6 +3,7 @@
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
 #include "includes/slistcore.h"
+#include "../src/includes/sgcobject_utils.h"
 
 static Constant stringFromByte(VM* vm, int arity, Constant *args) {
   expect(1, arity, "fromByte");

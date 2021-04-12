@@ -1,6 +1,7 @@
 #include "includes/sboolcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
+#include "../src/includes/sgcobject_utils.h"
 
 static Constant boolAsNum(VM* vm, int arity, Constant *args) {
   expect(0, arity, "asNum");

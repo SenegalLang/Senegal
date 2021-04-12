@@ -4,6 +4,7 @@
 #include "../src/includes/sparser.h"
 #include "includes/sfilelib.h"
 #include "../src/includes/smemory.h"
+#include "../src/includes/sgcobject_utils.h"
 
 GCClass* ioFileClass;
 

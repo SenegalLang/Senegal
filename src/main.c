@@ -15,6 +15,7 @@
 #include "../libs/includes/siolib.h"
 #include "../libs/includes/sfilelib.h"
 #include "../core/includes/sapi.h"
+#include "includes/sgcobject_utils.h"
 
 static void repl(VM* vm, char* senegalPath) {
   printf(SENEGAL_REPL);

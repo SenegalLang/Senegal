@@ -1,6 +1,7 @@
 #include "includes/scorocore.h"
 #include "../core/includes/sapi.h"
 #include "../src/includes/sparser.h"
+#include "../src/includes/sgcobject_utils.h"
 
 static Constant sglNewCoroutine(VM* vm, int arity, Constant* args) {
   expect(1, arity, "Coroutine");

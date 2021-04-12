@@ -71,27 +71,10 @@ void initVM(VM* vm) {
   defineGlobal(vm, "List", GC_OBJ_CONST(vm->listClass));
 }
 
-static void resetStack(GCCoroutine* coroutine) {
-  coroutine->stackTop = coroutine->stack;
-  coroutine->frameCount = 0;
-  coroutine->openUpvalues = NULL;
-}
-
-GCCoroutine* newCoroutine(VM* vm, CoroutineState state, GCClosure* closure) {
-  GCCoroutine* coroutine = ALLOCATE_GC_OBJ(vm, GCCoroutine, GC_COROUTINE);
-  coroutine->state = state;
-  coroutine->caller = NULL;
-  coroutine->error = NULL;
-  resetStack(coroutine);
-
-  if (closure) {
-    CallFrame* frame = &coroutine->frames[coroutine->frameCount++];
-    frame->closure = closure;
-    frame->pc = closure->function->instructions.bytes;
-    push(vm, GC_OBJ_CONST(closure));
-  }
-
-  return coroutine;
+GCNative* newNative(VM* vm, NativeFunc function) {
+  GCNative* nativeFunc = ALLOCATE_GC_OBJ(vm, GCNative, GC_NATIVE);
+  nativeFunc->function = function;
+  return nativeFunc;
 }
 
 static Constant peek(VM* vm, int topDelta) {
@@ -1571,94 +1554,4 @@ void push(VM* vm, Constant constant) {
 
 Constant pop(VM* vm) {
   return *(vm->coroutine->stackTop--);
-}
-
-GCClass* newClass(VM *vm, GCString *id, bool isFinal) {
-  GCClass* class = ALLOCATE_GC_OBJ(vm, GCClass, GC_CLASS);
-  class->id = id;
-  class->isFinal = isFinal;
-
-  initTable(&class->methods);
-  initTable(&class->fields);
-  initTable(&class->staticMethods);
-  initTable(&class->staticFields);
-
-  // Define type for class
-  defineClassNativeField(vm, "type", GC_OBJ_CONST(id), class);
-
-  return class;
-}
-
-GCClosure* newClosure(VM *vm, GCFunction *function) {
-  GCUpvalue** upvalues = ALLOCATE(vm, NULL, GCUpvalue*, function->upvalueCount);
-
-  for (int i = 0; i < function->upvalueCount; i++) {
-    upvalues[i] = NULL;
-  }
-
-  GCClosure* closure = ALLOCATE_GC_OBJ(vm, GCClosure, GC_CLOSURE);
-  closure->function = function;
-
-  closure->upvalues = upvalues;
-  closure->upvalueCount = function->upvalueCount;
-
-  return closure;
-}
-
-GCFunction* newFunction(VM* vm) {
-  GCFunction* function = ALLOCATE_GC_OBJ(vm, GCFunction, GC_FUNCTION);
-  function->arity = 0;
-  function->upvalueCount = 0;
-  function->id = NULL;
-  initInstructions(&function->instructions);
-  return function;
-}
-
-GCInstance* newInstance(VM* vm, GCClass* class) {
-  GCInstance* instance = ALLOCATE_GC_OBJ(vm, GCInstance, GC_INSTANCE);
-
-  instance->class = class;
-
-  return instance;
-}
-
-GCInstanceMethod* newInstanceMethod(VM* vm, Constant receiver, GCClosure* method) {
-  GCInstanceMethod* im = ALLOCATE_GC_OBJ(vm, GCInstanceMethod, GC_INSTANCE_METHOD);
-  im->receiver = receiver;
-  im->method = method;
-  return im;
-}
-
-GCNative* newNative(VM* vm, NativeFunc function) {
-  GCNative* nativeFunc = ALLOCATE_GC_OBJ(vm, GCNative, GC_NATIVE);
-  nativeFunc->function = function;
-  return nativeFunc;
-}
-
-GCUpvalue* newUpvalue(VM *vm, Constant *constant) {
-  GCUpvalue* upvalue = ALLOCATE_GC_OBJ(vm, GCUpvalue, GC_UPVALUE);
-  upvalue->place = constant;
-  upvalue->closed = NULL_CONST;
-  upvalue->next = NULL;
-
-  return upvalue;
-}
-
-GCList* newList(VM *vm, int length) {
-  GCList* list = ALLOCATE_GC_OBJ(vm, GCList, GC_LIST);
-
-  list->elements = ALLOCATE(vm, NULL, Constant, length);
-  list->elementC = 0;
-
-  list->listCurrentCap = 0;
-  GROW_CAP(list->listCurrentCap);
-
-  return list;
-}
-
-GCMap* newMap(VM *vm) {
-  GCMap* map = ALLOCATE_GC_OBJ(vm, GCMap, GC_MAP);
-  initTable(&map->table);
-
-  return map;
 }

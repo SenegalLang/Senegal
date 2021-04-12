@@ -8,6 +8,7 @@
 #include "includes/smemory.h"
 #include "includes/stable_utils.h"
 #include "includes/sloadclib.h"
+#include "includes/sgcobject_utils.h"
 
 #if DEBUG_PRINT_CODE
 #include "includes/sdebug.h"

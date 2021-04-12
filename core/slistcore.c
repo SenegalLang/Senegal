@@ -3,6 +3,7 @@
 #include "includes/sapi.h"
 #include "../src/includes/smemory.h"
 #include "../src/includes/scompiler.h"
+#include "../src/includes/sgcobject_utils.h"
 
 static Constant listNew(VM* vm, int arity, Constant* args) {
   expect(1, arity, "List constructor");

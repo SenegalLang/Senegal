@@ -4,6 +4,7 @@
 #include "includes/snumcore.h"
 #include "../src/includes/sparser.h"
 #include "includes/sapi.h"
+#include "../src/includes/sgcobject_utils.h"
 
 //#define NAN (0.0 / 0.0)
 #define INF (1.0 / 0.0)
