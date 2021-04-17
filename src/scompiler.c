@@ -16,6 +16,7 @@
 
 #ifdef _WIN32
 #define PATH_SEPARATOR "\\"
+#define realpath(real, ab) _fullpath(ab, real, 4097)
 #else
 #define PATH_SEPARATOR "/"
 #endif

@@ -34,7 +34,7 @@ Constant sysSym(VM* vm, void* lib, const char* sym) {
   return GC_OBJ_CONST(c);
 }
 
-#elif
+#else
 #include <windows.h>
 
 static void sglThrow() {
@@ -52,7 +52,7 @@ void sysUnloadLib(void* lib) {
   FreeLibrary((HMODULE)lib);
 }
 
-void* sysLoad(VM* vm, const char* path, int seeglb) {
+void* sysLoad(const char* path, int seeglb) {
   HMODULE lib = LoadLibraryExA(path, NULL, 0);
   (void)(seeglb);
   if (!lib)
@@ -62,7 +62,7 @@ void* sysLoad(VM* vm, const char* path, int seeglb) {
 }
 
 Constant sysSym(VM* vm, void* lib, const char* sym) {
-   GCNative* c = newNative(vm, GetProcAddress((HMODULE)lib, sym));
+   GCNative* c = newNative(vm, (NativeFunc)GetProcAddress((HMODULE)lib, sym));
 
   if (!c)
     sglThrow();
