@@ -47,7 +47,7 @@ Now generate a shared library from this. For simplicity's sake, we'll call it `a
 To use this within senegal, import the library as such:
 ```js
 // This assumes that addNums.so is in the same directory as this file.
-cimport 'addNums.so'
+cimport 'addNums'
 
 println(addNums(10, 5)); // Should print 15.
 ```
